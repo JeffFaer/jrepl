@@ -56,8 +56,8 @@ annotationTypeDeclaration
     ;
 
 type
-    : basicType (L_BRACKET R_BRACKET)*
-    | referenceType (L_BRACKET R_BRACKET)*
+    : basicType
+    | referenceType
     ;
 
 basicType
@@ -153,7 +153,7 @@ elementValuePair
 
 elementValue
     : annotation
-    | expression1
+    | expression
     | elementValueArrayInitializer
     ;
 
@@ -324,16 +324,20 @@ blockStatement
     | classOrInterfaceDeclaration
     | (Identifier COLON)? statement
     ;
-
+    
 localVariableDeclarationStatement
-    : (variableModifier)* type variableDeclarators SEMI
+    : localVariableDeclaration SEMI
+    ;
+    
+localVariableDeclaration
+    : (variableModifier)* type variableDeclarators
     ;
 
 statement
     : block
     | SEMI
     | Identifier COLON statement
-    | statementExpression SEMI
+    | expression SEMI
     | IF parExpression statement (ELSE statement)?
     | ASSERT expression (COLON expression)? SEMI
     | SWITCH parExpression L_CURLY switchBlockStatementGroups R_CURLY
@@ -347,10 +351,6 @@ statement
     | SYNCHRONIZED parExpression block
     | TRY block (catches | (catches)? finall)
     | TRY resourceSpecification block (catches)? (finall)?
-    ;
-
-statementExpression
-    : expression
     ;
 
 catches
@@ -409,59 +409,47 @@ forControl
     ;
 
 forVarControl
-    : (variableModifier)* type variableDeclaratorId forVarControlRest
-    ;
-
-forVarControlRest
-    : forVariableDeclaratorsRest SEMI (expression)? SEMI (forUpdate)?
-    | COLON expression
-    ;
-
-forVariableDeclaratorsRest
-    : (ASSIGN variableInitializer)? (COMMA variableDeclarator)*
+    : (variableModifier)* type variableDeclaratorId COLON expression
     ;
 
 forInit
-    : statementExpression (COMMA statementExpression)*
+    : localVariableDeclaration
+    | expressionList
     ;
 
 forUpdate
-    : statementExpression (COMMA statementExpression)*
+    : expressionList
     ;
-
+    
+expressionList
+    : expression (COMMA expression)*
+    ;
+    
 expression
-    : expression1 (assignmentOperator expression1)*
-    ;
-
-assignmentOperator
-    : ASSIGN
-    | PLUS_ASSIGN
-    | MINUS_ASSIGN
-    | MULT_ASSIGN
-    | DIV_ASSIGN
-    | AND_ASSIGN
-    | OR_ASSIGN
-    | XOR_ASSIGN
-    | MOD_ASSIGN
-    | L_SHIFT_ASSIGN
-    | R_SHIFT_ASSIGN
-    | UR_SHIFT_ASSIGN
-    ;
-
-expression1
-    : expression2 (expression1Rest)?
-    ;
-
-expression1Rest
-    : QUES expression COLON expression1
-    ;
-
-expression2
-    : expression3 (expression2Rest)?
-    ;
-
-expression2Rest
-    : (INSTANCEOF type)? (infixOp expression2)*
+    : primary
+    | expression selector
+    | expression arguments
+    | L_PARENS type R_PARENS expression
+    | expression postfixOp
+    | prefixOp expression
+    | expression infixOp expression
+    | expression INSTANCEOF type
+    | expression QUES expression COLON expression
+    | expression
+      (   ASSIGN<assoc=right>
+      |   PLUS_ASSIGN<assoc=right>
+      |   MINUS_ASSIGN<assoc=right>
+      |   MULT_ASSIGN<assoc=right>
+      |   DIV_ASSIGN<assoc=right>
+      |   AND_ASSIGN<assoc=right>
+      |   OR_ASSIGN<assoc=right>
+      |   XOR_ASSIGN<assoc=right>
+      |   L_SHIFT_ASSIGN<assoc=right>
+      |   R_SHIFT_ASSIGN<assoc=right>
+      |   UR_SHIFT_ASSIGN<assoc=right>
+      |   MOD_ASSIGN<assoc=right>
+      )
+      expression
     ;
 
 infixOp
@@ -482,12 +470,6 @@ infixOp
     | MULT
     | DIV
     | MOD
-    ;
-
-expression3
-    : prefixOp expression3
-    | L_PARENS (expression | type) R_PARENS expression3
-    | primary (selector)* (postfixOp)*
     ;
 
 prefixOp
@@ -511,8 +493,8 @@ primary
     | SUPER superSuffix
     | NEW creator
     | nonWildcardTypeArguments (explicitGenericInvocationSuffix | THIS arguments)
-    | Identifier (DOT Identifier)* (identifierSuffix)?
-    | basicType (L_BRACKET R_BRACKET)* DOT CLASS
+    | Identifier
+    | type DOT CLASS
     | VOID DOT CLASS
     ;
 
@@ -530,7 +512,7 @@ parExpression
     ;
 
 arguments
-    : L_PARENS (expression (COMMA expression)*)? R_PARENS
+    : L_PARENS expressionList? R_PARENS
     ;
 
 superSuffix
