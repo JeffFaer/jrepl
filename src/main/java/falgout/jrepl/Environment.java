@@ -1,65 +1,56 @@
 package falgout.jrepl;
 
-import static falgout.jrepl.antlr4.ParseTreeUtils.getChildren;
-
-import java.io.CharArrayWriter;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.DefaultErrorStrategy;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.atn.PredictionMode;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.antlr.v4.runtime.tree.ErrorNode;
-
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
+import com.google.common.io.ByteSource;
 import com.google.common.reflect.TypeToken;
 
-import falgout.jrepl.antlr4.WriterErrorListener;
-import falgout.jrepl.parser.JavaLexer;
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.BlockStatementContext;
-import falgout.jrepl.parser.JavaParser.BlockStatementsContext;
-import falgout.jrepl.parser.JavaParser.ClassOrInterfaceDeclarationContext;
-import falgout.jrepl.parser.JavaParser.LocalVariableDeclarationContext;
-import falgout.jrepl.parser.JavaParser.LocalVariableDeclarationStatementContext;
-import falgout.jrepl.parser.JavaParser.StatementContext;
+import falgout.jrepl.command.Command;
+import falgout.jrepl.command.JavaCommand;
 
 public class Environment {
-    private static final List<Method> PARSE_ORDER;
-    static {
-        List<Method> m = new ArrayList<>();
-        for (String name : new String[] { "classOrInterfaceDeclaration", "blockStatements", "classBodyDeclaration" }) {
-            try {
-                m.add(JavaParser.class.getMethod(name));
-            } catch (NoSuchMethodException e) {
-                throw new Error(e);
-            }
-        }
-        PARSE_ORDER = Collections.unmodifiableList(m);
-    }
+    private final BufferedReader in;
+    private final PrintWriter out;
+    private final PrintWriter err;
+    
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
     
-    public Environment() {}
+    public Environment(InputStream in, OutputStream out, OutputStream err) {
+        this(new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(out));
+    }
+    
+    public Environment(Reader in, Writer out, Writer err) {
+        this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
+        this.out = createPrintWriter(out);
+        this.err = createPrintWriter(err);
+    }
+    
+    private PrintWriter createPrintWriter(Writer w) {
+        return w instanceof PrintWriter ? (PrintWriter) w : new PrintWriter(w, true);
+    }
+    
+    public BufferedReader getInput() {
+        return in;
+    }
+    
+    public PrintWriter getOutput() {
+        return out;
+    }
+    
+    public PrintWriter getError() {
+        return err;
+    }
     
     public <T> T get(String variableName, TypeToken<T> type) {
         Variable<?> var = variables.get(variableName);
@@ -80,140 +71,21 @@ public class Environment {
         return ret;
     }
     
-    public void execute(String input, OutputStream out, OutputStream err) throws IOException {
-        execute(input, new OutputStreamWriter(out), new OutputStreamWriter(err));
-    }
-    
-    public void execute(String input, Writer out, Writer err) throws IOException {
+    public void execute(String input) throws IOException {
         try {
-            ParserRuleContext ctx = parse(input, err);
-            if (ctx == null) {
+            Command c = JavaCommand.getCommand(input, err);
+            if (c == null) {
                 return;
             }
-            
-            if (ctx instanceof ClassOrInterfaceDeclarationContext) {
-                // TODO off to the compiler with you!
-            } else if (ctx instanceof BlockStatementsContext) {
-                for (BlockStatementContext b : ((BlockStatementsContext) ctx).blockStatement()) {
-                    LocalVariableDeclarationStatementContext local = b.localVariableDeclarationStatement();
-                    if (local != null) {
-                        evaluate(local.localVariableDeclaration());
-                    } else {
-                        evaluate(b.statement());
-                    }
-                }
-                // localVariableDeclarations or
-                // statements
-            } else {
-                // classBodyDeclaration:
-                // method
-                // voidMethod
-                // block
-                // TODO filter out constructors
-            }
-            
+            c.execute(this);
         } finally {
             out.flush();
             err.flush();
         }
     }
     
-    private void evaluate(LocalVariableDeclarationContext localVariableDeclaration) {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    private void evaluate(StatementContext statement) {
-        Objects.requireNonNull(statement);
-        // TODO
-        throw new RuntimeException("Not yet implemented");
-    }
-    
-    private ParserRuleContext parse(String input, Writer err) throws IOException {
-        JavaLexer lex = new JavaLexer(new ANTLRInputStream(input));
-        final JavaParser parser = new JavaParser(new CommonTokenStream(lex));
-        parser.removeErrorListeners();
-        
-        ParserRuleContext ctx = stageOne(parser);
-        if (ctx == null) {
-            ctx = stageTwo(parser, err);
-        }
-        
-        return ctx;
-    }
-    
-    private ParserRuleContext tryParse(JavaParser parse, Predicate<? super ParserRuleContext> ret) {
-        for (Method m : PARSE_ORDER) {
-            ParserRuleContext ctx = null;
-            try {
-                ctx = (ParserRuleContext) m.invoke(parse);
-            } catch (IllegalAccessException e) {
-                throw new Error(e);
-            } catch (InvocationTargetException e) {
-                Throwable t = e.getCause();
-                if (!(t instanceof RecognitionException) && !(t instanceof ParseCancellationException)) {
-                    throw new Error(e);
-                }
-            }
-            
-            if (ctx != null && ret.apply(ctx)) {
-                return ctx;
-            }
-            
-            parse.reset();
-        }
-        
-        return null;
-    }
-    
-    private ParserRuleContext stageOne(JavaParser parse) {
-        parse.getInterpreter().setPredictionMode(PredictionMode.SLL);
-        parse.setErrorHandler(new BailErrorStrategy());
-        
-        return tryParse(parse, Predicates.alwaysTrue());
-    }
-    
-    private ParserRuleContext stageTwo(JavaParser parse, Writer err) throws IOException {
-        parse.getInterpreter().setPredictionMode(PredictionMode.LL);
-        parse.setErrorHandler(new DefaultErrorStrategy());
-        
-        final CharArrayWriter sink = new CharArrayWriter();
-        parse.addErrorListener(new WriterErrorListener(sink));
-        
-        final Set<String> errors = new LinkedHashSet<>();
-        final AtomicInteger min = new AtomicInteger(Integer.MAX_VALUE);
-        
-        ParserRuleContext ctx = tryParse(parse, new Predicate<ParserRuleContext>() {
-            @Override
-            public boolean apply(ParserRuleContext input) {
-                int numErrors = getChildren(input, ErrorNode.class).size();
-                if (numErrors == 0) {
-                    return true;
-                }
-                
-                // only keep the error message for the ParseTrees which have the
-                // fewest errors (which I assume means they are the closest to
-                // matching the input)
-                if (numErrors < min.get()) {
-                    min.set(numErrors);
-                    errors.clear();
-                }
-                if (numErrors <= min.get()) {
-                    errors.add(sink.toString());
-                }
-                
-                sink.reset();
-                
-                return false;
-            }
-        });
-        
-        if (ctx == null) {
-            for (String error : errors) {
-                err.write(error);
-            }
-        }
-        
-        return ctx;
+    public static void main(String[] args) throws IOException {
+        Environment e = new Environment(ByteSource.empty().openStream(), System.out, System.err);
+        e.execute("int x = 5; int z = 6;");
     }
 }

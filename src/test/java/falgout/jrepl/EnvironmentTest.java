@@ -7,17 +7,33 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.io.CharStreams;
+import com.google.common.io.CharSource;
 import com.google.common.reflect.TypeToken;
 
 public class EnvironmentTest {
-    public Environment e = new Environment();
+    public Environment e;
+    public StringWriter outputSink;
+    public StringWriter errorSink;
+    
+    @Before
+    public void before() throws IOException {
+        outputSink = new StringWriter();
+        errorSink = new StringWriter();
+        
+        e = new Environment(CharSource.empty().openBufferedStream(), outputSink, errorSink);
+    }
+    
+    public void assertNoErrors() {
+        assertEquals(0, errorSink.toString().length());
+    }
     
     @Test
     public void localVariablesAreAccessible() throws IOException {
-        assertNoErrors("int x = 5;");
+        e.execute("int x = 5;");
+        assertNoErrors();
         
         TypeToken<?> type = TypeToken.of(int.class);
         Map<String, ?> vars = e.get(type);
@@ -25,15 +41,5 @@ public class EnvironmentTest {
         assertEquals(5, vars.get("x"));
         
         assertEquals(5, e.get("x", type));
-    }
-    
-    private void assertNoErrors(String... inputs) throws IOException {
-        StringWriter sink = new StringWriter();
-        
-        for (String input : inputs) {
-            e.execute(input, CharStreams.nullWriter(), sink);
-            
-            assertEquals(0, sink.toString().length());
-        }
     }
 }
