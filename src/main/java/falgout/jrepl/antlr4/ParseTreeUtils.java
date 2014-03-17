@@ -46,4 +46,21 @@ public class ParseTreeUtils {
         
         return children;
     }
+    
+    /**
+     * @param parent The root node.
+     * @param child The child to find.
+     * @return {@code i} such that {@link ParseTree#getChild(int)
+     *         parent.getChild(i)} is {@code child} or a parent of {@code child}
+     *         , or {@code -1} if child is not a descendant of {@code parent}.
+     */
+    public static int getChildIndex(ParseTree parent, ParseTree child) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            ParseTree c = parent.getChild(i);
+            if (c.equals(child) || getChildIndex(c, child) != -1) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
