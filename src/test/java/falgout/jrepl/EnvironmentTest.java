@@ -36,10 +36,10 @@ public class EnvironmentTest {
         assertNoErrors();
         
         TypeToken<?> type = TypeToken.of(int.class);
-        Map<String, ?> vars = e.get(type);
+        Map<String, ?> vars = e.getVariables(type);
         assertTrue(vars.containsKey("x"));
         assertEquals(5, vars.get("x"));
         
-        assertEquals(5, e.get("x", type));
+        assertEquals(5, e.getVariable("x", type));
     }
 }

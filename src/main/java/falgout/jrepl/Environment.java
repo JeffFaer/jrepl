@@ -52,11 +52,11 @@ public class Environment {
         return err;
     }
     
-    public Object get(String variableName) {
-        return get(variableName, OBJECT);
+    public Object getVariable(String variableName) {
+        return getVariable(variableName, OBJECT);
     }
     
-    public <T> T get(String variableName, TypeToken<T> type) {
+    public <T> T getVariable(String variableName, TypeToken<T> type) {
         Variable<?> var = variables.get(variableName);
         if (var != null && type.isAssignableFrom(var.getType())) {
             return (T) var.get();
