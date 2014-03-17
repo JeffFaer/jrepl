@@ -19,6 +19,7 @@ import falgout.jrepl.command.Command;
 import falgout.jrepl.command.JavaCommand;
 
 public class Environment {
+    private static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
     private final BufferedReader in;
     private final PrintWriter out;
     private final PrintWriter err;
@@ -51,6 +52,10 @@ public class Environment {
         return err;
     }
     
+    public Object get(String variableName) {
+        return get(variableName, OBJECT);
+    }
+    
     public <T> T get(String variableName, TypeToken<T> type) {
         Variable<?> var = variables.get(variableName);
         if (var != null && type.isAssignableFrom(var.getType())) {
@@ -59,7 +64,11 @@ public class Environment {
         return null;
     }
     
-    public <T> Map<String, ? extends T> get(TypeToken<T> type) {
+    public Map<String, ? extends Object> getVariables() {
+        return getVariables(OBJECT);
+    }
+    
+    public <T> Map<String, ? extends T> getVariables(TypeToken<T> type) {
         Map<String, T> ret = new LinkedHashMap<>();
         for (Entry<String, Variable<?>> e : variables.entrySet()) {
             if (type.isAssignableFrom(e.getValue().getType())) {
@@ -68,6 +77,10 @@ public class Environment {
         }
         
         return ret;
+    }
+    
+    public boolean containsVariable(String variableName) {
+        return variables.containsKey(variableName);
     }
     
     public void execute(String input) throws IOException {
