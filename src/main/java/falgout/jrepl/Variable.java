@@ -4,24 +4,24 @@ import com.google.common.reflect.TypeToken;
 
 public class Variable<T> {
     private T value;
-    private final TypeToken<T> type;
+    private final TypeToken<? extends T> type;
     private final boolean isFinal;
     
-    public Variable(T value, Class<T> clazz) {
+    public Variable(T value, Class<? extends T> clazz) {
         this(value, TypeToken.of(clazz));
     }
     
-    public Variable(T value, TypeToken<T> type) {
+    public Variable(T value, TypeToken<? extends T> type) {
         this(value, type, false);
     }
     
-    public Variable(T value, TypeToken<T> type, boolean isFinal) {
+    public Variable(T value, TypeToken<? extends T> type, boolean isFinal) {
         this.value = value;
         this.type = type;
         this.isFinal = isFinal;
     }
     
-    public TypeToken<T> getType() {
+    public TypeToken<? extends T> getType() {
         return type;
     }
     
@@ -39,7 +39,7 @@ public class Variable<T> {
     }
     
     @SuppressWarnings("unchecked")
-    public <E> boolean set(E value, TypeToken<E> type) {
+    public <E> boolean set(E value, TypeToken<? extends E> type) {
         if (this.type.isAssignableFrom(type)) {
             return set((T) value);
         }

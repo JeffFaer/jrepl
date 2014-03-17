@@ -31,7 +31,7 @@ public class VariableTest {
     
     @Test
     public void variablesOfTheSameTypeCanBeAssigned() {
-        Variable<List<String>> var2 = new Variable<>(Collections.EMPTY_LIST, STRING_LIST);
+        Variable<List<String>> var2 = new Variable<List<String>>(Collections.EMPTY_LIST, STRING_LIST);
         
         assertTrue(var.set(var2));
         assertSame(var2.get(), var.get());
@@ -52,7 +52,7 @@ public class VariableTest {
     
     @Test
     public void genericTypesAreNotCovariant() {
-        Variable<List<Integer>> var2 = new Variable<>(Collections.EMPTY_LIST, INT_LIST);
+        Variable<List<Integer>> var2 = new Variable<List<Integer>>(Collections.EMPTY_LIST, INT_LIST);
         
         assertFalse(var.set(var2));
         assertNotNull(var2.get());
