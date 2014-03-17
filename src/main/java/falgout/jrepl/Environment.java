@@ -13,7 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.google.common.io.ByteSource;
 import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.command.Command;
@@ -82,10 +81,5 @@ public class Environment {
             out.flush();
             err.flush();
         }
-    }
-    
-    public static void main(String[] args) throws IOException {
-        Environment e = new Environment(ByteSource.empty().openStream(), System.out, System.err);
-        e.execute("int x = 5; int z = 6;");
     }
 }
