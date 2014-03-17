@@ -3,16 +3,22 @@ package falgout.jrepl;
 import com.google.common.reflect.TypeToken;
 
 public class Variable<T> {
-    private final TypeToken<T> type;
     private T value;
-    
-    public Variable(T value, TypeToken<T> type) {
-        this.type = type;
-        this.value = value;
-    }
+    private final TypeToken<T> type;
+    private final boolean isFinal;
     
     public Variable(T value, Class<T> clazz) {
         this(value, TypeToken.of(clazz));
+    }
+    
+    public Variable(T value, TypeToken<T> type) {
+        this(value, type, false);
+    }
+    
+    public Variable(T value, TypeToken<T> type, boolean isFinal) {
+        this.value = value;
+        this.type = type;
+        this.isFinal = isFinal;
     }
     
     public TypeToken<T> getType() {
@@ -23,15 +29,19 @@ public class Variable<T> {
         return value;
     }
     
-    public void set(T value) {
-        this.value = value;
+    public boolean set(T value) {
+        if (isFinal) {
+            return false;
+        } else {
+            this.value = value;
+            return true;
+        }
     }
     
     @SuppressWarnings("unchecked")
     public <E> boolean set(E value, TypeToken<E> type) {
         if (this.type.isAssignableFrom(type)) {
-            this.value = (T) value;
-            return true;
+            return set((T) value);
         }
         
         return false;
