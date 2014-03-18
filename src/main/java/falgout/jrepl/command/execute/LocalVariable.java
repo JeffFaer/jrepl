@@ -23,7 +23,7 @@ import falgout.jrepl.reflection.ModifierException;
 public class LocalVariable implements Executor<BlockStatementsContext> {
     @Override
     public boolean execute(Environment env, BlockStatementsContext input) throws IOException {
-        for (LocalVariableDeclarationContext ctx : ParseTreeUtils.getChildren(input, LocalVariableDeclarationContext.class)) {
+        for (LocalVariableDeclarationContext ctx : ParseTreeUtils.getChildren(input, LocalVariableDeclarationContext.class, 3)) {
             boolean _final;
             try {
                 _final = isFinal(ctx.variableModifier());
