@@ -10,9 +10,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import com.google.common.reflect.TypeToken;
@@ -89,21 +87,6 @@ public class Environment {
             return var.get(type);
         }
         return null;
-    }
-
-    public Set<? extends Object> getVariables() {
-        return getVariables(OBJECT);
-    }
-
-    public <T> Set<? extends T> getVariables(TypeToken<T> type) {
-        Set<T> ret = new LinkedHashSet<>();
-        for (Entry<String, Variable<?>> e : variables.entrySet()) {
-            if (type.isAssignableFrom(e.getValue().getType())) {
-                ret.add(e.getValue().get(type));
-            }
-        }
-
-        return ret;
     }
 
     public boolean containsVariable(String variableName) {

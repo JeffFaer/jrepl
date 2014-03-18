@@ -7,7 +7,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 
 import org.jukito.JukitoRunner;
@@ -24,30 +23,26 @@ import com.google.inject.Inject;
 public class EnvironmentTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-    
+
     @Test
     public void localVariablesAreAccessible() throws IOException {
         env.executeNoErrors("int x = 5;");
-        
+
         TypeToken<?> type = TypeToken.of(int.class);
-        Map<String, ?> vars = e.getVariables(type);
-        assertTrue(vars.containsKey("x"));
         assertTrue(e.containsVariable("x"));
-        
-        assertEquals(5, vars.get("x"));
         assertEquals(5, e.getVariable("x", type));
     }
-    
+
     @Test
     public void javaLangIsImportedByDefault() {
         Set<Import> imports = e.getImports();
         assertThat(imports, contains(Import.create("import java.lang.*;").toArray(new Import[1])));
     }
-    
+
     @Test
     public void canAddImports() throws IOException {
         env.executeNoErrors("import java.util.List;");
-
+        
         assertThat(e.getImports(), hasItem(Import.create("import java.util.List;").get(0)));
     }
 }
