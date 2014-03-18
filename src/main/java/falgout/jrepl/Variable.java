@@ -1,43 +1,51 @@
 package falgout.jrepl;
 
+import java.util.Arrays;
+
 import com.google.common.reflect.TypeToken;
 
 public class Variable<T> {
+    private final boolean _final;
+    private final TypeToken<? extends T> type;
+    private final String identifier;
     private T value;
     private boolean isInitialized;
-    private final TypeToken<? extends T> type;
-    private final boolean _final;
     
-    public Variable(TypeToken<? extends T> type) {
-        this(type, false);
+    public Variable(TypeToken<? extends T> type, String identifier) {
+        this(false, type, identifier);
     }
     
-    public Variable(TypeToken<? extends T> type, boolean _final) {
-        isInitialized = false;
-        this.type = type;
+    public Variable(boolean _final, TypeToken<? extends T> type, String identifier) {
         this._final = _final;
+        this.type = type;
+        this.identifier = identifier;
+        isInitialized = false;
     }
     
-    public Variable(T value, TypeToken<? extends T> type) {
-        this(value, type, false);
+    public Variable(TypeToken<? extends T> type, String identifier, T value) {
+        this(false, type, identifier, value);
     }
     
-    public Variable(T value, TypeToken<? extends T> type, boolean _final) {
-        this(type, _final);
+    public Variable(boolean _final, TypeToken<? extends T> type, String identifier, T value) {
+        this(_final, type, identifier);
         this.value = value;
         isInitialized = true;
+    }
+    
+    public boolean isFinal() {
+        return _final;
     }
     
     public TypeToken<? extends T> getType() {
         return type;
     }
     
-    public boolean isInitialized() {
-        return isInitialized;
+    public String getIdentifier() {
+        return identifier;
     }
     
-    public boolean isFinal() {
-        return _final;
+    public boolean isInitialized() {
+        return isInitialized;
     }
     
     public T get() {
@@ -55,7 +63,7 @@ public class Variable<T> {
     }
     
     @SuppressWarnings("unchecked")
-    public <E> boolean set(E value, TypeToken<? extends E> type) {
+    public <E> boolean set(TypeToken<? extends E> type, E value) {
         if (this.type.isAssignableFrom(type)) {
             return set((T) value);
         }
@@ -64,7 +72,7 @@ public class Variable<T> {
     }
     
     public <E> boolean set(Variable<E> other) {
-        return set(other.get(), other.getType());
+        return set(other.getType(), other.get());
     }
     
     @Override
@@ -99,12 +107,24 @@ public class Variable<T> {
     
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Variable [type=");
-        builder.append(type);
-        builder.append(", value=");
-        builder.append(value);
-        builder.append("]");
-        return builder.toString();
+        StringBuilder b = new StringBuilder();
+        if (_final) {
+            b.append("final ");
+        }
+        b.append(type).append(" ").append(identifier);
+        if (isInitialized) {
+            b.append(" = ").append(toString(value));
+        }
+        b.append(";");
+        
+        return b.toString();
+    }
+    
+    private String toString(T value) {
+        if (value.getClass().isArray()) {
+            return Arrays.deepToString((Object[]) value);
+        } else {
+            return value.toString();
+        }
     }
 }

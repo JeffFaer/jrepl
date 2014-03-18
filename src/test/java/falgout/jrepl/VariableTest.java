@@ -27,11 +27,11 @@ public class VariableTest {
     private static final TypeToken<String[]> STRING_ARRAY = TypeToken.of(String[].class);
     private static final TypeToken<CharSequence[]> SEQUENCE_ARRAY = TypeToken.of(CharSequence[].class);
     
-    public Variable<List<String>> var = new Variable<>(null, STRING_LIST);
+    public Variable<List<String>> var = new Variable<>(STRING_LIST, "var", null);
     
     @Test
     public void variablesOfTheSameTypeCanBeAssigned() {
-        Variable<List<String>> var2 = new Variable<List<String>>(Collections.EMPTY_LIST, STRING_LIST);
+        Variable<List<String>> var2 = new Variable<List<String>>(STRING_LIST, "var2", Collections.EMPTY_LIST);
         
         assertTrue(var.set(var2));
         assertSame(var2.get(), var.get());
@@ -39,7 +39,7 @@ public class VariableTest {
     
     @Test
     public void variablesOfCovariantTypesCanBeAssigned() {
-        Variable<ArrayList<String>> var2 = new Variable<>(new ArrayList<String>(), STRING_ARRAY_LIST);
+        Variable<ArrayList<String>> var2 = new Variable<>(STRING_ARRAY_LIST, "var2", new ArrayList<String>());
         
         assertTrue(var.set(var2));
         assertSame(var2.get(), var.get());
@@ -52,7 +52,7 @@ public class VariableTest {
     
     @Test
     public void genericTypesAreNotCovariant() {
-        Variable<List<Integer>> var2 = new Variable<List<Integer>>(Collections.EMPTY_LIST, INT_LIST);
+        Variable<List<Integer>> var2 = new Variable<List<Integer>>(INT_LIST, "var2", Collections.EMPTY_LIST);
         
         assertFalse(var.set(var2));
         assertNotNull(var2.get());
@@ -65,8 +65,8 @@ public class VariableTest {
     
     @Test
     public void arraysAreCovariant() {
-        Variable<CharSequence[]> var = new Variable<>(null, SEQUENCE_ARRAY);
-        Variable<String[]> var2 = new Variable<>(new String[] { "1" }, STRING_ARRAY);
+        Variable<CharSequence[]> var = new Variable<>(SEQUENCE_ARRAY, "var", null);
+        Variable<String[]> var2 = new Variable<>(STRING_ARRAY, "var2", new String[] { "1" });
         
         assertTrue(var.set(var2));
         assertSame(var2.get(), var.get());
@@ -79,13 +79,13 @@ public class VariableTest {
     
     @Test
     public void variablesCanBeUninitialized() {
-        Variable<Object> o = new Variable<>(TypeToken.of(Object.class), false);
+        Variable<Object> o = new Variable<>(TypeToken.of(Object.class), "o");
         assertFalse(o.isInitialized());
         assertTrue(o.set((Object) null));
         assertTrue(o.isInitialized());
         assertTrue(o.set(new Object()));
         
-        Variable<Object> o2 = new Variable<>(TypeToken.of(Object.class), true);
+        Variable<Object> o2 = new Variable<>(true, TypeToken.of(Object.class), "o2");
         assertFalse(o2.isInitialized());
         assertTrue(o2.set((Object) null));
         assertTrue(o2.isInitialized());
