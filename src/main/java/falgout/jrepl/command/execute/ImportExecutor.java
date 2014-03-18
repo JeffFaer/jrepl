@@ -6,10 +6,10 @@ import falgout.jrepl.Environment;
 import falgout.jrepl.Import;
 import falgout.jrepl.command.parse.JavaParser.ImportDeclarationContext;
 
-public class ImportExecutor implements Executor<ImportDeclarationContext> {
+public class ImportExecutor implements Executor<ImportDeclarationContext, Void> {
     @Override
-    public boolean execute(Environment env, ImportDeclarationContext input) throws IOException {
+    public Void execute(Environment env, ImportDeclarationContext input) throws IOException {
         env.getImports().add(Import.create(input));
-        return true;
+        return null;
     }
 }

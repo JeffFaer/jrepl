@@ -4,8 +4,6 @@ import falgout.jrepl.command.parse.JavaParser.BlockStatementContext;
 import falgout.jrepl.command.parse.JavaParser.BlockStatementsContext;
 
 public class BlockStatements implements JavaParserRule<BlockStatementsContext> {
-    // TODO
-    // statement executor
     @Override
     public BlockStatementsContext parse(JavaParser input) {
         BlockStatementContext ctx = input.blockStatement();

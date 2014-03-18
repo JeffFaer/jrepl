@@ -66,11 +66,11 @@ public class Environment {
         return err;
     }
     
-    public boolean addVariables(Map<String, Variable<?>> variables) {
+    public boolean addVariables(Set<Variable<?>> variables) {
         boolean modified = false;
-        for (Entry<String, Variable<?>> e : variables.entrySet()) {
-            if (!this.variables.containsKey(e.getKey())) {
-                this.variables.put(e.getKey(), e.getValue());
+        for (Variable<?> var : variables) {
+            if (!this.variables.containsKey(var.getIdentifier())) {
+                this.variables.put(var.getIdentifier(), var);
                 modified = true;
             }
         }
@@ -119,7 +119,7 @@ public class Environment {
     
     public void execute(String input) throws IOException {
         try {
-            Command c = factory.getCommand(this, input);
+            Command<?> c = factory.getCommand(this, input);
             if (c != null) {
                 c.execute(this);
             }

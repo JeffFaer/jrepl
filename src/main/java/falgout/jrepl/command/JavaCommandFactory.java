@@ -2,6 +2,7 @@ package falgout.jrepl.command;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ import falgout.jrepl.antlr4.WriterErrorListener;
 import falgout.jrepl.command.execute.Executor;
 import falgout.jrepl.command.execute.ImportExecutor;
 import falgout.jrepl.command.execute.LocalVariable;
+import falgout.jrepl.command.execute.Statement;
 import falgout.jrepl.command.parse.BlockStatements;
 import falgout.jrepl.command.parse.ImportDeclaration;
 import falgout.jrepl.command.parse.JavaLexer;
@@ -35,13 +37,14 @@ import falgout.jrepl.command.parse.JavaParser;
 import falgout.jrepl.command.parse.JavaParserRule;
 
 public class JavaCommandFactory implements CommandFactory {
-    private static class IntermediateWrapper<I extends ParserRuleContext> implements JavaParserRule<I>, Command {
+    private static class IntermediateWrapper<I extends ParserRuleContext> implements JavaParserRule<I>,
+            Command<List<?>> {
         private final JavaParserRule<I> delegate;
-        private final Set<Executor<I>> executors;
+        private final Set<Executor<I, ?>> executors;
         private I intermediary;
         
         @SafeVarargs
-        public IntermediateWrapper(JavaParserRule<I> parser, Executor<I>... executors) {
+        public IntermediateWrapper(JavaParserRule<I> parser, Executor<I, ?>... executors) {
             this.delegate = parser;
             this.executors = new LinkedHashSet<>(Arrays.asList(executors));
         }
@@ -53,17 +56,16 @@ public class JavaCommandFactory implements CommandFactory {
         }
         
         @Override
-        public boolean execute(Environment env) throws IOException {
+        public List<?> execute(Environment env) throws IOException {
             if (intermediary == null) {
                 throw new AssertionError();
             }
             
-            for (Executor<I> e : executors) {
-                if (!e.execute(env, intermediary)) {
-                    return false;
-                }
+            List<Object> ret = new ArrayList<>(executors.size());
+            for (Executor<I, ?> e : executors) {
+                ret.add(e.execute(env, intermediary));
             }
-            return true;
+            return ret;
         }
     }
     
@@ -75,7 +77,7 @@ public class JavaCommandFactory implements CommandFactory {
                 // TODO
                 // .add(new IntermediateWrapper<>(new
                 // ClassOrInterfaceDeclaration(), executors))
-                .add(new IntermediateWrapper<>(new BlockStatements(), new LocalVariable()))
+                .add(new IntermediateWrapper<>(new BlockStatements(), new LocalVariable(), new Statement()))
                 // TODO
                 // .add(new IntermediateWrapper<>(new ClassBodyDeclaration(),
                 // executors))
@@ -83,7 +85,7 @@ public class JavaCommandFactory implements CommandFactory {
     }
     
     @Override
-    public Command getCommand(Environment env, String input) {
+    public Command<?> getCommand(Environment env, String input) {
         JavaLexer lex = new JavaLexer(new ANTLRInputStream(input));
         JavaParser parser = new JavaParser(new CommonTokenStream(lex));
         parser.removeErrorListeners();
