@@ -1,17 +1,23 @@
 package falgout.jrepl.command;
 
+import static com.google.common.reflect.Types2.addArraysToType;
+import static falgout.jrepl.antlr4.ParseTreeUtils.getChildIndex;
 import static falgout.jrepl.antlr4.ParseTreeUtils.getChildren;
+import static falgout.jrepl.reflection.Types.getType;
+import static falgout.jrepl.reflection.Types.isFinal;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -28,27 +34,53 @@ import org.antlr.v4.runtime.tree.xpath.XPath;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.Import;
+import falgout.jrepl.Variable;
 import falgout.jrepl.antlr4.WriterErrorListener;
 import falgout.jrepl.parser.JavaLexer;
 import falgout.jrepl.parser.JavaParser;
+import falgout.jrepl.parser.JavaParser.ImportDeclarationContext;
+import falgout.jrepl.parser.JavaParser.LocalVariableDeclarationContext;
+import falgout.jrepl.parser.JavaParser.VariableDeclaratorContext;
+import falgout.jrepl.parser.JavaParser.VariableDeclaratorRestContext;
+import falgout.jrepl.parser.JavaParser.VariableInitializerContext;
+import falgout.jrepl.reflection.ModifierException;
 
 public class JavaCommand implements Command {
     private static enum ParserRule {
+        IMPORT("/importDeclaration") {
+            @Override
+            protected ParserRuleContext tryInvoke(JavaParser parser) throws RecognitionException,
+                    ParseCancellationException {
+                return parser.importDeclaration();
+            }
+        },
         TOP_LEVEL("/classOrInterfaceDeclaration") {
+            // TODO
+            // classOrInterfaceDeclaration
             @Override
             protected ParserRuleContext tryInvoke(JavaParser parser) {
                 return parser.classOrInterfaceDeclaration();
             }
         },
-        LOCAL("/blockStatements/blockStatement/") {
+        LOCAL("/blockStatement/") {
             @Override
             protected ParserRuleContext tryInvoke(JavaParser parser) {
-                return parser.blockStatements();
+                return parser.blockStatement();
             }
         },
         METHOD("/classBodyDeclaration") {
+            // TODO
+            // semicolon
+            // modifier* memberDecl
+            // methodOrField (won't be field, LOCAL picks it up first)
+            // voidMethodDeclarator
+            // constructor (don't want this)
+            // genericMethodOrConstructor (don' want constructor
+            // static? block
             @Override
             protected ParserRuleContext tryInvoke(JavaParser parser) {
                 return parser.classBodyDeclaration();
@@ -81,58 +113,124 @@ public class JavaCommand implements Command {
                 ParseCancellationException;
     }
     
-    public static enum Type {
-        LOCAL_VARAIBLE_DECLARATION(ParserRule.LOCAL, "localVariableDeclarationStatement") {
+    private static enum Type {
+        LOCAL_VARAIBLE_DECLARATION(ParserRule.LOCAL, "localVariableDeclarationStatement/localVariableDeclaration") {
             @Override
-            public boolean execute(Environment e, ParseTree root) throws IOException {
-                // TODO
+            public boolean execute(Environment e, ParseTree command) throws IOException {
+                LocalVariableDeclarationContext ctx = (LocalVariableDeclarationContext) command;
+                
+                boolean _final;
+                try {
+                    _final = isFinal(ctx.variableModifier());
+                } catch (ModifierException e1) {
+                    e.getError().println(e1.getMessage());
+                    return false;
+                }
+                
+                TypeToken<?> baseType;
+                try {
+                    baseType = getType(e, ctx.type());
+                } catch (ClassNotFoundException e1) {
+                    e.getError().println(e1.getMessage());
+                    return false;
+                }
+                
+                Map<String, Variable<?>> variables = new LinkedHashMap<>();
+                for (VariableDeclaratorContext var : ctx.variableDeclarators().variableDeclarator()) {
+                    String name = var.Identifier().getText();
+                    
+                    if (e.containsVariable(name)) {
+                        e.getError().printf("%s already exists.\n", name);
+                        return false;
+                    }
+                    
+                    VariableDeclaratorRestContext rest = var.variableDeclaratorRest();
+                    int extraArrays = rest.L_BRACKET().size();
+                    TypeToken<?> varType = addArraysToType(baseType, extraArrays);
+                    
+                    VariableInitializerContext init = rest.variableInitializer();
+                    Object value = null;
+                    if (init != null) {
+                        // TODO
+                        // value = evaluate(init);
+                    }
+                    
+                    variables.put(name, new Variable<>(value, varType, _final));
+                }
+                
+                if (!e.addVariables(variables)) {
+                    throw new Error("Something went horribly wrong");
+                }
+                
+                return true;
+            }
+        },
+        STATEMENT(ParserRule.LOCAL, "statement") {
+            @Override
+            public boolean execute(Environment e, ParseTree command) throws IOException {
+                // TODO Auto-generated method stub
+                return true;
+            }
+        },
+        IMPORT(ParserRule.IMPORT, "") {
+            @Override
+            public boolean execute(Environment e, ParseTree command) throws IOException {
+                e.getImports().add(Import.create((ImportDeclarationContext) command));
                 return true;
             }
         };
         
+        private final ParserRule parent;
         private final String xPathPredicate;
         
         private Type(ParserRule parent, String suffix) {
+            this.parent = parent;
             xPathPredicate = parent.getPrefix() + suffix;
         }
         
-        public abstract boolean execute(Environment e, ParseTree root) throws IOException;
+        public abstract boolean execute(Environment e, ParseTree command) throws IOException;
         
-        private static Map<ParseTree, Type> split(ParserRuleContext ctx, JavaParser parser) {
-            Map<ParseTree, Type> split = new LinkedHashMap<>();
+        private static Map<ParseTree, Type> split(final ParseResult result, JavaParser parser) {
+            Map<ParseTree, Type> split = new TreeMap<>(new Comparator<ParseTree>() {
+                @Override
+                public int compare(ParseTree o1, ParseTree o2) {
+                    // sort based on occurrence in tree (left comes first)
+                    int p1 = getChildIndex(result.ctx, o1);
+                    int p2 = getChildIndex(result.ctx, o2);
+                    return Integer.compare(p1, p2);
+                }
+            });
             for (Type t : Type.values()) {
-                for (ParseTree c : XPath.findAll(ctx, t.xPathPredicate, parser)) {
-                    if (split.containsKey(c)) {
-                        throw new Error("ruh roh");
+                if (result.method == t.parent) {
+                    for (ParseTree c : XPath.findAll(result.ctx, t.xPathPredicate, parser)) {
+                        if (split.containsKey(c)) {
+                            throw new Error("ruh roh");
+                        }
+                        split.put(c, t);
                     }
-                    
-                    split.put(c, t);
                 }
             }
-            // TODO
-            // if (ctx instanceof ClassOrInterfaceDeclarationContext) {
-            // // TODO off to the compiler with you!
-            // } else if (ctx instanceof BlockStatementsContext) {
-            // for (BlockStatementContext b : ((BlockStatementsContext)
-            // ctx).blockStatement()) {
-            // LocalVariableDeclarationStatementContext local =
-            // b.localVariableDeclarationStatement();
-            // if (local != null) {
-            // evaluate(local.localVariableDeclaration());
-            // } else {
-            // evaluate(b.statement());
-            // }
-            // }
-            // // localVariableDeclarations or
-            // // statements
-            // } else {
-            // // classBodyDeclaration:
-            // // method
-            // // voidMethod
-            // // block
-            // // TODO filter out constructors
-            // }s
+            
             return split;
+        }
+    }
+    
+    private static class ParseResult {
+        public final ParserRuleContext ctx;
+        public final ParserRule method;
+        
+        public ParseResult(ParserRuleContext ctx, ParserRule method) {
+            this.ctx = ctx;
+            this.method = method;
+        }
+        
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("ParseResult [method=");
+            builder.append(method);
+            builder.append("]");
+            return builder.toString();
         }
     }
     
@@ -144,43 +242,41 @@ public class JavaCommand implements Command {
         this.type = type;
     }
     
-    public Type getCommandType() {
-        return type;
-    }
-    
     @Override
     public boolean execute(Environment e) throws IOException {
         return type.execute(e, ctx);
     }
     
-    public static Command getCommand(String input, Writer err) throws IOException {
+    public static CompoundCommand<JavaCommand> getCommand(String input, Writer err) throws IOException {
         JavaLexer lex = new JavaLexer(new ANTLRInputStream(input));
         JavaParser parser = new JavaParser(new CommonTokenStream(lex));
         parser.removeErrorListeners();
         
-        ParserRuleContext ctx = stageOne(parser);
-        if (ctx == null) {
-            ctx = stageTwo(parser, err);
+        ParseResult r = stageOne(parser);
+        if (r == null) {
+            r = stageTwo(parser, err);
+        } else {
+            System.out.println(r.ctx.toStringTree(parser));
         }
         
-        if (ctx == null) {
+        if (r == null) {
             return null;
         }
         
         List<JavaCommand> commands = new ArrayList<>();
-        for (Entry<ParseTree, Type> e : Type.split(ctx, parser).entrySet()) {
+        for (Entry<ParseTree, Type> e : Type.split(r, parser).entrySet()) {
             commands.add(new JavaCommand(e.getKey(), e.getValue()));
         }
         
-        return commands.size() == 1 ? commands.get(0) : new CompoundCommand(commands);
+        return new CompoundCommand<>(commands);
     }
     
-    private static ParserRuleContext tryParse(JavaParser parser, Predicate<? super ParserRuleContext> ret) {
+    private static ParseResult tryParse(JavaParser parser, Predicate<? super ParserRuleContext> ret) {
         for (ParserRule m : ParserRule.values()) {
             ParserRuleContext ctx = m.invoke(parser);
             
             if (ctx != null && ret.apply(ctx)) {
-                return ctx;
+                return new ParseResult(ctx, m);
             }
             
             parser.reset();
@@ -189,14 +285,14 @@ public class JavaCommand implements Command {
         return null;
     }
     
-    private static ParserRuleContext stageOne(JavaParser parser) {
+    private static ParseResult stageOne(JavaParser parser) {
         parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
         parser.setErrorHandler(new BailErrorStrategy());
         
         return tryParse(parser, Predicates.alwaysTrue());
     }
     
-    private static ParserRuleContext stageTwo(JavaParser parser, Writer err) throws IOException {
+    private static ParseResult stageTwo(JavaParser parser, Writer err) throws IOException {
         parser.getInterpreter().setPredictionMode(PredictionMode.LL);
         parser.setErrorHandler(new DefaultErrorStrategy());
         
@@ -206,7 +302,7 @@ public class JavaCommand implements Command {
         final Set<String> errors = new LinkedHashSet<>();
         final AtomicInteger min = new AtomicInteger(Integer.MAX_VALUE);
         
-        ParserRuleContext ctx = tryParse(parser, new Predicate<ParserRuleContext>() {
+        ParseResult ctx = tryParse(parser, new Predicate<ParserRuleContext>() {
             @Override
             public boolean apply(ParserRuleContext input) {
                 int numErrors = getChildren(input, ErrorNode.class).size();
@@ -215,8 +311,8 @@ public class JavaCommand implements Command {
                 }
                 
                 // only keep the error message(s) for the ParseTrees which have
-                // the fewest errors (which I'm using as a metric to determine
-                // which ParseTree is closest to the intended input)
+                // the best heuristic. The heuristic we're currently using is
+                // which parse tree has the fewest errors
                 if (numErrors < min.get()) {
                     min.set(numErrors);
                     errors.clear();
