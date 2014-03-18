@@ -4,25 +4,40 @@ import com.google.common.reflect.TypeToken;
 
 public class Variable<T> {
     private T value;
+    private boolean isInitialized;
     private final TypeToken<? extends T> type;
-    private final boolean isFinal;
+    private final boolean _final;
     
-    public Variable(T value, Class<? extends T> clazz) {
-        this(value, TypeToken.of(clazz));
+    public Variable(TypeToken<? extends T> type) {
+        this(type, false);
+    }
+    
+    public Variable(TypeToken<? extends T> type, boolean _final) {
+        isInitialized = false;
+        this.type = type;
+        this._final = _final;
     }
     
     public Variable(T value, TypeToken<? extends T> type) {
         this(value, type, false);
     }
     
-    public Variable(T value, TypeToken<? extends T> type, boolean isFinal) {
+    public Variable(T value, TypeToken<? extends T> type, boolean _final) {
+        this(type, _final);
         this.value = value;
-        this.type = type;
-        this.isFinal = isFinal;
+        isInitialized = true;
     }
     
     public TypeToken<? extends T> getType() {
         return type;
+    }
+    
+    public boolean isInitialized() {
+        return isInitialized;
+    }
+    
+    public boolean isFinal() {
+        return _final;
     }
     
     public T get() {
@@ -30,10 +45,11 @@ public class Variable<T> {
     }
     
     public boolean set(T value) {
-        if (isFinal) {
+        if (_final && isInitialized) {
             return false;
         } else {
             this.value = value;
+            isInitialized = true;
             return true;
         }
     }

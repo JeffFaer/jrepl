@@ -76,4 +76,19 @@ public class VariableTest {
         assertFalse(var2.set(var));
         assertNotNull(var2.get());
     }
+    
+    @Test
+    public void variablesCanBeUninitialized() {
+        Variable<Object> o = new Variable<>(TypeToken.of(Object.class), false);
+        assertFalse(o.isInitialized());
+        assertTrue(o.set((Object) null));
+        assertTrue(o.isInitialized());
+        assertTrue(o.set(new Object()));
+        
+        Variable<Object> o2 = new Variable<>(TypeToken.of(Object.class), true);
+        assertFalse(o2.isInitialized());
+        assertTrue(o2.set((Object) null));
+        assertTrue(o2.isInitialized());
+        assertFalse(o2.set(new Object()));
+    }
 }
