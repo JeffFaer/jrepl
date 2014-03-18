@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
-import falgout.jrepl.Environment;
 import falgout.jrepl.TestEnvironment;
 import falgout.jrepl.TestModule;
 import falgout.jrepl.parser.JavaLexer;
@@ -36,12 +35,11 @@ import falgout.jrepl.parser.JavaParser.TypeContext;
 @UseModules(TestModule.class)
 public class TypesTest {
     @Inject @Rule public TestEnvironment env;
-    @Inject public Environment e;
     public ClassLoader cl;
     
     @Before
     public void before() {
-        cl = e.getImportClassLoader();
+        cl = env.getEnvironment().getImportClassLoader();
     }
     
     private TypeContext parse(String input) {
@@ -79,7 +77,7 @@ public class TypesTest {
             fail();
         } catch (ClassNotFoundException e) {}
         
-        e.execute("import java.util.*;");
+        env.executeNoErrors("import java.util.*;");
         
         TypeContext ctx = parse("Random[][][]");
         assertEquals(TypeToken.of(Random[][][].class), Types.getType(cl, ctx));
@@ -87,8 +85,7 @@ public class TypesTest {
     
     @Test
     public void returnsSimpleGenericType() throws IOException, ClassNotFoundException {
-        e.execute("import java.util.*;");
-        env.assertNoErrors();
+        env.executeNoErrors("import java.util.*;");
         
         TypeContext ctx = parse("List<String>");
         assertEquals(new TypeToken<List<String>>() {
@@ -98,8 +95,7 @@ public class TypesTest {
     
     @Test
     public void returnsCompoundGenericTypes() throws IOException, ClassNotFoundException {
-        e.execute("import java.util.*;");
-        env.assertNoErrors();
+        env.executeNoErrors("import java.util.*;");
         
         TypeContext ctx = parse("Map<List<String>, Set<int[]>>");
         assertEquals(new TypeToken<Map<List<String>, Set<int[]>>>() {
@@ -114,8 +110,7 @@ public class TypesTest {
     
     @Test
     public void returnsWildcards() throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException {
-        e.execute("import java.util.*;");
-        env.assertNoErrors();
+        env.executeNoErrors("import java.util.*;");
         
         TypeContext ctx = parse("List<? extends Number>");
         TypeToken<?> type = Types.getType(cl, ctx);

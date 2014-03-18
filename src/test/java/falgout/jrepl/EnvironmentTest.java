@@ -27,8 +27,7 @@ public class EnvironmentTest {
     
     @Test
     public void localVariablesAreAccessible() throws IOException {
-        e.execute("int x = 5");
-        env.assertNoErrors();
+        env.executeNoErrors("int x = 5");
         
         TypeToken<?> type = TypeToken.of(int.class);
         Map<String, ?> vars = e.getVariables(type);
@@ -47,8 +46,8 @@ public class EnvironmentTest {
     
     @Test
     public void canAddImports() throws IOException {
-        e.execute("import java.util.List;");
-        env.assertNoErrors();
+        env.executeNoErrors("import java.util.List;");
+
         assertThat(e.getImports(), hasItem(Import.create("import java.util.List;").get(0)));
     }
 }

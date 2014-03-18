@@ -1,8 +1,11 @@
 package falgout.jrepl;
 
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.io.CharArrayWriter;
+import java.io.IOException;
 
 import org.junit.rules.ExternalResource;
 
@@ -35,13 +38,18 @@ public class TestEnvironment extends ExternalResource {
         return e;
     }
     
+    public void executeNoErrors(String input) throws IOException {
+        e.execute(input);
+        assertNoErrors();
+    }
+    
     public void assertOutput(String expected) {
         assertEquals(expected, out.toString());
     }
     
     public void assertNoErrors() {
         String err = this.err.toString();
-        assertEquals(err, 0, err.length());
+        assertThat(err, isEmptyString());
     }
     
     @Override
