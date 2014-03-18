@@ -12,6 +12,7 @@ import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -29,6 +30,10 @@ public class Environment {
     private final PrintWriter out;
     private final PrintWriter err;
     
+    private final Set<Import> imports = new ImportSet();
+    {
+        imports.addAll(Import.create("import java.lang.*;"));
+    }
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
     
     public Environment(InputStream in, OutputStream out, OutputStream err) {
@@ -87,6 +92,10 @@ public class Environment {
     
     public boolean containsVariable(String variableName) {
         return variables.containsKey(variableName);
+    }
+    
+    public Set<Import> getImports() {
+        return imports;
     }
     
     public void execute(String input) throws IOException {
