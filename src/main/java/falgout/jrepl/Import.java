@@ -1,5 +1,7 @@
 package falgout.jrepl;
 
+import static falgout.jrepl.antlr4.ParseTreeUtils.joinText;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,11 +9,8 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
 
 import falgout.jrepl.parser.JavaLexer;
 import falgout.jrepl.parser.JavaParser;
@@ -31,14 +30,7 @@ public abstract class Import {
     }
     
     protected Import(ImportDeclarationContext _import) {
-        importedType = Joiner.on('.').join(
-                Collections2.transform(_import.Identifier(), new Function<TerminalNode, String>() {
-                    @Override
-                    public String apply(TerminalNode input) {
-                        return input.getText();
-                    }
-                }));
-        
+        importedType = joinText(_import.Identifier(), ".");
         _static = _import.STATIC() != null;
         star = _import.MULT() != null;
         

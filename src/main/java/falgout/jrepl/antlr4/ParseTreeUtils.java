@@ -6,6 +6,10 @@ import java.util.List;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+
 /**
  * Various utility methods that are helpful for making decisions about trees.
  * I'm not well versed enough with the ANTLR4 API to know if these methods
@@ -62,5 +66,14 @@ public class ParseTreeUtils {
             }
         }
         return -1;
+    }
+    
+    public static String joinText(List<? extends ParseTree> tree, String delim) {
+        return Joiner.on(delim).join(Lists.transform(tree, new Function<ParseTree, String>() {
+            @Override
+            public String apply(ParseTree input) {
+                return input.getText();
+            }
+        }));
     }
 }
