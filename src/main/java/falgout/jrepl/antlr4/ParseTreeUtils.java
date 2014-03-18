@@ -1,14 +1,22 @@
 package falgout.jrepl.antlr4;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
+import javax.swing.JDialog;
+
+import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+
+import falgout.jrepl.parser.JavaParser;
 
 /**
  * Various utility methods that are helpful for making decisions about trees.
@@ -75,5 +83,14 @@ public class ParseTreeUtils {
                 return input.getText();
             }
         }));
+    }
+    
+    public static void openAndWait(ParseTree tree) {
+        try {
+            JDialog d = new TreeViewer(Arrays.asList(JavaParser.ruleNames), tree).open().get();
+            Utils.waitForClose(d);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new Error(e);
+        }
     }
 }
