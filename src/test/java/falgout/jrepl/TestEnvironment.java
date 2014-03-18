@@ -2,20 +2,22 @@ package falgout.jrepl;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.StringWriter;
+import java.io.CharArrayWriter;
+
+import org.junit.rules.ExternalResource;
 
 import com.google.inject.Inject;
 
 import falgout.jrepl.guice.Stderr;
 import falgout.jrepl.guice.Stdout;
 
-public class TestEnvironment {
+public class TestEnvironment extends ExternalResource {
     private final Environment e;
-    private final StringWriter out;
-    private final StringWriter err;
+    private final CharArrayWriter out;
+    private final CharArrayWriter err;
     
     @Inject
-    public TestEnvironment(Environment e, @Stdout StringWriter out, @Stderr StringWriter err) {
+    public TestEnvironment(Environment e, @Stdout CharArrayWriter out, @Stderr CharArrayWriter err) {
         this.e = e;
         this.out = out;
         this.err = err;
@@ -30,6 +32,13 @@ public class TestEnvironment {
     }
     
     public void assertNoErrors() {
-        assertEquals(0, err.toString().length());
+        String err = this.err.toString();
+        assertEquals(err, 0, err.length());
+    }
+    
+    @Override
+    protected void after() {
+        out.reset();
+        err.reset();
     }
 }
