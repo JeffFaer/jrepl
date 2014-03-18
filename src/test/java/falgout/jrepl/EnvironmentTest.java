@@ -7,27 +7,24 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 
-import org.junit.Before;
+import org.jukito.JukitoRunner;
+import org.jukito.UseModules;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import com.google.common.io.CharSource;
 import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
 
+import falgout.jrepl.guice.Stderr;
+
+@RunWith(JukitoRunner.class)
+@UseModules(TestModule.class)
 public class EnvironmentTest {
-    public Environment e;
-    public StringWriter outputSink;
-    public StringWriter errorSink;
-    
-    @Before
-    public void before() throws IOException {
-        outputSink = new StringWriter();
-        errorSink = new StringWriter();
-        
-        e = new Environment(CharSource.empty().openBufferedStream(), outputSink, errorSink);
-    }
+    @Inject public Environment e;
+    @Inject @Stderr public StringWriter error;
     
     public void assertNoErrors() {
-        assertEquals(0, errorSink.toString().length());
+        assertEquals(0, error.toString().length());
     }
     
     @Test

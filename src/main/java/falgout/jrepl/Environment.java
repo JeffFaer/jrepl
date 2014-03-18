@@ -14,10 +14,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import falgout.jrepl.command.Command;
 import falgout.jrepl.command.JavaCommand;
+import falgout.jrepl.guice.Stderr;
+import falgout.jrepl.guice.Stdout;
 
+@Singleton
 public class Environment {
     private static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
     private final BufferedReader in;
@@ -30,7 +35,8 @@ public class Environment {
         this(new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(out));
     }
     
-    public Environment(Reader in, Writer out, Writer err) {
+    @Inject
+    public Environment(Reader in, @Stdout Writer out, @Stderr Writer err) {
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
