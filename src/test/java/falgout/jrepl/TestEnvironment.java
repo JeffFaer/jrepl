@@ -23,6 +23,14 @@ public class TestEnvironment extends ExternalResource {
         this.err = err;
     }
     
+    public CharArrayWriter getOutput() {
+        return out;
+    }
+    
+    public CharArrayWriter getError() {
+        return err;
+    }
+    
     public Environment getEnvironment() {
         return e;
     }
