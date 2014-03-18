@@ -31,6 +31,7 @@ public class Environment {
     private final PrintWriter err;
     
     private final Set<Import> imports = new ImportSet();
+    private final EnvironmentClassLoader cl = new EnvironmentClassLoader(imports);
     {
         imports.addAll(Import.create("import java.lang.*;"));
     }
@@ -61,6 +62,18 @@ public class Environment {
     
     public PrintWriter getError() {
         return err;
+    }
+    
+    public boolean addVariables(Map<String, Variable<?>> variables) {
+        boolean modified = false;
+        for (Entry<String, Variable<?>> e : variables.entrySet()) {
+            if (!this.variables.containsKey(e.getKey())) {
+                this.variables.put(e.getKey(), e.getValue());
+                modified = true;
+            }
+        }
+        
+        return modified;
     }
     
     public Object getVariable(String variableName) {
@@ -96,6 +109,10 @@ public class Environment {
     
     public Set<Import> getImports() {
         return imports;
+    }
+    
+    public ClassLoader getImportClassLoader() {
+        return cl;
     }
     
     public void execute(String input) throws IOException {
