@@ -105,6 +105,11 @@ public class TypesTest {
         }, Types.getType(cl, ctx));
     }
     
+    @Test(expected = ClassNotFoundException.class)
+    public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException {
+        Types.getType(cl, parse("Object<Object, Object>"));
+    }
+    
     @Test
     public void returnsWildcards() throws IOException {
         fail();

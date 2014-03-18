@@ -12,6 +12,7 @@ import java.util.Map;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -135,6 +136,14 @@ public class Types {
             
             rawClass = rawClasses.next();
             List<Type> args = createTypeArguments(cl, typeArguments.next());
+            
+            if (rawClass.getTypeParameters().length != args.size()) {
+                String s = String.format(
+                        "Invalid type arguments for %s.\nExpected %d arguments. Actual arguments: <%s>",
+                        rawClass.getSimpleName(), rawClass.getTypeParameters().length, Joiner.on(", ").join(args));
+                throw new ClassNotFoundException(s);
+            }
+            
             Type[] argArray = args.toArray(new Type[args.size()]);
             
             if (last == null) {
