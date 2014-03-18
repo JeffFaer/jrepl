@@ -162,12 +162,11 @@ public class Types {
         List<Type> args = new ArrayList<>(contexts.size());
         
         for (TypeArgumentContext ctx : contexts) {
-            TypeToken<?> type = getType(cl, ctx.referenceType());
+            Type type = getType(cl, ctx.referenceType()).getType();
             if (ctx.QUES() == null) {
-                args.add(type.getType());
+                args.add(type);
             } else {
-                // TODO wildcard
-                args.add(null);
+                args.add(ctx.SUPER() != null ? Types2.supertypeOf(type) : Types2.subtypeOf(type));
             }
         }
         return args;

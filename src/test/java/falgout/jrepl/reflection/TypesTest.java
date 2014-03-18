@@ -1,9 +1,11 @@
 package falgout.jrepl.reflection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -111,13 +113,25 @@ public class TypesTest {
     }
     
     @Test
-    public void returnsWildcards() throws IOException {
-        fail();
-        // e.execute("import java.util.*;");
-        // env.assertNoErrors();
-        //
-        // TypeContext ctx = parse("List<? extends Number>");
-        // assertEquals(new TypeToken<? extends Number>() {
-        // }, Types.getType(cl, ctx));
+    public void returnsWildcards() throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException {
+        e.execute("import java.util.*;");
+        env.assertNoErrors();
+        
+        TypeContext ctx = parse("List<? extends Number>");
+        TypeToken<?> type = Types.getType(cl, ctx);
+        
+        assertTrue(type.isAssignableFrom(new TypeToken<List<Integer>>() {
+            private static final long serialVersionUID = 1119604468904475049L;
+        }));
+        assertTrue(type.isAssignableFrom(new TypeToken<ArrayList<Number>>() {
+            private static final long serialVersionUID = -7833191612055147550L;
+        }));
+        
+        ctx = parse("List<? super Number>");
+        type = Types.getType(cl, ctx);
+        
+        assertTrue(type.isAssignableFrom(new TypeToken<List<Object>>() {
+            private static final long serialVersionUID = -2180513927254148611L;
+        }));
     }
 }
