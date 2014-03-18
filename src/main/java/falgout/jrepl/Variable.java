@@ -52,6 +52,11 @@ public class Variable<T> {
         return value;
     }
     
+    @SuppressWarnings("unchecked")
+    public <E> E get(TypeToken<E> type) {
+        return type.isAssignableFrom(this.type) ? (E) value : null;
+    }
+    
     public boolean set(T value) {
         if (_final && isInitialized) {
             return false;
