@@ -4,12 +4,12 @@ import java.io.IOException;
 
 import falgout.jrepl.Environment;
 
-public interface Command {
+public interface Command<R> {
     /**
      * 
      * @param env The {@code Environment} to execute in
-     * @return {@code true} if the command executed successfully
+     * @return The result of the execution
      * @throws IOException If an {@code IOException} occurs during execution
      */
-    public boolean execute(Environment env) throws IOException;
+    public R execute(Environment env) throws IOException;
 }

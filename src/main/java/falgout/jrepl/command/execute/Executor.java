@@ -4,6 +4,6 @@ import java.io.IOException;
 
 import falgout.jrepl.Environment;
 
-public interface Executor<I> {
-    public boolean execute(Environment env, I input) throws IOException;
+public interface Executor<I, R> {
+    public R execute(Environment env, I input) throws IOException;
 }
