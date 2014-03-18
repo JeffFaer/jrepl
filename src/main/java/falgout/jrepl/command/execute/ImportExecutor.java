@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.Import;
-import falgout.jrepl.parser.JavaParser.ImportDeclarationContext;
+import falgout.jrepl.command.parse.JavaParser.ImportDeclarationContext;
 
 public class ImportExecutor implements Executor<ImportDeclarationContext> {
     @Override

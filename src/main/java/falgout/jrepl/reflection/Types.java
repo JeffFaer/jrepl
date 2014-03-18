@@ -19,13 +19,13 @@ import com.google.common.reflect.TypeToken;
 import com.google.common.reflect.Types2;
 
 import falgout.jrepl.antlr4.ParseTreeUtils;
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.BasicTypeContext;
-import falgout.jrepl.parser.JavaParser.ReferenceTypeContext;
-import falgout.jrepl.parser.JavaParser.TypeArgumentContext;
-import falgout.jrepl.parser.JavaParser.TypeArgumentsContext;
-import falgout.jrepl.parser.JavaParser.TypeContext;
-import falgout.jrepl.parser.JavaParser.VariableModifierContext;
+import falgout.jrepl.command.parse.JavaParser;
+import falgout.jrepl.command.parse.JavaParser.BasicTypeContext;
+import falgout.jrepl.command.parse.JavaParser.ReferenceTypeContext;
+import falgout.jrepl.command.parse.JavaParser.TypeArgumentContext;
+import falgout.jrepl.command.parse.JavaParser.TypeArgumentsContext;
+import falgout.jrepl.command.parse.JavaParser.TypeContext;
+import falgout.jrepl.command.parse.JavaParser.VariableModifierContext;
 
 public class Types {
     private static final Map<String, Class<?>> PRIMITIVES;

@@ -12,9 +12,9 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 
 import com.google.common.base.Joiner;
 
-import falgout.jrepl.parser.JavaLexer;
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.ImportDeclarationContext;
+import falgout.jrepl.command.parse.JavaLexer;
+import falgout.jrepl.command.parse.JavaParser;
+import falgout.jrepl.command.parse.JavaParser.ImportDeclarationContext;
 
 public abstract class Import {
     private final String entireImport;

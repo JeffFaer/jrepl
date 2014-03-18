@@ -16,7 +16,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 
-import falgout.jrepl.parser.JavaParser;
+import falgout.jrepl.command.parse.JavaParser;
 
 /**
  * Various utility methods that are helpful for making decisions about trees.

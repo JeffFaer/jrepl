@@ -1,7 +1,6 @@
 package falgout.jrepl.command.parse;
 
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.ImportDeclarationContext;
+import falgout.jrepl.command.parse.JavaParser.ImportDeclarationContext;
 
 public class ImportDeclaration implements JavaParserRule<ImportDeclarationContext> {
     @Override

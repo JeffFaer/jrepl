@@ -1,7 +1,6 @@
 package falgout.jrepl.command.parse;
 
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.ClassBodyDeclarationContext;
+import falgout.jrepl.command.parse.JavaParser.ClassBodyDeclarationContext;
 
 public class ClassBodyDeclaration implements JavaParserRule<ClassBodyDeclarationContext> {
     // TODO

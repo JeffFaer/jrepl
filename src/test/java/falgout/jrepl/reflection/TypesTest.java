@@ -27,9 +27,9 @@ import com.google.inject.Inject;
 
 import falgout.jrepl.TestEnvironment;
 import falgout.jrepl.TestModule;
-import falgout.jrepl.parser.JavaLexer;
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.TypeContext;
+import falgout.jrepl.command.parse.JavaLexer;
+import falgout.jrepl.command.parse.JavaParser;
+import falgout.jrepl.command.parse.JavaParser.TypeContext;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)

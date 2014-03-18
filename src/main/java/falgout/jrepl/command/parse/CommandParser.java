@@ -1,5 +1,5 @@
 package falgout.jrepl.command.parse;
 
-public interface Parser<I, O> {
+public interface CommandParser<I, O> {
     public O parse(I input);
 }

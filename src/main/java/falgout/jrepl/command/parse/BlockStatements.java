@@ -1,8 +1,7 @@
 package falgout.jrepl.command.parse;
 
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.BlockStatementContext;
-import falgout.jrepl.parser.JavaParser.BlockStatementsContext;
+import falgout.jrepl.command.parse.JavaParser.BlockStatementContext;
+import falgout.jrepl.command.parse.JavaParser.BlockStatementsContext;
 
 public class BlockStatements implements JavaParserRule<BlockStatementsContext> {
     // TODO

@@ -13,11 +13,11 @@ import com.google.common.reflect.TypeToken;
 import falgout.jrepl.Environment;
 import falgout.jrepl.Variable;
 import falgout.jrepl.antlr4.ParseTreeUtils;
-import falgout.jrepl.parser.JavaParser.BlockStatementsContext;
-import falgout.jrepl.parser.JavaParser.LocalVariableDeclarationContext;
-import falgout.jrepl.parser.JavaParser.VariableDeclaratorContext;
-import falgout.jrepl.parser.JavaParser.VariableDeclaratorRestContext;
-import falgout.jrepl.parser.JavaParser.VariableInitializerContext;
+import falgout.jrepl.command.parse.JavaParser.BlockStatementsContext;
+import falgout.jrepl.command.parse.JavaParser.LocalVariableDeclarationContext;
+import falgout.jrepl.command.parse.JavaParser.VariableDeclaratorContext;
+import falgout.jrepl.command.parse.JavaParser.VariableDeclaratorRestContext;
+import falgout.jrepl.command.parse.JavaParser.VariableInitializerContext;
 import falgout.jrepl.reflection.ModifierException;
 
 public class LocalVariable implements Executor<BlockStatementsContext> {

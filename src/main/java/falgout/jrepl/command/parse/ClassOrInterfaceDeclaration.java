@@ -1,7 +1,6 @@
 package falgout.jrepl.command.parse;
 
-import falgout.jrepl.parser.JavaParser;
-import falgout.jrepl.parser.JavaParser.ClassOrInterfaceDeclarationContext;
+import falgout.jrepl.command.parse.JavaParser.ClassOrInterfaceDeclarationContext;
 
 public class ClassOrInterfaceDeclaration implements JavaParserRule<ClassOrInterfaceDeclarationContext> {
     // TODO

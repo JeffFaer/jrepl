@@ -30,9 +30,9 @@ import falgout.jrepl.command.execute.ImportExecutor;
 import falgout.jrepl.command.execute.LocalVariable;
 import falgout.jrepl.command.parse.BlockStatements;
 import falgout.jrepl.command.parse.ImportDeclaration;
+import falgout.jrepl.command.parse.JavaLexer;
+import falgout.jrepl.command.parse.JavaParser;
 import falgout.jrepl.command.parse.JavaParserRule;
-import falgout.jrepl.parser.JavaLexer;
-import falgout.jrepl.parser.JavaParser;
 
 public class JavaCommandFactory implements CommandFactory {
     private static class IntermediateWrapper<I extends ParserRuleContext> implements JavaParserRule<I>, Command {
