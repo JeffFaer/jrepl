@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 
 import falgout.jrepl.parser.JavaParser;
 
@@ -76,8 +76,8 @@ public class ParseTreeUtils {
         return -1;
     }
     
-    public static String joinText(List<? extends ParseTree> tree, String delim) {
-        return Joiner.on(delim).join(Lists.transform(tree, new Function<ParseTree, String>() {
+    public static String joinText(Iterable<? extends ParseTree> tree, String delim) {
+        return Joiner.on(delim).join(Iterables.transform(tree, new Function<ParseTree, String>() {
             @Override
             public String apply(ParseTree input) {
                 return input.getText();

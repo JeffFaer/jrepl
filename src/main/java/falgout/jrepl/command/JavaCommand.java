@@ -136,7 +136,7 @@ public class JavaCommand implements Command {
                 
                 TypeToken<?> baseType;
                 try {
-                    baseType = getType(e, ctx.type());
+                    baseType = getType(e.getImportClassLoader(), ctx.type());
                 } catch (ClassNotFoundException e1) {
                     e.getError().println(e1.getMessage());
                     return false;
