@@ -27,7 +27,7 @@ public class EnvironmentTest {
     
     @Test
     public void localVariablesAreAccessible() throws IOException {
-        env.executeNoErrors("int x = 5");
+        env.executeNoErrors("int x = 5;");
         
         TypeToken<?> type = TypeToken.of(int.class);
         Map<String, ?> vars = e.getVariables(type);

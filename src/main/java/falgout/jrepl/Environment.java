@@ -19,13 +19,14 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import falgout.jrepl.command.Command;
-import falgout.jrepl.command.JavaCommand;
+import falgout.jrepl.command.CommandFactory;
 import falgout.jrepl.guice.Stderr;
 import falgout.jrepl.guice.Stdout;
 
 @Singleton
 public class Environment {
     private static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
+    private final CommandFactory factory;
     private final BufferedReader in;
     private final PrintWriter out;
     private final PrintWriter err;
@@ -37,12 +38,13 @@ public class Environment {
     }
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
     
-    public Environment(InputStream in, OutputStream out, OutputStream err) {
-        this(new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(out));
+    public Environment(CommandFactory factory, InputStream in, OutputStream out, OutputStream err) {
+        this(factory, new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(out));
     }
     
     @Inject
-    public Environment(Reader in, @Stdout Writer out, @Stderr Writer err) {
+    public Environment(CommandFactory factory, Reader in, @Stdout Writer out, @Stderr Writer err) {
+        this.factory = factory;
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
@@ -117,11 +119,10 @@ public class Environment {
     
     public void execute(String input) throws IOException {
         try {
-            Command c = JavaCommand.getCommand(input, err);
-            if (c == null) {
-                return;
+            Command c = factory.getCommand(this, input);
+            if (c != null) {
+                c.execute(this);
             }
-            c.execute(this);
         } finally {
             out.flush();
             err.flush();

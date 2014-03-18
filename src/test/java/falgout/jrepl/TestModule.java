@@ -9,12 +9,16 @@ import com.google.common.io.CharSource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 
+import falgout.jrepl.command.CommandFactory;
+import falgout.jrepl.command.JavaCommandFactory;
 import falgout.jrepl.guice.Stderr;
 import falgout.jrepl.guice.Stdout;
 
 public class TestModule extends AbstractModule {
     @Override
     protected void configure() {
+        bind(CommandFactory.class).toInstance(new JavaCommandFactory());
+        
         try {
             bind(Reader.class).toInstance(CharSource.empty().openStream());
             
