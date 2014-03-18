@@ -114,6 +114,13 @@ public class JavaCommand implements Command {
     }
     
     private static enum Type {
+        IMPORT(ParserRule.IMPORT, "") {
+            @Override
+            public boolean execute(Environment e, ParseTree command) throws IOException {
+                e.getImports().add(Import.create((ImportDeclarationContext) command));
+                return true;
+            }
+        },
         LOCAL_VARAIBLE_DECLARATION(ParserRule.LOCAL, "localVariableDeclarationStatement/localVariableDeclaration") {
             @Override
             public boolean execute(Environment e, ParseTree command) throws IOException {
@@ -171,13 +178,6 @@ public class JavaCommand implements Command {
                 // TODO Auto-generated method stub
                 return true;
             }
-        },
-        IMPORT(ParserRule.IMPORT, "") {
-            @Override
-            public boolean execute(Environment e, ParseTree command) throws IOException {
-                e.getImports().add(Import.create((ImportDeclarationContext) command));
-                return true;
-            }
         };
         
         private final ParserRule parent;
@@ -190,11 +190,11 @@ public class JavaCommand implements Command {
         
         public abstract boolean execute(Environment e, ParseTree command) throws IOException;
         
-        private static Map<ParseTree, Type> split(final ParseResult result, JavaParser parser) {
+        public static Map<ParseTree, Type> split(final ParseResult result, JavaParser parser) {
             Map<ParseTree, Type> split = new TreeMap<>(new Comparator<ParseTree>() {
                 @Override
                 public int compare(ParseTree o1, ParseTree o2) {
-                    // sort based on occurrence in tree (left comes first)
+                    // sort based on occurrence in tree (left to first)
                     int p1 = getChildIndex(result.ctx, o1);
                     int p2 = getChildIndex(result.ctx, o2);
                     return Integer.compare(p1, p2);
@@ -255,8 +255,6 @@ public class JavaCommand implements Command {
         ParseResult r = stageOne(parser);
         if (r == null) {
             r = stageTwo(parser, err);
-        } else {
-            System.out.println(r.ctx.toStringTree(parser));
         }
         
         if (r == null) {
