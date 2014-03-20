@@ -10,53 +10,53 @@ public class Variable<T> {
     private final String identifier;
     private T value;
     private boolean isInitialized;
-    
+
     public Variable(TypeToken<? extends T> type, String identifier) {
         this(false, type, identifier);
     }
-    
+
     public Variable(boolean _final, TypeToken<? extends T> type, String identifier) {
         this._final = _final;
         this.type = type;
         this.identifier = identifier;
         isInitialized = false;
     }
-    
+
     public Variable(TypeToken<? extends T> type, String identifier, T value) {
         this(false, type, identifier, value);
     }
-    
+
     public Variable(boolean _final, TypeToken<? extends T> type, String identifier, T value) {
         this(_final, type, identifier);
         this.value = value;
         isInitialized = true;
     }
-    
+
     public boolean isFinal() {
         return _final;
     }
-    
+
     public TypeToken<? extends T> getType() {
         return type;
     }
-    
+
     public String getIdentifier() {
         return identifier;
     }
-    
+
     public boolean isInitialized() {
         return isInitialized;
     }
-    
+
     public T get() {
         return value;
     }
-    
+
     @SuppressWarnings("unchecked")
     public <E> E get(TypeToken<E> type) {
         return type.isAssignableFrom(this.type) ? (E) value : null;
     }
-    
+
     public boolean set(T value) {
         if (_final && isInitialized) {
             return false;
@@ -66,16 +66,16 @@ public class Variable<T> {
             return true;
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public <E> boolean set(TypeToken<? extends E> type, E value) {
         if (this.type.isAssignableFrom(type)) {
             return set((T) value);
         }
-        
+
         return false;
     }
-    
+
     public <E> boolean set(Variable<E> other) {
         return set(other.getType(), other.get());
     }
@@ -84,6 +84,8 @@ public class Variable<T> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ((identifier == null) ? 0 : identifier.hashCode());
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
         result = prime * result + ((value == null) ? 0 : value.hashCode());
         return result;
     }
@@ -96,10 +98,24 @@ public class Variable<T> {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof Variable)) {
             return false;
         }
         Variable<?> other = (Variable<?>) obj;
+        if (identifier == null) {
+            if (other.identifier != null) {
+                return false;
+            }
+        } else if (!identifier.equals(other.identifier)) {
+            return false;
+        }
+        if (type == null) {
+            if (other.type != null) {
+                return false;
+            }
+        } else if (!type.equals(other.type)) {
+            return false;
+        }
         if (value == null) {
             if (other.value != null) {
                 return false;
@@ -121,10 +137,10 @@ public class Variable<T> {
             b.append(" = ").append(toString(value));
         }
         b.append(";");
-        
+
         return b.toString();
     }
-    
+
     private String toString(T value) {
         if (value != null && value.getClass().isArray()) {
             return Arrays.deepToString((Object[]) value);

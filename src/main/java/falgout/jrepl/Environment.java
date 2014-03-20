@@ -2,13 +2,11 @@ package falgout.jrepl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,10 +31,6 @@ public final class Environment {
     private final Set<Import> imports = new ImportSet();
     private final EnvironmentClassLoader cl = new EnvironmentClassLoader(imports);
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
-    
-    public Environment(CommandFactory<?> factory, InputStream in, OutputStream out, OutputStream err) {
-        this(factory, new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(err));
-    }
     
     @Inject
     public Environment(CommandFactory<?> factory, Reader in, @Stdout Writer out, @Stderr Writer err) {
@@ -75,6 +69,10 @@ public final class Environment {
 
         variables.put(variable.getIdentifier(), variable);
         return true;
+    }
+    
+    public Collection<? extends Variable<?>> getVariables() {
+        return Collections.unmodifiableCollection(variables.values());
     }
     
     public Object getVariable(String variableName) {

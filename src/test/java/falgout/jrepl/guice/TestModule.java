@@ -2,36 +2,29 @@ package falgout.jrepl.guice;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 
 import com.google.common.io.CharSource;
 import com.google.inject.AbstractModule;
-import com.google.inject.Key;
 
-import falgout.jrepl.command.CommandFactory;
-import falgout.jrepl.command.JavaCommandFactory;
-import falgout.jrepl.guice.Stderr;
-import falgout.jrepl.guice.Stdout;
+import falgout.jrepl.EnvironmentModule;
+import falgout.jrepl.command.JavaCommandModule;
 
 public class TestModule extends AbstractModule {
+    public TestModule() {}
+    
     @Override
     protected void configure() {
-        bind(CommandFactory.class).toInstance(new JavaCommandFactory());
+        CharArrayWriter out = new CharArrayWriter();
+        CharArrayWriter err = new CharArrayWriter();
+
+        bind(CharArrayWriter.class).annotatedWith(Stdout.class).toInstance(out);
+        bind(CharArrayWriter.class).annotatedWith(Stderr.class).toInstance(err);
         
         try {
-            bind(Reader.class).toInstance(CharSource.empty().openStream());
-            
-            CharArrayWriter out = new CharArrayWriter();
-            CharArrayWriter err = new CharArrayWriter();
-            Key<CharArrayWriter> stdout = Key.get(CharArrayWriter.class, Stdout.class);
-            Key<CharArrayWriter> stderr = Key.get(CharArrayWriter.class, Stderr.class);
-            bind(stdout).toInstance(out);
-            bind(stderr).toInstance(err);
-            bind(Writer.class).annotatedWith(Stdout.class).to(stdout);
-            bind(Writer.class).annotatedWith(Stderr.class).to(stderr);
+            install(new EnvironmentModule(CharSource.empty().openStream(), out, err));
         } catch (IOException e) {
             throw new Error(e);
         }
+        install(new JavaCommandModule());
     }
 }
