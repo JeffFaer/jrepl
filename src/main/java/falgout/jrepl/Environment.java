@@ -25,7 +25,7 @@ import falgout.jrepl.guice.Stdout;
 @Singleton
 public final class Environment {
     private static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
-    private final CommandFactory factory;
+    private final CommandFactory<?> factory;
     private final BufferedReader in;
     private final PrintWriter out;
     private final PrintWriter err;
@@ -34,12 +34,12 @@ public final class Environment {
     private final EnvironmentClassLoader cl = new EnvironmentClassLoader(imports);
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
     
-    public Environment(CommandFactory factory, InputStream in, OutputStream out, OutputStream err) {
+    public Environment(CommandFactory<?> factory, InputStream in, OutputStream out, OutputStream err) {
         this(factory, new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(err));
     }
     
     @Inject
-    public Environment(CommandFactory factory, Reader in, @Stdout Writer out, @Stderr Writer err) {
+    public Environment(CommandFactory<?> factory, Reader in, @Stdout Writer out, @Stderr Writer err) {
         this.factory = factory;
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
@@ -67,17 +67,14 @@ public final class Environment {
     public PrintWriter getError() {
         return err;
     }
-    
-    public boolean addVariables(Set<Variable<?>> variables) {
-        boolean modified = false;
-        for (Variable<?> var : variables) {
-            if (!this.variables.containsKey(var.getIdentifier())) {
-                this.variables.put(var.getIdentifier(), var);
-                modified = true;
-            }
+
+    public boolean addVariable(Variable<?> variable) {
+        if (containsVariable(variable.getIdentifier())) {
+            return false;
         }
-        
-        return modified;
+
+        variables.put(variable.getIdentifier(), variable);
+        return true;
     }
     
     public Object getVariable(String variableName) {

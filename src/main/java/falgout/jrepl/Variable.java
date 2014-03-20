@@ -126,10 +126,10 @@ public class Variable<T> {
     }
     
     private String toString(T value) {
-        if (value.getClass().isArray()) {
+        if (value != null && value.getClass().isArray()) {
             return Arrays.deepToString((Object[]) value);
         } else {
-            return value.toString();
+            return String.valueOf(value);
         }
     }
 }

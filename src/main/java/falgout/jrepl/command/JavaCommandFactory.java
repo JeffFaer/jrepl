@@ -3,6 +3,7 @@ package falgout.jrepl.command;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,9 +24,9 @@ import falgout.jrepl.command.parse.JavaParserRule;
 import falgout.jrepl.command.parse.Parser;
 import falgout.jrepl.command.parse.Statements;
 
-public class JavaCommandFactory implements CommandFactory {
-    private static class Intermediate<M extends ASTNode, R> implements Parser<ASTParser, IProblem[]>,
-            Command<Optional<? extends R>> {
+public class JavaCommandFactory implements CommandFactory<Optional<? extends Collection<?>>> {
+    private static class Intermediate<M extends ASTNode, R extends Collection<?>> implements
+            Parser<ASTParser, IProblem[]>, Command<Optional<? extends R>> {
         private final JavaParserRule<? extends M> parser;
         private final Executor<? super List<? extends M>, ? extends R> executor;
         private List<? extends M> intermediary;
@@ -70,7 +71,7 @@ public class JavaCommandFactory implements CommandFactory {
     }
     
     @Override
-    public Command<?> getCommand(Environment env, String input) {
+    public Command<? extends Optional<? extends Collection<?>>> getCommand(Environment env, String input) {
         ASTParser parser = ASTParser.newParser(AST.JLS3);
 
         char[] source = input.toCharArray();
@@ -101,7 +102,7 @@ public class JavaCommandFactory implements CommandFactory {
         for (IProblem[] p : problems) {
             for (IProblem i : p) {
                 env.getError().println(i.getMessage());
-                String problem = new String(source, i.getSourceStart(), i.getSourceEnd());
+                String problem = new String(source, i.getSourceStart(), i.getSourceEnd() + 1);
                 if (!problem.isEmpty()) {
                     env.getError().printf("\t%s\n", problem);
                 }

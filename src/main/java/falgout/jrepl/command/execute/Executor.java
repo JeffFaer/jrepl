@@ -13,10 +13,19 @@ import falgout.jrepl.Environment;
 
 @FunctionalInterface
 public interface Executor<I, R> {
+    /**
+     * Performs a value-bearing action on an input. This method modifies the
+     * {@code Environment} as needed.
+     *
+     * @param env The {@code Environment} to execute in.
+     * @param input The {@code input} to execute
+     * @return An {@code Optional} with a value if the {@code input} was
+     *         executed or an empty {@code optional} if it was not executed.
+     * @throws IOException If an {@code IOException} occurs during execution.
+     */
     public Optional<? extends R> execute(Environment env, I input) throws IOException;
     
-    public static <I, R> Executor<Iterable<? extends I>, List<R>> process(
-            Executor<? super I, ? extends R> executor) {
+    public static <I, R> Executor<Iterable<? extends I>, List<R>> process(Executor<? super I, ? extends R> executor) {
         return process(executor, Collectors.toList());
     }
 
@@ -26,7 +35,7 @@ public interface Executor<I, R> {
             c1.addAll(c2);
             return c1;
         });
-        return process(executor, Collectors.collectingAndThen(collector, opt -> opt.get()));
+        return process(executor, Collectors.collectingAndThen(collector, opt -> opt.orElse(null)));
     }
 
     public static <I, R, A, T> Executor<Iterable<? extends I>, R> process(Executor<? super I, ? extends T> executor,
@@ -41,7 +50,7 @@ public interface Executor<I, R> {
                     itr.remove();
                 }
             }
-            return Optional.of(collector.finisher().apply(a));
+            return Optional.ofNullable(collector.finisher().apply(a));
         };
     }
 
