@@ -46,7 +46,7 @@ public interface Executor<I, R> {
     }
 
     @SafeVarargs
-    public static <I, R> Executor<I, R> combine(Executor<? super I, ? extends R>... executors) {
+    public static <I, R> Executor<I, R> sequence(Executor<? super I, ? extends R>... executors) {
         return (env, input) -> {
             for (Executor<? super I, ? extends R> e : executors) {
                 Optional<? extends R> opt = e.execute(env, input);

@@ -7,6 +7,13 @@ import java.util.Set;
 
 import com.google.common.collect.ForwardingSet;
 
+/**
+ * This set only keeps {@code Import}s which provide new information. (Keeps
+ * {@code import java.util.*;} over {@code import java.util.SomeClass;}.)
+ *
+ * @author jeffrey
+ *
+ */
 class ImportSet extends ForwardingSet<Import> {
     private final Set<Import> imports = new LinkedHashSet<>();
     

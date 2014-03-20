@@ -2,6 +2,12 @@ package com.google.common.reflect;
 
 import java.lang.reflect.Type;
 
+/**
+ * com.google.common.reflect.Types is package private, but I need access to some
+ * of its methods.
+ *
+ * @author jeffrey
+ */
 public class Types2 {
     public static TypeToken<?> addArraysToType(TypeToken<?> baseType, int extraArrays) {
         Type composite = baseType.getType();

@@ -34,7 +34,7 @@ public class JavaCommandFactory implements CommandFactory {
         public Intermediate(JavaParserRule<? extends M> parser,
                 Executor<? super List<? extends M>, ? extends R>... executors) {
             this.parser = parser;
-            this.executor = Executor.combine(executors);
+            this.executor = Executor.sequence(executors);
         }
 
         @Override
