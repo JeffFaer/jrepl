@@ -18,31 +18,34 @@ import org.junit.runner.RunWith;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
+import falgout.jrepl.guice.TestEnvironment;
+import falgout.jrepl.guice.TestModule;
+
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
 public class EnvironmentTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-
+    
     @Test
     public void localVariablesAreAccessible() throws IOException {
         env.executeNoErrors("int x = 5;");
-
+        
         TypeToken<?> type = TypeToken.of(int.class);
         assertTrue(e.containsVariable("x"));
         assertEquals(5, e.getVariable("x", type));
     }
-
+    
     @Test
-    public void javaLangIsImportedByDefault() {
+    public void javaLangIsImportedByDefault() throws IOException {
         Set<Import> imports = e.getImports();
-        assertThat(imports, contains(Import.create("import java.lang.*;").toArray(new Import[1])));
+        assertThat(imports, contains(ImportTest.create(env, "import java.lang.*;").toArray(new Import[1])));
     }
-
+    
     @Test
     public void canAddImports() throws IOException {
         env.executeNoErrors("import java.util.List;");
-        
-        assertThat(e.getImports(), hasItem(Import.create("import java.util.List;").get(0)));
+
+        assertThat(e.getImports(), hasItem(ImportTest.create(env, "import java.util.List;").get(0)));
     }
 }

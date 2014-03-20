@@ -11,10 +11,12 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.atn.PredictionMode;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
@@ -25,107 +27,109 @@ import org.junit.runner.RunWith;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
-import falgout.jrepl.TestEnvironment;
-import falgout.jrepl.TestModule;
-import falgout.jrepl.command.parse.JavaLexer;
-import falgout.jrepl.command.parse.JavaParser;
-import falgout.jrepl.command.parse.JavaParser.TypeContext;
+import falgout.jrepl.guice.TestEnvironment;
+import falgout.jrepl.guice.TestModule;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
 public class TypesTest {
     @Inject @Rule public TestEnvironment env;
-    public ClassLoader cl;
     
     @Before
     public void before() {
-        cl = env.getEnvironment().getImportClassLoader();
+        Thread.currentThread().setContextClassLoader(env.getEnvironment().getImportClassLoader());
     }
     
-    private TypeContext parse(String input) {
-        JavaLexer lex = new JavaLexer(new ANTLRInputStream(input));
-        JavaParser parse = new JavaParser(new CommonTokenStream(lex));
-        parse.setErrorHandler(new BailErrorStrategy());
-        parse.getInterpreter().setPredictionMode(PredictionMode.SLL);
-        
-        return parse.type();
+    private Type parse(String input) {
+        ASTParser parser = ASTParser.newParser(AST.JLS3);
+
+        Map<?, ?> options = JavaCore.getOptions();
+        JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
+        parser.setCompilerOptions(options);
+        parser.setSource((input + " foo;").toCharArray());
+        parser.setKind(ASTParser.K_STATEMENTS);
+
+        Block block = (Block) parser.createAST(null);
+        VariableDeclarationStatement statement = (VariableDeclarationStatement) block.statements().get(0);
+
+        return statement.getType();
     }
     
     @Test
     public void returnsPrimitives() throws ClassNotFoundException {
-        TypeContext ctx = parse("int");
-        assertEquals(TypeToken.of(int.class), Types.getType(cl, ctx));
+        Type type = parse("int");
+        assertEquals(TypeToken.of(int.class), Types.getType(type));
         
-        ctx = parse("int[]");
-        assertEquals(TypeToken.of(int[].class), Types.getType(cl, ctx));
+        type = parse("int[]");
+        assertEquals(TypeToken.of(int[].class), Types.getType(type));
     }
     
     @Test
     public void returnsSimpleObjects() throws ClassNotFoundException {
-        TypeContext ctx = parse("Object");
-        assertEquals(TypeToken.of(Object.class), Types.getType(cl, ctx));
+        Type type = parse("Object");
+        assertEquals(TypeToken.of(Object.class), Types.getType(type));
         
-        ctx = parse("Object[]");
-        assertEquals(TypeToken.of(Object[].class), Types.getType(cl, ctx));
+        type = parse("Object[]");
+        assertEquals(TypeToken.of(Object[].class), Types.getType(type));
     }
     
     @Test
     public void returnsObjectsThatAreImports() throws IOException, ClassNotFoundException {
         try {
-            TypeContext ctx = parse("Random[][][]");
-            Types.getType(cl, ctx);
+            Type type = parse("Random[][][]");
+            Types.getType(type);
             fail();
         } catch (ClassNotFoundException e) {}
         
         env.executeNoErrors("import java.util.*;");
         
-        TypeContext ctx = parse("Random[][][]");
-        assertEquals(TypeToken.of(Random[][][].class), Types.getType(cl, ctx));
+        Type type = parse("Random[][][]");
+        assertEquals(TypeToken.of(Random[][][].class), Types.getType(type));
     }
     
     @Test
     public void returnsSimpleGenericType() throws IOException, ClassNotFoundException {
         env.executeNoErrors("import java.util.*;");
         
-        TypeContext ctx = parse("List<String>");
+        Type type = parse("List<String>");
         assertEquals(new TypeToken<List<String>>() {
             private static final long serialVersionUID = 6065261116676637497L;
-        }, Types.getType(cl, ctx));
+        }, Types.getType(type));
     }
     
     @Test
     public void returnsCompoundGenericTypes() throws IOException, ClassNotFoundException {
         env.executeNoErrors("import java.util.*;");
         
-        TypeContext ctx = parse("Map<List<String>, Set<int[]>>");
+        Type type = parse("Map<List<String>, Set<int[]>>");
         assertEquals(new TypeToken<Map<List<String>, Set<int[]>>>() {
             private static final long serialVersionUID = 6065261116676637497L;
-        }, Types.getType(cl, ctx));
+        }, Types.getType(type));
     }
     
     @Test(expected = ClassNotFoundException.class)
     public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException {
-        Types.getType(cl, parse("Object<Object, Object>"));
+        Types.getType(parse("Object<Object, Object>"));
     }
     
     @Test
     public void returnsWildcards() throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException {
         env.executeNoErrors("import java.util.*;");
         
-        TypeContext ctx = parse("List<? extends Number>");
-        TypeToken<?> type = Types.getType(cl, ctx);
+        Type type = parse("List<? extends Number>");
+        TypeToken<?> typeToken = Types.getType(type);
         
-        assertTrue(type.isAssignableFrom(new TypeToken<List<Integer>>() {
+        assertTrue(typeToken.isAssignableFrom(new TypeToken<List<Integer>>() {
             private static final long serialVersionUID = 1119604468904475049L;
         }));
-        assertTrue(type.isAssignableFrom(new TypeToken<ArrayList<Number>>() {
+        assertTrue(typeToken.isAssignableFrom(new TypeToken<ArrayList<Number>>() {
             private static final long serialVersionUID = -7833191612055147550L;
         }));
         
-        ctx = parse("List<? super Number>");
-        type = Types.getType(cl, ctx);
+        type = parse("List<? super Number>");
+        typeToken = Types.getType(type);
         
-        assertTrue(type.isAssignableFrom(new TypeToken<List<Object>>() {
+        assertTrue(typeToken.isAssignableFrom(new TypeToken<List<Object>>() {
             private static final long serialVersionUID = -2180513927254148611L;
         }));
     }

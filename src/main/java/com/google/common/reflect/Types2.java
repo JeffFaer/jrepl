@@ -1,8 +1,6 @@
 package com.google.common.reflect;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 
 public class Types2 {
     public static TypeToken<?> addArraysToType(TypeToken<?> baseType, int extraArrays) {
@@ -13,19 +11,21 @@ public class Types2 {
         return TypeToken.of(composite);
     }
     
-    public static ParameterizedType newParameterizedType(Class<?> rawType, Type... arguments) {
-        return Types.newParameterizedType(rawType, arguments);
+    public static TypeToken<?> newParameterizedType(TypeToken<?> owner, TypeToken<?> raw, TypeToken<?>... arguments) {
+        Type[] args = new Type[arguments.length];
+        for (int i = 0; i < args.length; i++) {
+            args[i] = arguments[i].getType();
+        }
+
+        return TypeToken.of(Types.newParameterizedTypeWithOwner(owner == null ? null : owner.getType(),
+                raw.getRawType(), args));
     }
     
-    public static ParameterizedType newParameterizedType(Type ownerType, Class<?> rawType, Type... arguments) {
-        return Types.newParameterizedTypeWithOwner(ownerType, rawType, arguments);
+    public static TypeToken<?> subtypeOf(TypeToken<?> upper) {
+        return TypeToken.of(Types.subtypeOf(upper.getType()));
     }
     
-    public static WildcardType subtypeOf(Type t) {
-        return Types.subtypeOf(t);
-    }
-    
-    public static WildcardType supertypeOf(Type t) {
-        return Types.supertypeOf(t);
+    public static TypeToken<?> supertypeOf(TypeToken<?> lower) {
+        return TypeToken.of(Types.supertypeOf(lower.getType()));
     }
 }

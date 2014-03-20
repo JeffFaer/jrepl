@@ -1,4 +1,4 @@
-package falgout.jrepl;
+package falgout.jrepl.guice;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;
