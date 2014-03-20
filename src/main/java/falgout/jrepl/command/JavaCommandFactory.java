@@ -51,6 +51,15 @@ public class JavaCommandFactory implements CommandFactory {
         public Optional<? extends R> execute(Environment env) throws IOException {
             return executor.execute(env, intermediary);
         }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Intermediate [parser=");
+            builder.append(parser);
+            builder.append("]");
+            return builder.toString();
+        }
     }
     
     private final List<Intermediate<?, ?>> intermediates;
@@ -92,6 +101,10 @@ public class JavaCommandFactory implements CommandFactory {
         for (IProblem[] p : problems) {
             for (IProblem i : p) {
                 env.getError().println(i.getMessage());
+                String problem = new String(source, i.getSourceStart(), i.getSourceEnd());
+                if (!problem.isEmpty()) {
+                    env.getError().printf("\t%s\n", problem);
+                }
             }
         }
         

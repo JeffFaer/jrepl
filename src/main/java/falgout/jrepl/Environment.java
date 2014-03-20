@@ -35,7 +35,7 @@ public final class Environment {
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
     
     public Environment(CommandFactory factory, InputStream in, OutputStream out, OutputStream err) {
-        this(factory, new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(out));
+        this(factory, new InputStreamReader(in), new OutputStreamWriter(out), new OutputStreamWriter(err));
     }
     
     @Inject
