@@ -1,5 +1,8 @@
 package falgout.jrepl.command.parse;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import java.util.List;
 
-public interface JavaParserRule<O extends ParserRuleContext> extends CommandParser<JavaParser, O> {}
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTParser;
+
+public interface JavaParserRule<R extends ASTNode> extends Parser<ASTParser, List<? extends R>> {}
