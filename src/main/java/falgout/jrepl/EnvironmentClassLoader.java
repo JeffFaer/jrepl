@@ -11,9 +11,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
+import java.util.stream.Collectors;
 
 public class EnvironmentClassLoader extends URLClassLoader {
     private final Set<Import> imports;
@@ -46,13 +44,8 @@ public class EnvironmentClassLoader extends URLClassLoader {
         return loadImportedClass(name);
     }
     
-    private Class<?> loadImportedClass(final String simpleName) throws ClassNotFoundException {
-        return verify(simpleName, Collections2.transform(imports, new Function<Import, String>() {
-            @Override
-            public String apply(Import input) {
-                return input.resolveClass(simpleName);
-            }
-        }));
+    private Class<?> loadImportedClass(String simpleName) throws ClassNotFoundException {
+        return verify(simpleName, imports.stream().map(i -> i.resolveClass(simpleName)).collect(Collectors.toList()));
     }
     
     private List<Class<?>> loadAll(Iterable<String> names) {
