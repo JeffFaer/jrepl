@@ -11,54 +11,53 @@ public class Variable<T> {
     private final String identifier;
     private T value;
     private boolean isInitialized;
-    
+
     public Variable(TypeToken<? extends T> type, String identifier) {
         this(false, type, identifier);
     }
-    
-    @SuppressWarnings("unchecked")
+
     public Variable(boolean _final, TypeToken<? extends T> type, String identifier) {
         this._final = _final;
         this.type = type;
         this.identifier = identifier;
-        value = (T) Defaults.defaultValue(type.getRawType());
+        set((T) null);
         isInitialized = false;
     }
-    
+
     public Variable(TypeToken<? extends T> type, String identifier, T value) {
         this(false, type, identifier, value);
     }
-    
+
     public Variable(boolean _final, TypeToken<? extends T> type, String identifier, T value) {
         this(_final, type, identifier);
         set(value);
     }
-    
+
     public boolean isFinal() {
         return _final;
     }
-    
+
     public TypeToken<? extends T> getType() {
         return type;
     }
-    
+
     public String getIdentifier() {
         return identifier;
     }
-    
+
     public boolean isInitialized() {
         return isInitialized;
     }
-    
+
     public T get() {
         return value;
     }
-    
+
     @SuppressWarnings("unchecked")
     public <E> E get(TypeToken<E> type) {
         return type.isAssignableFrom(this.type) ? (E) value : null;
     }
-    
+
     @SuppressWarnings("unchecked")
     public boolean set(T value) {
         if (_final && isInitialized) {
@@ -74,20 +73,20 @@ public class Variable<T> {
             return true;
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public <E> boolean set(TypeToken<? extends E> type, E value) {
         if (this.type.isAssignableFrom(type)) {
             return set((T) value);
         }
-        
+
         return false;
     }
-    
+
     public <E> boolean set(Variable<E> other) {
         return set(other.getType(), other.get());
     }
-
+    
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -97,7 +96,7 @@ public class Variable<T> {
         result = prime * result + ((value == null) ? 0 : value.hashCode());
         return result;
     }
-
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -133,7 +132,7 @@ public class Variable<T> {
         }
         return true;
     }
-
+    
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
@@ -145,10 +144,10 @@ public class Variable<T> {
             b.append(" = ").append(toString(value));
         }
         b.append(";");
-        
+
         return b.toString();
     }
-    
+
     private String toString(T value) {
         if (value != null && value.getClass().isArray()) {
             return Arrays.deepToString((Object[]) value);
