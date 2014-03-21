@@ -1,6 +1,7 @@
 package falgout.jrepl.reflection;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,21 +15,20 @@ import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.WildcardType;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import com.google.common.reflect.Types2;
 
 public class Types {
-    private static final Map<String, Class<?>> PRIMITIVES = ImmutableMap.<String, Class<?>> builder()
-            .put("byte", byte.class)
-            .put("short", short.class)
-            .put("char", char.class)
-            .put("int", int.class)
-            .put("long", long.class)
-            .put("float", float.class)
-            .put("double", double.class)
-            .put("void", void.class)
-            .put("boolean", boolean.class)
-            .build();
+    private static final Map<String, Class<?>> PRIMITIVES;
+    static {
+        Map<String, Class<?>> temp = new LinkedHashMap<>();
+        for (Class<?> primitive : Primitives.allPrimitiveTypes()) {
+            temp.put(primitive.getSimpleName(), primitive);
+        }
+        
+        PRIMITIVES = ImmutableMap.<String, Class<?>> builder().putAll(temp).build();
+    }
 
     public static TypeToken<?> getType(Type type) throws ClassNotFoundException {
         if (type.isArrayType()) {
