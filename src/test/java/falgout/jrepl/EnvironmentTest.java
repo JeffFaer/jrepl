@@ -27,28 +27,33 @@ import falgout.jrepl.reflection.Types;
 public class EnvironmentTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-    
+
     @Test
     public void javaLangIsImportedByDefault() throws IOException {
         Set<Import> imports = e.getImports();
         assertThat(imports, contains(Import.create(false, "java.lang", true)));
     }
-    
+
     @Test
     public void canAddImports() throws IOException {
         Import i = Import.create(false, "java.util", true);
         e.getImports().add(i);
         assertThat(e.getImports(), hasItem(i));
     }
-
+    
     @Test
     public void cannotHaveDuplicateVariables() {
         Variable<?> var1 = new Variable<>(Types.OBJECT, "foo", new Object());
         Variable<?> var2 = new Variable<>(Types.OBJECT, "foo", new Object());
-
+        
         assertTrue(e.addVariable(var1));
         assertFalse(e.addVariable(var2));
-
+        
         assertSame(var1.get(), e.getVariable("foo").get());
+    }
+
+    @Test
+    public void EnvironmentClassLoaderIsThreadContextClassLoader() {
+        assertSame(e.getImportClassLoader(), Thread.currentThread().getContextClassLoader());
     }
 }
