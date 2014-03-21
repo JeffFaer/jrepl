@@ -1,6 +1,7 @@
 package falgout.jrepl.command.execute;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import com.google.common.reflect.Types2;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.Variable;
+import falgout.jrepl.reflection.Invokable;
 import falgout.jrepl.reflection.Types;
 
 public class LocalVariableDeclarer implements Executor<VariableDeclarationStatement, Set<Variable<?>>> {
@@ -47,7 +49,17 @@ public class LocalVariableDeclarer implements Executor<VariableDeclarationStatem
                 
                 Expression init = frag.getInitializer();
                 if (init != null) {
-                    var.set(variableType, ExpressionExecutor.INSTANCE.execute(env, init).orElse(null));
+                    try {
+                        Optional<? extends Invokable.Method> opt = ExpressionExecutor.INSTANCE.execute(env, init);
+                        if (opt.isPresent()) {
+                            Object value = opt.get().invoke();
+                            var.set(variableType, value);
+                        } else {
+                            return Optional.empty();
+                        }
+                    } catch (InvocationTargetException | IllegalAccessException e) {
+                        throw new Error(e);
+                    }
                 }
                 
                 variables.add(var);
