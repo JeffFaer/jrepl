@@ -9,20 +9,18 @@ import org.eclipse.jdt.core.dom.Statement;
 import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.reflection.Types;
 
 public class GeneratedMethod extends GeneratedSourceCode<Method, Statement> {
-    private static final TypeToken<Object> OBJECT = Environment.OBJECT;
-    public static final TypeToken<?> VOID = TypeToken.of(void.class);
-
     public GeneratedMethod(Environment env) {
         super(env);
     }
-
+    
     @Override
     public NestingKind getNestingKind() {
         return NestingKind.MEMBER;
     }
-
+    
     @Override
     public Method getTarget(Class<?> clazz) {
         try {
@@ -31,19 +29,19 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, Statement> {
             throw new Error("The method should have been created.", e);
         }
     }
-    
+
     public TypeToken<?> getReturnType() {
         for (SourceCode<? extends Statement> child : getChildren()) {
             String statement = child.toString();
             // TODO come up with a better method, this feels hacky
             if (statement.matches("return[^\\s;]+;")) {
-                return OBJECT;
+                return Types.OBJECT;
             }
         }
-        
-        return VOID;
+
+        return Types.VOID;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();

@@ -22,8 +22,6 @@ import falgout.jrepl.guice.Stdout;
 
 @Singleton
 public final class Environment {
-    public static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
-
     private final CommandFactory factory;
     private final BufferedReader in;
     private final PrintWriter out;
