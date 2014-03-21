@@ -1,7 +1,6 @@
 package falgout.jrepl;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -40,11 +39,7 @@ public final class Environment {
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
 
-        try {
-            execute("import java.lang.*;");
-        } catch (IOException e) {
-            throw new Error(e);
-        }
+        execute("import java.lang.*;");
         
         Thread.currentThread().setContextClassLoader(cl);
     }
@@ -103,7 +98,7 @@ public final class Environment {
         return cl;
     }
     
-    public void execute(String input) throws IOException {
+    public void execute(String input) {
         try {
             Command<?> c = factory.getCommand(this, input);
             if (c != null) {
