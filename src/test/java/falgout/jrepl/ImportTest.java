@@ -33,7 +33,7 @@ public class ImportTest {
 
     public static List<Import> create(TestEnvironment env, String... imports) throws IOException {
         String source = String.join("", imports);
-        ASTParser input = ASTParser.newParser(AST.JLS3);
+        ASTParser input = ASTParser.newParser(AST.JLS4);
         
         Map<?, ?> options = JavaCore.getOptions();
         JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);

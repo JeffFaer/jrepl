@@ -23,62 +23,68 @@ import falgout.jrepl.guice.Stdout;
 @Singleton
 public final class Environment {
     private static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
-    private final CommandFactory<?> factory;
+    private final CommandFactory factory;
     private final BufferedReader in;
     private final PrintWriter out;
     private final PrintWriter err;
-    
+
     private final Set<Import> imports = new ImportSet();
     private final EnvironmentClassLoader cl = new EnvironmentClassLoader(imports);
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
-    
+
     @Inject
-    public Environment(CommandFactory<?> factory, Reader in, @Stdout Writer out, @Stderr Writer err) {
+    public Environment(CommandFactory factory, Reader in, @Stdout Writer out, @Stderr Writer err) {
         this.factory = factory;
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
-
+        
         try {
             execute("import java.lang.*;");
         } catch (IOException e) {
             throw new Error(e);
         }
+
+        Thread.currentThread().setContextClassLoader(cl);
     }
-    
+
     private PrintWriter createPrintWriter(Writer w) {
         return w instanceof PrintWriter ? (PrintWriter) w : new PrintWriter(w, true);
+    }
+
+    public CommandFactory getFactory() {
+        return factory;
     }
     
     public BufferedReader getInput() {
         return in;
     }
-    
+
     public PrintWriter getOutput() {
         return out;
     }
-    
+
     public PrintWriter getError() {
         return err;
     }
-
+    
     public boolean addVariable(Variable<?> variable) {
         if (containsVariable(variable.getIdentifier())) {
             return false;
         }
-
+        
         variables.put(variable.getIdentifier(), variable);
         return true;
     }
-    
+
     public Collection<? extends Variable<?>> getVariables() {
         return Collections.unmodifiableCollection(variables.values());
     }
-    
+
     public Object getVariable(String variableName) {
         return getVariable(variableName, OBJECT);
     }
-    
+
     public <T> T getVariable(String variableName, TypeToken<T> type) {
         Variable<?> var = variables.get(variableName);
         if (var != null && type.isAssignableFrom(var.getType())) {
@@ -86,19 +92,19 @@ public final class Environment {
         }
         return null;
     }
-    
+
     public boolean containsVariable(String variableName) {
         return variables.containsKey(variableName);
     }
-    
+
     public Set<Import> getImports() {
         return imports;
     }
-    
-    public ClassLoader getImportClassLoader() {
+
+    public EnvironmentClassLoader getImportClassLoader() {
         return cl;
     }
-    
+
     public void execute(String input) throws IOException {
         try {
             Command<?> c = factory.getCommand(this, input);

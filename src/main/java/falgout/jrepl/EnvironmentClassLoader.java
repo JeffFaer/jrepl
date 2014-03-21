@@ -15,7 +15,7 @@ import java.util.Set;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 
-class EnvironmentClassLoader extends URLClassLoader {
+public class EnvironmentClassLoader extends URLClassLoader {
     private final Set<Import> imports;
     private volatile Path dynamicCodeLocation;
     
@@ -46,7 +46,7 @@ class EnvironmentClassLoader extends URLClassLoader {
         return loadImportedClass(name);
     }
     
-    public Class<?> loadImportedClass(final String simpleName) throws ClassNotFoundException {
+    private Class<?> loadImportedClass(final String simpleName) throws ClassNotFoundException {
         return verify(simpleName, Collections2.transform(imports, new Function<Import, String>() {
             @Override
             public String apply(Import input) {
