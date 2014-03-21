@@ -1,5 +1,6 @@
 package falgout.jrepl;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -90,5 +91,17 @@ public class VariableTest {
         assertTrue(o2.set((Object) null));
         assertTrue(o2.isInitialized());
         assertFalse(o2.set(new Object()));
+    }
+    
+    @Test
+    public void variablesHaveDefaultValue() {
+        Variable<Integer> i = new Variable<>(TypeToken.of(int.class), "i");
+        assertEquals(0, (int) i.get());
+
+        i.set((Integer) null);
+        assertEquals(0, (int) i.get());
+        
+        Variable<Integer> wrapped = new Variable<>(TypeToken.of(Integer.class), "i2");
+        assertNull(wrapped.get());
     }
 }
