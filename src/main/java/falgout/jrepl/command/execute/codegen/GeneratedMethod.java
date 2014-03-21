@@ -6,9 +6,14 @@ import javax.lang.model.element.NestingKind;
 
 import org.eclipse.jdt.core.dom.Statement;
 
+import com.google.common.reflect.TypeToken;
+
 import falgout.jrepl.Environment;
 
 public class GeneratedMethod extends GeneratedSourceCode<Method, Statement> {
+    private static final TypeToken<Object> OBJECT = Environment.OBJECT;
+    public static final TypeToken<?> VOID = TypeToken.of(void.class);
+
     public GeneratedMethod(Environment env) {
         super(env);
     }
@@ -27,9 +32,28 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, Statement> {
         }
     }
     
+    public TypeToken<?> getReturnType() {
+        for (SourceCode<? extends Statement> child : getChildren()) {
+            String statement = child.toString();
+            // TODO come up with a better method, this feels hacky
+            if (statement.matches("return[^\\s;]+;")) {
+                return OBJECT;
+            }
+        }
+        
+        return VOID;
+    }
+    
     @Override
     public String toString() {
-        // TODO Auto-generated method stub
-        return null;
+        StringBuilder b = new StringBuilder();
+        b.append("public ").append(getReturnType()).append(" ").append(getName()).append("() {\n");
+        for (SourceCode<? extends Statement> child : getChildren()) {
+            for (String line : child.toString().split("\n")) {
+                b.append(TAB).append(line).append("\n");
+            }
+        }
+        b.append("}");
+        return b.toString();
     }
 }
