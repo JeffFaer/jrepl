@@ -11,14 +11,18 @@ import org.junit.rules.ExternalResource;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.command.Command;
+import falgout.jrepl.command.CommandFactory;
 
 public class TestEnvironment extends ExternalResource {
+    private final CommandFactory f;
     private final Environment e;
     private final CharArrayWriter out;
     private final CharArrayWriter err;
 
     @Inject
-    public TestEnvironment(Environment e, @Stdout CharArrayWriter out, @Stderr CharArrayWriter err) {
+    public TestEnvironment(CommandFactory f, Environment e, @Stdout CharArrayWriter out, @Stderr CharArrayWriter err) {
+        this.f = f;
         this.e = e;
         this.out = out;
         this.err = err;
@@ -36,8 +40,13 @@ public class TestEnvironment extends ExternalResource {
         return e;
     }
 
+    public void execute(String input) throws IOException {
+        Command<?> c = f.getCommand(e, input);
+        c.execute(e);
+    }
+
     public void executeNoErrors(String input) throws IOException {
-        e.execute(input);
+        execute(input);
         assertNoErrors();
     }
 

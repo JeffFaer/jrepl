@@ -8,14 +8,17 @@ import com.google.inject.Injector;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.EnvironmentModule;
+import falgout.jrepl.command.Command;
+import falgout.jrepl.command.CommandFactory;
 
 public class TerminalRunner {
     public static void main(String[] args) throws IOException {
         Injector injector = Guice.createInjector(new EnvironmentModule());
-        Environment e = injector.getInstance(Environment.class);
+        Environment env = injector.getInstance(Environment.class);
+        CommandFactory f = injector.getInstance(CommandFactory.class);
 
         String prompt = "java: ";
-        BufferedReader in = e.getInput();
+        BufferedReader in = env.getInput();
         StringBuilder input = new StringBuilder();
         int braces = 0;
         String line;
@@ -36,7 +39,8 @@ public class TerminalRunner {
             input.append(line);
 
             if (braces == 0) {
-                e.execute(input.toString());
+                Command<?> c = f.getCommand(env, input.toString());
+                c.execute(env);
                 input = new StringBuilder();
             }
 
