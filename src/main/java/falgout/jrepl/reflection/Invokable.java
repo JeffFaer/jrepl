@@ -86,7 +86,6 @@ public abstract class Invokable<E extends Executable, T> {
                 Class<?> clazz = m.getDeclaringClass();
                 Injector i = Guice.createInjector(new GeneratorModule(env));
                 receiver = i.getInstance(clazz);
-                i.injectMembers(receiver);
             }
 
             return Optional.of(from(receiver, m));
