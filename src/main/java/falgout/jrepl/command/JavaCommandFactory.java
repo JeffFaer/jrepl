@@ -1,5 +1,6 @@
 package falgout.jrepl.command;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,7 +53,7 @@ public class JavaCommandFactory implements CommandFactory {
         }
 
         @Override
-        public Optional<? extends R> execute(Environment env) {
+        public Optional<? extends R> execute(Environment env) throws IOException {
             return executor.execute(env, intermediary);
         }
         

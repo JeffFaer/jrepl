@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute;
 
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class LocalVariableDeclarer implements Executor<VariableDeclarationStatem
     public static final Executor<Iterable<? extends Statement>, Set<Variable<?>>> PARSE = Executor.flatProcess(FILTER);
     
     @Override
-    public Optional<Set<Variable<?>>> execute(Environment env, VariableDeclarationStatement input) {
+    public Optional<Set<Variable<?>>> execute(Environment env, VariableDeclarationStatement input) throws IOException {
         try {
             TypeToken<?> baseType = Types.getType(input.getType());
             
