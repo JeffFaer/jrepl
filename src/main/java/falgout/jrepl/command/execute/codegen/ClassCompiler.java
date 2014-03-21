@@ -53,7 +53,6 @@ public enum ClassCompiler implements CodeCompiler<Class<?>> {
                 throw new Error("We just made this class, it should be there.", e);
             }
         } else {
-            env.getError().println("Couldn't compile...check the diagnostics");
             return Optional.empty();
         }
     }

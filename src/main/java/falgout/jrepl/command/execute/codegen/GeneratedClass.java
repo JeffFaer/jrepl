@@ -1,12 +1,15 @@
 package falgout.jrepl.command.execute.codegen;
 
 import java.lang.reflect.Member;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.lang.model.element.NestingKind;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.Import;
 import falgout.jrepl.Variable;
 
 public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
@@ -28,25 +31,42 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
     public String toString() {
         Environment env = getEnvironment();
         StringBuilder b = new StringBuilder();
+        Set<Import> imports = env.getImports();
+        Collection<? extends Variable<?>> variables = env.getVariables();
+        List<? extends SourceCode<? extends Member>> children = getChildren();
+        
+        // imports
+        if (variables.size() > 0) {
+            b.append("import com.google.inject.Inject;\n");
+            b.append("import com.google.inject.name.Named;\n");
+            b.append("import javax.annotation.Nullable;\n");
+            b.append("\n");
+        }
+        if (imports.size() > 0) {
+            for (Import i : imports) {
+                b.append(i).append("\n");
+            }
+            b.append("\n");
+        }
 
         // class declaration
         b.append("public class ").append(getName()).append(" {\n");
         
         // environment variables
-        for (Variable<?> var : env.getVariables()) {
-            String id = var.getIdentifier();
-            b.append(TAB);
-            b.append("@com.google.inject.Inject ");
-            b.append("@javax.annotation.Nullable ");
-            b.append("@com.google.inject.name.Named(\"").append(id).append("\") ");
-            b.append("public ").append(var.getType()).append(" ").append(id).append(";\n");
+        if (variables.size() > 0) {
+            for (Variable<?> var : variables) {
+                String id = var.getIdentifier();
+                b.append(TAB);
+                b.append("@Inject ").append("@Nullable ").append("@Named(\"").append(id).append("\")");
+                b.append(" public ").append(var.getType()).append(" ").append(id).append(";\n");
+            }
+            b.append("\n");
         }
 
         // constructor
-        b.append("\n");
         b.append(TAB).append("public ").append(getName()).append("() {}\n");
 
-        List<? extends SourceCode<? extends Member>> children = getChildren();
+        // members
         if (children.size() > 0) {
             b.append("\n");
             Iterator<? extends SourceCode<? extends Member>> membs = children.iterator();
