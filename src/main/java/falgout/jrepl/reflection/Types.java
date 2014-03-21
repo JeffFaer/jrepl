@@ -104,4 +104,18 @@ public class Types {
     public static boolean isFinal(List<Modifier> modifiers) {
         return modifiers.stream().anyMatch(Modifier::isFinal);
     }
+
+    public static javax.lang.model.element.Modifier getVisibilityModifier(List<Modifier> modifiers) {
+        for (Modifier mod : modifiers) {
+            if (mod.isPublic()) {
+                return javax.lang.model.element.Modifier.PUBLIC;
+            } else if (mod.isPrivate()) {
+                return javax.lang.model.element.Modifier.PRIVATE;
+            } else if (mod.isProtected()) {
+                return javax.lang.model.element.Modifier.PROTECTED;
+            }
+        }
+
+        return javax.lang.model.element.Modifier.DEFAULT;
+    }
 }
