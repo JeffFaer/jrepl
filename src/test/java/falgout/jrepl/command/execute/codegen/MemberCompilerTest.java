@@ -1,6 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
-import static falgout.jrepl.command.execute.codegen.ClassCompiler.INSTANCE;
+import static falgout.jrepl.command.execute.codegen.MemberCompiler.METHOD_COMPILER;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
@@ -9,6 +9,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 import javax.lang.model.element.Modifier;
@@ -28,43 +29,45 @@ import falgout.jrepl.guice.TestModule;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
-public class ClassCompilerTest {
+public class MemberCompilerTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
     
     @Test
-    public void CanCompileClass() throws IOException {
-        Optional<? extends Class<?>> opt = INSTANCE.execute(e, getCode("Foo", "public class Foo{}"));
-        
+    public void automaticallyCompiledMethods() throws IOException {
+        Optional<? extends Method> opt = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { }"));
         assertTrue(opt.isPresent());
-        Class<?> clazz = opt.get();
-        assertEquals("Foo", clazz.getName());
+        assertEquals("foo", opt.get().getName());
     }
-    
+
     @Test
     public void ProvidesErrorFeedbackIfCannotCompile() throws IOException {
-        Optional<? extends Class<?>> opt = INSTANCE.execute(e, getCode("Foo", "public class Foo { ERROR }"));
+        Optional<? extends Method> opt = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { ERROR }"));
         assertFalse(opt.isPresent());
         assertThat(env.getError().toString(), not(isEmptyString()));
     }
 
-    private SourceCode<? extends Class<?>> getCode(String name, String code) {
-        return new SourceCode<Class<?>>(name) {
+    private SourceCode<? extends Method> getCode(String name, String code) {
+        return new SourceCode<Method>(name) {
             @Override
-            public Class<?> getTarget(Class<?> clazz) {
-                return clazz;
+            public Method getTarget(Class<?> clazz) {
+                try {
+                    return clazz.getMethod(name);
+                } catch (NoSuchMethodException e) {
+                    throw new Error(e);
+                }
             }
-
+            
             @Override
             public NestingKind getNestingKind() {
                 return null;
             }
-
+            
             @Override
             public Modifier getAccessLevel() {
                 return null;
             }
-
+            
             @Override
             public String toString() {
                 return code;
