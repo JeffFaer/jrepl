@@ -1,6 +1,5 @@
 package falgout.jrepl.command.execute;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,15 +15,15 @@ public class Importer implements Executor<ImportDeclaration, Import> {
     public static final Executor<Iterable<? extends ImportDeclaration>, List<Import>> LIST = Executor.process(INSTANCE);
     public static final Executor<CompilationUnit, List<Import>> FILTERED = Executor.filter(LIST,
             new Function<CompilationUnit, List<ImportDeclaration>>() {
-                @Override
-                public List<ImportDeclaration> apply(CompilationUnit t) {
-                    return t.imports();
-                }
-            });
+        @Override
+        public List<ImportDeclaration> apply(CompilationUnit t) {
+            return t.imports();
+        }
+    });
     public static final Executor<Iterable<? extends CompilationUnit>, List<Import>> PARSE = Executor.flatProcess(FILTERED);
-    
+
     @Override
-    public Optional<Import> execute(Environment env, ImportDeclaration input) throws IOException {
+    public Optional<Import> execute(Environment env, ImportDeclaration input) {
         Import _import = Import.create(input);
         env.getImports().add(_import);
         return Optional.of(_import);
