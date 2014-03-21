@@ -31,12 +31,14 @@ public class GeneratorModule extends AbstractModule {
     
     @SuppressWarnings("unchecked")
     private <T> void bindVariable(Variable<T> var) {
-        Key<T> key = (Key<T>) Key.get(var.getType().getType(), Names.named(var.getIdentifier()));
-        T value = var.get();
-        if (value == null) {
-            bind(key).toProvider(Providers.of(null));
-        } else {
-            bind(key).toInstance(value);
+        if (var.isInitialized()) {
+            Key<T> key = (Key<T>) Key.get(var.getType().getType(), Names.named(var.getIdentifier()));
+            T value = var.get();
+            if (value == null) {
+                bind(key).toProvider(Providers.of(null));
+            } else {
+                bind(key).toInstance(value);
+            }
         }
     }
 }
