@@ -1,6 +1,8 @@
 package falgout.jrepl;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -19,7 +21,7 @@ import falgout.jrepl.guice.Stderr;
 import falgout.jrepl.guice.Stdout;
 
 @Singleton
-public final class Environment {
+public final class Environment implements Closeable {
     private final CommandFactory factory;
     private final BufferedReader in;
     private final PrintWriter out;
@@ -94,5 +96,10 @@ public final class Environment {
 
     public EnvironmentClassLoader getImportClassLoader() {
         return cl;
+    }
+    
+    @Override
+    public void close() throws IOException {
+        cl.close();
     }
 }

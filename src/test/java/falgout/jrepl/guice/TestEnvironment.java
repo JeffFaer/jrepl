@@ -42,7 +42,9 @@ public class TestEnvironment extends ExternalResource {
 
     public void execute(String input) throws IOException {
         Command<?> c = f.getCommand(e, input);
-        c.execute(e);
+        if (c != null) {
+            c.execute(e);
+        }
     }
 
     public void executeNoErrors(String input) throws IOException {
@@ -66,5 +68,11 @@ public class TestEnvironment extends ExternalResource {
     protected void after() {
         out.reset();
         err.reset();
+
+        try {
+            e.close();
+        } catch (IOException e) {
+            throw new Error(e);
+        }
     }
 }
