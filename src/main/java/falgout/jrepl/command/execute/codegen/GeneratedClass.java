@@ -18,17 +18,17 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
     public GeneratedClass(Environment env) {
         super(env);
     }
-    
+
     @Override
     public Class<?> getTarget(Class<?> clazz) {
         return clazz;
     }
-    
+
     @Override
     public NestingKind getNestingKind() {
         return NestingKind.TOP_LEVEL;
     }
-    
+
     @Override
     public String toString() {
         Environment env = getEnvironment();
@@ -36,7 +36,7 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         Set<Import> imports = env.getImports();
         Collection<? extends Variable<?>> variables = env.getVariables();
         List<? extends SourceCode<? extends Member>> children = getChildren();
-        
+
         // imports
         if (variables.size() > 0) {
             b.append("import com.google.inject.Inject;\n");
@@ -50,10 +50,10 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
             }
             b.append("\n");
         }
-
+        
         // class declaration
         b.append("public class ").append(getName()).append(" {\n");
-        
+
         // environment variables
         if (variables.size() > 0) {
             for (Variable<?> var : variables) {
@@ -66,16 +66,17 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
                 }
                 b.append(var.getType()).append(" ").append(id);
                 if (var.isFinal()) {
-                    b.append(" = ").append(Variable.toString(Defaults.defaultValue(var.getType().getRawType())));
+                    Object val = Defaults.defaultValue(var.getType().getRawType());
+                    b.append(" = ").append(Variable.toString(val));
                 }
                 b.append(";\n");
             }
             b.append("\n");
         }
-
+        
         // constructor
         b.append(TAB).append("public ").append(getName()).append("() {}\n");
-
+        
         // members
         if (children.size() > 0) {
             b.append("\n");
@@ -84,15 +85,15 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
                 for (String line : membs.next().toString().split("\n")) {
                     b.append(TAB).append(line).append("\n");
                 }
-
+                
                 if (membs.hasNext()) {
                     b.append("\n");
                 }
             }
         }
-
+        
         b.append("}\n");
-
+        
         return b.toString();
     }
 }

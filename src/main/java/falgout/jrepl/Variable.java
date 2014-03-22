@@ -152,6 +152,15 @@ public class Variable<T> {
         return b.toString();
     }
 
+    /**
+     * Escapes {@code String}s and {@code char}s. Calls
+     * {@link Arrays#deepToString(Object[])} on arrays.
+     *
+     * @param value The {@code Object} to provide a {@code String}
+     *        representation for.
+     * @return A more human-readable {@code String} representation for arrays,
+     *         {@code String}s and {@code char}s.
+     */
     public static String toString(Object value) {
         if (value == null) {
             return "null";
