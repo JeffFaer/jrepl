@@ -37,7 +37,7 @@ public abstract class AbstractCommandFactory<I, M, R> implements CommandFactory<
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("Pair [parser=");
-            builder.append(parser);
+            builder.append(parser.getClass());
             builder.append("]");
             return builder.toString();
         }

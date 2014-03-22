@@ -48,7 +48,7 @@ public class LocalVariableDeclarerTest {
         Variable<?> var = parse("int x = 5;").get(0);
         assertThat(e.getVariables(), contains(var));
         assertTrue(e.containsVariable("x"));
-        assertEquals(5, e.getVariable("x", GoogleTypes.INT));
+        assertEquals(5, e.getVariable("x").get(GoogleTypes.INT));
     }
     
     @Test(expected = ExecutionException.class)
@@ -91,5 +91,12 @@ public class LocalVariableDeclarerTest {
     public void cannotDeclareDuplicateVariableFromEnvironment() throws ExecutionException {
         assertEquals(1, parse("int x;").size());
         parse("String x;");
+    }
+    
+    @Test
+    public void canDeclareVariableOfGeneratedType() throws ExecutionException {
+        env.execute("public class Foo {}");
+        Variable<?> var = parse("Foo bar = new Foo();").get(0);
+        assertEquals("Foo", var.getType().getRawType().getSimpleName());
     }
 }

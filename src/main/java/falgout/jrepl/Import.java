@@ -68,7 +68,11 @@ public abstract class Import {
 
             // base = java.util (java.util.*)
             // otherBase = java.util.SomeClass
-            if (base.equals(otherBase.substring(0, otherBase.lastIndexOf('.')))) {
+            int i = otherBase.lastIndexOf('.');
+            if(i == -1) {
+                i = otherBase.length();
+            }
+            if (base.equals(otherBase.substring(0, i))) {
                 return true;
             }
         }

@@ -30,12 +30,12 @@ public interface Executor<I, R> {
             return Optional.of(executor.execute(env, input));
         };
     }
-
+    
     public static <I, R> Executor<Iterable<? extends I>, List<R>> process(
             Executor<? super I, Optional<? extends R>> executor) {
         return process(executor, Collectors.toList());
     }
-
+    
     public static <I, T, C extends Collection<T>> Executor<Iterable<? extends I>, Optional<? extends C>> flatProcess(
             Executor<? super I, Optional<? extends C>> executor) {
         return process(executor, Collectors.reducing((c1, c2) -> {
@@ -43,7 +43,7 @@ public interface Executor<I, R> {
             return c1;
         }));
     }
-
+    
     public static <I, R, A, T> Executor<Iterable<? extends I>, R> process(
             Executor<? super I, Optional<? extends T>> executor, Collector<? super T, A, ? extends R> collector) {
         return (env, inputs) -> {
@@ -59,22 +59,22 @@ public interface Executor<I, R> {
             return collector.finisher().apply(a);
         };
     }
-
+    
     @SafeVarargs
     public static <I, R> Executor<I, Optional<? extends R>> sequence(
-            Executor<? super I, Optional<? extends R>>... executors) {
+            Executor<? super I, ? extends Optional<? extends R>>... executors) {
         return (env, input) -> {
-            for (Executor<? super I, Optional<? extends R>> e : executors) {
+            for (Executor<? super I, ? extends Optional<? extends R>> e : executors) {
                 Optional<? extends R> opt = e.execute(env, input);
                 if (opt.isPresent()) {
                     return opt;
                 }
             }
-
+            
             return Optional.empty();
         };
     }
-
+    
     public static <I, R, F> Executor<I, Optional<? extends R>> filter(Executor<? super F, ? extends R> executor,
             Function<? super I, ? extends F> filter) {
         return (env, input) -> {

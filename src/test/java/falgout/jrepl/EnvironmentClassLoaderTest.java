@@ -55,4 +55,10 @@ public class EnvironmentClassLoaderTest {
         
         assertSame(clazz, cl.loadClass(c.getName()));
     }
+    
+    @Test
+    public void canLoadEnvironmentClass() throws ExecutionException, ClassNotFoundException {
+        env.execute("public class Foo {}");
+        cl.loadClass("Foo");
+    }
 }

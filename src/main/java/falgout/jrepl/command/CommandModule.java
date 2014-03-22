@@ -1,5 +1,7 @@
 package falgout.jrepl.command;
 
+import static falgout.jrepl.command.execute.Executor.sequence;
+
 import java.util.Collection;
 import java.util.Optional;
 
@@ -8,6 +10,7 @@ import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
+import falgout.jrepl.command.execute.ClassDefiner;
 import falgout.jrepl.command.execute.Importer;
 import falgout.jrepl.command.execute.LocalVariableDeclarer;
 import falgout.jrepl.command.parse.ClassDeclaration;
@@ -24,7 +27,7 @@ public class CommandModule extends AbstractModule {
     
     @Provides
     public CommandFactory<Optional<? extends Collection<?>>> createCommandFactory() {
-        return new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, LocalVariableDeclarer.PARSE), new Pair<>(
-                ClassDeclaration.INSTANCE, Importer.PARSE));
+        return new JavaCommandFactory<>(new Pair<>(ClassDeclaration.INSTANCE, sequence(Importer.PARSE,
+                ClassDefiner.PARSE)), new Pair<>(Statements.INSTANCE, LocalVariableDeclarer.PARSE));
     }
 }

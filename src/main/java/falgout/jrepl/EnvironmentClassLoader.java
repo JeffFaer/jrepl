@@ -1,5 +1,7 @@
 package falgout.jrepl;
 
+import static falgout.jrepl.command.execute.codegen.MemberCompiler.NESTED_CLASS_COMPILER;
+
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -10,16 +12,19 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import falgout.jrepl.command.execute.codegen.SourceCode;
+import falgout.jrepl.reflection.NestedClass;
+
 public class EnvironmentClassLoader extends URLClassLoader {
-    private final Set<Import> imports;
+    private final Environment env;
     private volatile Path dynamicCodeLocation;
     
-    public EnvironmentClassLoader(Set<Import> imports) {
+    public EnvironmentClassLoader(Environment env) {
         super(new URL[0], Thread.currentThread().getContextClassLoader());
-        this.imports = imports;
+        this.env = env;
     }
     
     public Path getDynamicCodeLocation() throws IOException {
@@ -41,11 +46,31 @@ public class EnvironmentClassLoader extends URLClassLoader {
             return super.loadClass(name);
         } catch (ClassNotFoundException e) {}
         
+        Class<?> clazz = loadEnvironmentClass(name);
+        if (clazz != null) {
+            return clazz;
+        }
+        
         return loadImportedClass(name);
     }
     
+    private Class<?> loadEnvironmentClass(String name) {
+        if (env.containsClass(name)) {
+            SourceCode<NestedClass<?>> code = env.getClass(name);
+            try {
+                return NESTED_CLASS_COMPILER.execute(env, code).getDeclaredClass();
+            } catch (ExecutionException e) {
+                // if this class had already been compiled
+                // this exception shouldn't be happening
+                throw new Error(e);
+            }
+        }
+        return null;
+    }
+    
     private Class<?> loadImportedClass(String simpleName) throws ClassNotFoundException {
-        return verify(simpleName, imports.stream().map(i -> i.resolveClass(simpleName)).collect(Collectors.toList()));
+        return verify(simpleName,
+                env.getImports().stream().map(i -> i.resolveClass(simpleName)).collect(Collectors.toList()));
     }
     
     private List<Class<?>> loadAll(Iterable<String> names) {
@@ -65,7 +90,7 @@ public class EnvironmentClassLoader extends URLClassLoader {
         if (classes.size() > 1) {
             throw new ClassNotFoundException("Ambiguous import. " + classes);
         } else if (classes.size() == 0) {
-            throw new ClassNotFoundException("Could not find " + name + " in " + imports);
+            throw new ClassNotFoundException("Could not find " + name + " in " + env.getImports());
         }
         
         return classes.get(0);
