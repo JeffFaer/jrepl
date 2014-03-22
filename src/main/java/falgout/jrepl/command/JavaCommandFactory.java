@@ -12,10 +12,12 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 
+@Singleton
 public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, List<? extends ASTNode>, R> {
     private static final Function<List<? extends ASTNode>, IProblem[]> CONVERTOR = l -> {
         if (l.size() == 0) {
@@ -25,7 +27,7 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         }
     };
     private final Map<?, ?> options;
-    private char[] source;
+    private final ThreadLocal<char[]> source = new ThreadLocal<char[]>();
 
     @SafeVarargs
     @Inject
@@ -47,18 +49,25 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
     
     @Override
     protected ASTParser createNewInput() {
-        source = null;
+        source.set(null);
         return ASTParser.newParser(AST.JLS4);
     }
 
     @Override
     protected ASTParser initialize(ASTParser blank, String input) {
-        if (source == null) {
-            source = input.toCharArray();
+        char[] s = source.get();
+        if (s == null) {
+            s = input.toCharArray();
+            source.set(s);
         }
         blank.setCompilerOptions(options);
-        blank.setSource(source);
+        blank.setSource(s);
         return blank;
+    }
+
+    @Override
+    protected void reportSuccess(Environment env, List<? extends ASTNode> success) {
+        source.set(null);
     }
 
     @Override
@@ -72,12 +81,14 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
                 if (start != -1) {
                     int count = p.getSourceEnd() - start + 1;
                     if (count > 0) {
-                        String problem = new String(source, start, count);
+                        String problem = new String(source.get(), start, count);
                         env.getError().print(GeneratedSourceCode.TAB);
                         env.getError().println(problem);
                     }
                 }
             }
         }
+        
+        source.set(null);
     }
 }
