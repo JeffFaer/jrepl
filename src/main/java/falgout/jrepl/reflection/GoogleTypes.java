@@ -3,8 +3,8 @@ package falgout.jrepl.reflection;
 import java.lang.reflect.Type;
 
 import com.google.common.reflect.TypeToken;
+import com.google.common.reflect.Types2;
 import com.google.inject.TypeLiteral;
-import com.google.inject.util.Types;
 
 /**
  * Utility methods for dealing with {@code TypeToken} and {@code TypeLiteral}
@@ -31,7 +31,7 @@ public class GoogleTypes {
     public static TypeToken<?> addArrays(TypeToken<?> component, int numArrays) {
         Type t = component.getType();
         for (int i = 0; i < numArrays; i++) {
-            t = Types.arrayOf(t);
+            t = Types2.arrayOf(t);
         }
         
         return TypeToken.of(t);
@@ -43,15 +43,15 @@ public class GoogleTypes {
             args[i] = arguments[i].getType();
         }
 
-        return TypeToken.of(Types.newParameterizedTypeWithOwner(owner == null ? null : owner.getType(),
+        return TypeToken.of(Types2.newParameterizedTypeWithOwner(owner == null ? null : owner.getType(),
                 raw.getRawType(), args));
     }
 
     public static TypeToken<?> subtypeOf(TypeToken<?> upper) {
-        return TypeToken.of(Types.subtypeOf(upper.getType()));
+        return TypeToken.of(Types2.subtypeOf(upper.getType()));
     }
 
     public static TypeToken<?> supertypeOf(TypeToken<?> lower) {
-        return TypeToken.of(Types.supertypeOf(lower.getType()));
+        return TypeToken.of(Types2.supertypeOf(lower.getType()));
     }
 }
