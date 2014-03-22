@@ -8,6 +8,8 @@ import java.util.Set;
 
 import javax.lang.model.element.NestingKind;
 
+import com.google.common.base.Defaults;
+
 import falgout.jrepl.Environment;
 import falgout.jrepl.Import;
 import falgout.jrepl.Variable;
@@ -58,7 +60,15 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
                 String id = var.getIdentifier();
                 b.append(TAB);
                 b.append("@Inject ").append("@Nullable ").append("@Named(\"").append(id).append("\")");
-                b.append(" public ").append(var.getType()).append(" ").append(id).append(";\n");
+                b.append(" public ");
+                if (var.isFinal()) {
+                    b.append("final ");
+                }
+                b.append(var.getType()).append(" ").append(id);
+                if (var.isFinal()) {
+                    b.append(" = ").append(Variable.toString(Defaults.defaultValue(var.getType().getRawType())));
+                }
+                b.append(";\n");
             }
             b.append("\n");
         }

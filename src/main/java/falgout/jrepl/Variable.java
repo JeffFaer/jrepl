@@ -1,8 +1,12 @@
 package falgout.jrepl;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import com.google.common.base.Defaults;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.escape.ArrayBasedCharEscaper;
+import com.google.common.escape.Escaper;
 import com.google.common.reflect.TypeToken;
 
 public class Variable<T> {
@@ -73,7 +77,7 @@ public class Variable<T> {
             return true;
         }
     }
-
+    
     @SuppressWarnings("unchecked")
     public <E> boolean set(TypeToken<? extends E> type, E value) {
         if (this.type.isAssignableFrom(type)) {
@@ -148,11 +152,45 @@ public class Variable<T> {
         return b.toString();
     }
 
-    private String toString(T value) {
-        if (value != null && value.getClass().isArray()) {
+    public static String toString(Object value) {
+        if (value == null) {
+            return "null";
+        } else if (value.getClass().isArray()) {
             return Arrays.deepToString((Object[]) value);
+        } else if (value instanceof String) {
+            return "\"" + escape((String) value) + "\"";
+        } else if (value instanceof Character) {
+            return "'" + escape((char) value) + "'";
         } else {
-            return String.valueOf(value);
+            return value.toString();
         }
+    }
+
+    private static final Escaper JAVA_ESCAPER;
+    static {
+        Map<Character, String> escapes = ImmutableMap.<Character, String> builder()
+                .put('\t', "\\t")
+                .put('\b', "\\b")
+                .put('\n', "\\n")
+                .put('\r', "\\r")
+                .put('\f', "\\f")
+                .put('\'', "\\\'")
+                .put('\"', "\\\"")
+                .put('\\', "\\\\")
+                .build();
+        JAVA_ESCAPER = new ArrayBasedCharEscaper(escapes, (char) 32, (char) 126) {
+            @Override
+            protected char[] escapeUnsafe(char c) {
+                return String.format("\\u%04x", (int) c).toCharArray();
+            }
+        };
+    }
+
+    private static String escape(String str) {
+        return JAVA_ESCAPER.escape(str);
+    }
+    
+    private static String escape(char ch) {
+        return JAVA_ESCAPER.escape(String.valueOf(ch));
     }
 }
