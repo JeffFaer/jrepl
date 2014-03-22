@@ -7,16 +7,12 @@ import com.google.common.io.CharSource;
 import com.google.inject.AbstractModule;
 
 import falgout.jrepl.EnvironmentModule;
-import falgout.jrepl.command.CommandFactory;
-import falgout.jrepl.command.JavaCommandFactory;
 
 public class TestModule extends AbstractModule {
     public TestModule() {}
     
     @Override
     protected void configure() {
-        bind(CommandFactory.class).to(JavaCommandFactory.class);
-
         CharArrayWriter out = new CharArrayWriter();
         CharArrayWriter err = new CharArrayWriter();
 

@@ -1,12 +1,8 @@
 package falgout.jrepl.command;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Function;
 
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.compiler.IProblem;
@@ -16,109 +12,72 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.command.execute.Executor;
-import falgout.jrepl.command.execute.Importer;
-import falgout.jrepl.command.execute.LocalVariableDeclarer;
-import falgout.jrepl.command.parse.ClassDeclaration;
-import falgout.jrepl.command.parse.JavaParserRule;
-import falgout.jrepl.command.parse.Parser;
-import falgout.jrepl.command.parse.Statements;
+import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 
-@Singleton
-public class JavaCommandFactory implements CommandFactory {
-    private static class Intermediate<M extends ASTNode, R extends Collection<?>> implements
-            Parser<ASTParser, IProblem[]>, Command<Optional<? extends R>> {
-        private final JavaParserRule<? extends M> parser;
-        private final Executor<? super List<? extends M>, ? extends R> executor;
-        private List<? extends M> intermediary;
+public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, List<? extends ASTNode>, R> {
+    private static final Function<List<? extends ASTNode>, IProblem[]> CONVERTOR = l -> {
+        if (l.size() == 0) {
+            return null;
+        } else {
+            return ((CompilationUnit) l.get(0).getRoot()).getProblems();
+        }
+    };
+    private final Map<?, ?> options;
+    private char[] source;
 
-        @SafeVarargs
-        public Intermediate(JavaParserRule<? extends M> parser,
-                Executor<? super List<? extends M>, ? extends R>... executors) {
-            this.parser = parser;
-            this.executor = Executor.sequence(executors);
-        }
-
-        @Override
-        public IProblem[] parse(ASTParser input) {
-            intermediary = parser.parse(input);
-            if (intermediary.size() == 0) {
-                return null;
-            } else {
-                return ((CompilationUnit) intermediary.get(0).getRoot()).getProblems();
-            }
-        }
-        
-        @Override
-        public Optional<? extends R> execute(Environment env) throws IOException {
-            return executor.execute(env, intermediary);
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Intermediate [parser=");
-            builder.append(parser);
-            builder.append("]");
-            return builder.toString();
-        }
-    }
-    
-    private final List<Intermediate<?, ?>> intermediates;
-    
+    @SafeVarargs
     @Inject
-    public JavaCommandFactory() {
-        intermediates = Arrays.asList(new Intermediate<>(new Statements(), LocalVariableDeclarer.PARSE),
-                new Intermediate<>(new ClassDeclaration(), Importer.PARSE));
+    public JavaCommandFactory(Pair<? super ASTParser, ? extends List<? extends ASTNode>, ? extends R>... pairs) {
+        super(l -> {
+            IProblem[] problems = CONVERTOR.apply(l);
+            return problems != null && problems.length == 0;
+        }, (l1, l2) -> {
+            IProblem[] p1 = CONVERTOR.apply(l1);
+            IProblem[] p2 = CONVERTOR.apply(l2);
+            int s1 = p1 == null ? Integer.MAX_VALUE : p1.length;
+            int s2 = p2 == null ? Integer.MAX_VALUE : p2.length;
+
+            return Integer.compare(s1, s2);
+        }, pairs);
+        options = JavaCore.getOptions();
+        JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
     }
     
     @Override
-    public Command<? extends Optional<? extends Collection<?>>> getCommand(Environment env, String input) {
-        ASTParser parser = ASTParser.newParser(AST.JLS4);
+    protected ASTParser createNewInput() {
+        source = null;
+        return ASTParser.newParser(AST.JLS4);
+    }
 
-        char[] source = input.toCharArray();
-        Map<?, ?> options = JavaCore.getOptions();
-        JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
-        
-        int min = Integer.MAX_VALUE;
-        List<IProblem[]> problems = new ArrayList<>();
-        for (Intermediate<?, ?> i : intermediates) {
-            parser.setCompilerOptions(options);
-            parser.setSource(source);
-
-            IProblem[] temp = i.parse(parser);
-            if (temp != null) {
-                if (temp.length == 0) {
-                    return i;
-                } else if (temp.length < min) {
-                    problems.clear();
-                    min = temp.length;
-                }
-                
-                if (temp.length <= min) {
-                    problems.add(temp);
-                }
-            }
+    @Override
+    protected ASTParser initialize(ASTParser blank, String input) {
+        if (source == null) {
+            source = input.toCharArray();
         }
-        
-        for (IProblem[] p : problems) {
-            for (IProblem i : p) {
-                env.getError().println(i.getMessage());
+        blank.setCompilerOptions(options);
+        blank.setSource(source);
+        return blank;
+    }
 
-                int start = i.getSourceStart();
+    @Override
+    protected void reportError(Environment env, List<? extends List<? extends ASTNode>> min) {
+        for (List<? extends ASTNode> nodes : min) {
+            IProblem[] ps = CONVERTOR.apply(nodes);
+            for (IProblem p : ps) {
+                env.getError().println(p.getMessage());
+
+                int start = p.getSourceStart();
                 if (start != -1) {
-                    int count = i.getSourceEnd() - start + 1;
-                    String problem = new String(source, start, count);
-                    if (!problem.isEmpty()) {
-                        env.getError().printf("\t%s\n", problem);
+                    int count = p.getSourceEnd() - start + 1;
+                    if (count > 0) {
+                        String problem = new String(source, start, count);
+                        env.getError().print(GeneratedSourceCode.TAB);
+                        env.getError().println(problem);
                     }
                 }
             }
         }
-        
-        return null;
     }
 }

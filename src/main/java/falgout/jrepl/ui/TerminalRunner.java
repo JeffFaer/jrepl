@@ -10,12 +10,13 @@ import falgout.jrepl.Environment;
 import falgout.jrepl.EnvironmentModule;
 import falgout.jrepl.command.Command;
 import falgout.jrepl.command.CommandFactory;
+import falgout.jrepl.command.CommandModule;
 
 public class TerminalRunner {
     public static void main(String[] args) throws IOException {
-        Injector injector = Guice.createInjector(new EnvironmentModule());
+        Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule());
         try (Environment env = injector.getInstance(Environment.class)) {
-            CommandFactory f = injector.getInstance(CommandFactory.class);
+            CommandFactory<?> f = injector.getInstance(CommandFactory.class);
 
             String prompt = "java: ";
             BufferedReader in = env.getInput();
