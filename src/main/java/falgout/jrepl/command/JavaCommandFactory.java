@@ -1,8 +1,10 @@
 package falgout.jrepl.command;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.compiler.IProblem;
@@ -26,33 +28,36 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
             return ((CompilationUnit) l.get(0).getRoot()).getProblems();
         }
     };
+    private static Predicate<List<? extends ASTNode>> ACCEPT = l -> {
+        IProblem[] problems = CONVERTOR.apply(l);
+        return problems != null && problems.length == 0;
+    };
+    private static Comparator<List<? extends ASTNode>> RANKER = (l1, l2) -> {
+        IProblem[] p1 = CONVERTOR.apply(l1);
+        IProblem[] p2 = CONVERTOR.apply(l2);
+        int s1 = p1 == null ? Integer.MAX_VALUE : p1.length;
+        int s2 = p2 == null ? Integer.MAX_VALUE : p2.length;
+        
+        return Integer.compare(s1, s2);
+    };
+    
     private final Map<?, ?> options;
     private final ThreadLocal<char[]> source = new ThreadLocal<char[]>();
-
+    
     @SafeVarargs
     @Inject
     public JavaCommandFactory(Pair<? super ASTParser, ? extends List<? extends ASTNode>, ? extends R>... pairs) {
-        super(l -> {
-            IProblem[] problems = CONVERTOR.apply(l);
-            return problems != null && problems.length == 0;
-        }, (l1, l2) -> {
-            IProblem[] p1 = CONVERTOR.apply(l1);
-            IProblem[] p2 = CONVERTOR.apply(l2);
-            int s1 = p1 == null ? Integer.MAX_VALUE : p1.length;
-            int s2 = p2 == null ? Integer.MAX_VALUE : p2.length;
-
-            return Integer.compare(s1, s2);
-        }, pairs);
+        super(ACCEPT, RANKER, pairs);
         options = JavaCore.getOptions();
         JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
     }
-    
+
     @Override
     protected ASTParser createNewInput() {
         source.set(null);
         return ASTParser.newParser(AST.JLS4);
     }
-
+    
     @Override
     protected ASTParser initialize(ASTParser blank, String input) {
         char[] s = source.get();
@@ -64,19 +69,19 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         blank.setSource(s);
         return blank;
     }
-
+    
     @Override
     protected void reportSuccess(Environment env, List<? extends ASTNode> success) {
         source.set(null);
     }
-
+    
     @Override
     protected void reportError(Environment env, List<? extends List<? extends ASTNode>> min) {
         for (List<? extends ASTNode> nodes : min) {
             IProblem[] ps = CONVERTOR.apply(nodes);
             for (IProblem p : ps) {
                 env.getError().println(p.getMessage());
-
+                
                 int start = p.getSourceStart();
                 if (start != -1) {
                     int count = p.getSourceEnd() - start + 1;
@@ -88,7 +93,7 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
                 }
             }
         }
-        
+
         source.set(null);
     }
 }

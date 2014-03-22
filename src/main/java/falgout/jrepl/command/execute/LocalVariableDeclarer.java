@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -20,19 +21,20 @@ import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.Invokable;
 import falgout.jrepl.reflection.JDTTypes;
 
-public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, Set<Variable<?>>> {
+public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, List<Variable<?>>> {
     INSTANCE;
-    public static final Executor<Statement, Set<Variable<?>>> FILTER = Executor.filter(INSTANCE,
+    public static final Executor<Statement, List<Variable<?>>> FILTER = Executor.filter(INSTANCE,
             s -> (s instanceof VariableDeclarationStatement) ? (VariableDeclarationStatement) s : null);
-    public static final Executor<Iterable<? extends Statement>, Set<Variable<?>>> PARSE = Executor.flatProcess(FILTER);
+    public static final Executor<Iterable<? extends Statement>, List<Variable<?>>> PARSE = Executor.flatProcess(FILTER);
     
     @Override
-    public Optional<Set<Variable<?>>> execute(Environment env, VariableDeclarationStatement input) throws IOException {
+    public Optional<? extends List<Variable<?>>> execute(Environment env, VariableDeclarationStatement input)
+            throws IOException {
         try {
             TypeToken<?> baseType = JDTTypes.getType(input.getType());
             
             Set<String> names = new LinkedHashSet<>();
-            Set<Variable<?>> variables = new LinkedHashSet<>();
+            List<Variable<?>> variables = new ArrayList<>();
             
             boolean _final = JDTTypes.isFinal(input.modifiers());
             
