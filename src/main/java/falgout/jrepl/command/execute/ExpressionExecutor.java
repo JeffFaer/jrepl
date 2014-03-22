@@ -18,8 +18,8 @@ import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.command.execute.codegen.WrappedStatement;
 import falgout.jrepl.reflection.Invokable;
 
-public class ExpressionExecutor implements Executor<Expression, Invokable.Method> {
-    public static final Executor<Expression, Invokable.Method> INSTANCE = new ExpressionExecutor();
+public enum ExpressionExecutor implements Executor<Expression, Invokable.Method> {
+    INSTANCE;
     
     /**
      * Creates an {@link Invokable} which requires no arguments. When
@@ -32,7 +32,7 @@ public class ExpressionExecutor implements Executor<Expression, Invokable.Method
         SourceCode<WrappedStatement> code = SourceCode.from(input);
         GeneratedMethod gen = new GeneratedMethod(env);
         gen.addChild(code);
-
+        
         Optional<? extends java.lang.reflect.Method> opt = METHOD_COMPILER.execute(env, gen);
         if (opt.isPresent()) {
             java.lang.reflect.Method m = opt.get();
@@ -44,7 +44,7 @@ public class ExpressionExecutor implements Executor<Expression, Invokable.Method
                 Injector i = Guice.createInjector(new GeneratorModule(env));
                 receiver = i.getInstance(clazz);
             }
-            
+
             return Optional.of(Invokable.from(receiver, m));
         } else {
             return Optional.empty();

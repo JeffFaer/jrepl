@@ -15,16 +15,16 @@ import falgout.jrepl.command.parse.Statements;
 
 public class CommandModule extends AbstractModule {
     private static final TypeLiteral<CommandFactory<Optional<? extends Collection<?>>>> PROVIDED = new TypeLiteral<CommandFactory<Optional<? extends Collection<?>>>>() {};
-    
+
     @Override
     protected void configure() {
         bind(CommandFactory.class).to(PROVIDED);
         bind(new TypeLiteral<CommandFactory<?>>() {}).to(PROVIDED);
     }
-    
+
     @Provides
     public CommandFactory<Optional<? extends Collection<?>>> createCommandFactory() {
-        return new JavaCommandFactory<Collection<?>>(new Pair<>(new Statements(), LocalVariableDeclarer.PARSE),
-                new Pair<>(new ClassDeclaration(), Importer.PARSE));
+        return new JavaCommandFactory<Collection<?>>(new Pair<>(Statements.INSTANCE, LocalVariableDeclarer.PARSE),
+                new Pair<>(ClassDeclaration.INSTANCE, Importer.PARSE));
     }
 }

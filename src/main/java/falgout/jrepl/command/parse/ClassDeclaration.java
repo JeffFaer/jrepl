@@ -11,7 +11,8 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import com.google.common.collect.ForwardingList;
 import com.google.common.collect.ForwardingListIterator;
 
-public class ClassDeclaration implements JavaParserRule<CompilationUnit> {
+public enum ClassDeclaration implements JavaParserRule<CompilationUnit> {
+    INSTANCE;
     @Override
     public List<? extends CompilationUnit> parse(ASTParser input) {
         input.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -21,17 +22,17 @@ public class ClassDeclaration implements JavaParserRule<CompilationUnit> {
             protected List<CompilationUnit> delegate() {
                 return l;
             }
-            
+
             @Override
             public Iterator<CompilationUnit> iterator() {
                 return standardIterator();
             }
-
+            
             @Override
             public ListIterator<CompilationUnit> listIterator() {
                 return standardListIterator();
             }
-
+            
             @Override
             public ListIterator<CompilationUnit> listIterator(int index) {
                 ListIterator<CompilationUnit> delegate = standardListIterator(index);
@@ -40,7 +41,7 @@ public class ClassDeclaration implements JavaParserRule<CompilationUnit> {
                     protected ListIterator<CompilationUnit> delegate() {
                         return delegate;
                     }
-                    
+
                     @Override
                     public void remove() {
                         // no op

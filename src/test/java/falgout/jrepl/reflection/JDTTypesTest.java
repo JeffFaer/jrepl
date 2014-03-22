@@ -8,17 +8,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +25,12 @@ import org.junit.runner.RunWith;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
+import falgout.jrepl.command.AbstractCommandFactory.Pair;
+import falgout.jrepl.command.Command;
 import falgout.jrepl.command.CommandModule;
+import falgout.jrepl.command.JavaCommandFactory;
+import falgout.jrepl.command.execute.Executor;
+import falgout.jrepl.command.parse.Statements;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 
@@ -34,24 +38,25 @@ import falgout.jrepl.guice.TestModule;
 @UseModules({ TestModule.class, CommandModule.class })
 public class JDTTypesTest {
     @Inject @Rule public TestEnvironment env;
+    public JavaCommandFactory<Type> typeParser;
+
+    @Before
+    public void before() {
+        Executor<List<? extends Statement>, Type> exec = (env, l) -> Optional.of(((VariableDeclarationStatement) l.get(0)).getType());
+        typeParser = new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, exec));
+    }
     
-    private Type parse(String input) {
-        ASTParser parser = ASTParser.newParser(AST.JLS4);
+    private Type parse(String input) throws IOException {
+        Command<? extends Optional<? extends Type>> c = typeParser.getCommand(env.getEnvironment(), input + " foo;");
+        Optional<? extends Type> opt = c.execute(env.getEnvironment());
+        env.assertNoErrors();
         
-        Map<?, ?> options = JavaCore.getOptions();
-        JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
-        parser.setCompilerOptions(options);
-        parser.setSource((input + " foo;").toCharArray());
-        parser.setKind(ASTParser.K_STATEMENTS);
-        
-        Block block = (Block) parser.createAST(null);
-        VariableDeclarationStatement statement = (VariableDeclarationStatement) block.statements().get(0);
-        
-        return statement.getType();
+        assertTrue(opt.isPresent());
+        return opt.get();
     }
 
     @Test
-    public void returnsPrimitives() throws ClassNotFoundException {
+    public void returnsPrimitives() throws ClassNotFoundException, IOException {
         Type type = parse("int");
         assertEquals(TypeToken.of(int.class), JDTTypes.getType(type));
 
@@ -60,7 +65,7 @@ public class JDTTypesTest {
     }
 
     @Test
-    public void returnsSimpleObjects() throws ClassNotFoundException {
+    public void returnsSimpleObjects() throws ClassNotFoundException, IOException {
         Type type = parse("Object");
         assertEquals(TypeToken.of(Object.class), JDTTypes.getType(type));
 
@@ -103,7 +108,7 @@ public class JDTTypesTest {
     }
 
     @Test(expected = ClassNotFoundException.class)
-    public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException {
+    public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException, IOException {
         JDTTypes.getType(parse("Object<Object, Object>"));
     }
 

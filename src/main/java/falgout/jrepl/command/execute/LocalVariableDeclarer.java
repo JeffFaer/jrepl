@@ -20,8 +20,8 @@ import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.Invokable;
 import falgout.jrepl.reflection.JDTTypes;
 
-public class LocalVariableDeclarer implements Executor<VariableDeclarationStatement, Set<Variable<?>>> {
-    public static final Executor<VariableDeclarationStatement, Set<Variable<?>>> INSTANCE = new LocalVariableDeclarer();
+public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, Set<Variable<?>>> {
+    INSTANCE;
     public static final Executor<Statement, Set<Variable<?>>> FILTER = Executor.filter(INSTANCE,
             s -> (s instanceof VariableDeclarationStatement) ? (VariableDeclarationStatement) s : null);
     public static final Executor<Iterable<? extends Statement>, Set<Variable<?>>> PARSE = Executor.flatProcess(FILTER);
