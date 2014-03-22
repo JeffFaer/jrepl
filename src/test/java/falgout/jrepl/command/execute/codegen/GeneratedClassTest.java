@@ -35,13 +35,13 @@ public class GeneratedClassTest {
     @Test
     public void blankClassCanCompile() throws IOException {
         GeneratedClass g = new GeneratedClass(e);
-        Class<?> clazz = compile(g);
-        assertEquals(g.getName(), clazz.getName());
+        compile(g);
     }
 
     private Class<?> compile(GeneratedClass clazz) throws IOException {
         Optional<? extends Class<?>> opt = INSTANCE.execute(e, clazz);
         assertTrue(opt.isPresent());
+        assertEquals(clazz.getName(), opt.get().getName());
         return opt.get();
     }
     
