@@ -17,9 +17,13 @@ import org.eclipse.jdt.core.dom.WildcardType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
-import com.google.common.reflect.Types2;
 
-public class Types {
+/**
+ * Utility methods for manipulating Eclipse JDT's types.
+ *
+ * @author jeffrey
+ */
+public class JDTTypes {
     private static final Map<String, Class<?>> PRIMITIVES;
     static {
         Map<String, Class<?>> temp = new LinkedHashMap<>();
@@ -29,10 +33,6 @@ public class Types {
         
         PRIMITIVES = ImmutableMap.<String, Class<?>> builder().putAll(temp).build();
     }
-    public static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
-    public static final TypeToken<?> VOID = TypeToken.of(void.class);
-    public static final TypeToken<?> INT = TypeToken.of(int.class);
-    public static final TypeToken<?> CHAR = TypeToken.of(char.class);
     
     public static TypeToken<?> getType(Type type) throws ClassNotFoundException {
         if (type.isArrayType()) {
@@ -53,7 +53,7 @@ public class Types {
     }
     
     private static TypeToken<?> getType(ArrayType type) throws ClassNotFoundException {
-        return Types2.addArraysToType(getType(type.getElementType()), type.getDimensions());
+        return GoogleTypes.addArrays(getType(type.getElementType()), type.getDimensions());
     }
 
     private static TypeToken<?> getType(ParameterizedType type) throws ClassNotFoundException {
@@ -77,7 +77,7 @@ public class Types {
             throw new ClassNotFoundException(message);
         }
         
-        return Types2.newParameterizedType(owner, rawType, args);
+        return GoogleTypes.newParameterizedType(owner, rawType, args);
     }
 
     private static TypeToken<?> getType(PrimitiveType type) {
@@ -89,7 +89,7 @@ public class Types {
         String name = owner.getRawType().getCanonicalName() + "." + type.getName().getIdentifier();
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         Class<?> rawType = cl.loadClass(name);
-        return Types2.newParameterizedType(owner, TypeToken.of(rawType));
+        return GoogleTypes.newParameterizedType(owner, TypeToken.of(rawType));
     }
     
     private static TypeToken<?> getType(SimpleType type) throws ClassNotFoundException {
@@ -100,7 +100,7 @@ public class Types {
     
     private static TypeToken<?> getType(WildcardType type) throws ClassNotFoundException {
         TypeToken<?> t = getType(type.getBound());
-        return type.isUpperBound() ? Types2.subtypeOf(t) : Types2.supertypeOf(t);
+        return type.isUpperBound() ? GoogleTypes.subtypeOf(t) : GoogleTypes.supertypeOf(t);
     }
 
     public static boolean isFinal(List<Modifier> modifiers) {

@@ -7,7 +7,7 @@ import javax.lang.model.element.NestingKind;
 import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.reflection.Types;
+import falgout.jrepl.reflection.GoogleTypes;
 
 public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatement> {
     public GeneratedMethod(Environment env) {
@@ -32,11 +32,11 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatemen
         for (SourceCode<? extends WrappedStatement> child : getChildren()) {
             // still kind of hacky, but it's a bit better
             if (child.getTarget(null).isReturn()) {
-                return Types.OBJECT;
+                return GoogleTypes.OBJECT;
             }
         }
         
-        return Types.VOID;
+        return GoogleTypes.VOID;
     }
     
     @Override

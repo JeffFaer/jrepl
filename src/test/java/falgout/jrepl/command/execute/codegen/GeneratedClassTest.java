@@ -24,39 +24,39 @@ import falgout.jrepl.Environment;
 import falgout.jrepl.Variable;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
-import falgout.jrepl.reflection.Types;
+import falgout.jrepl.reflection.GoogleTypes;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
 public class GeneratedClassTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-
+    
     @Test
     public void blankClassCanCompile() throws IOException {
         GeneratedClass g = new GeneratedClass(e);
         compile(g);
     }
-
+    
     private Class<?> compile(GeneratedClass clazz) throws IOException {
         Optional<? extends Class<?>> opt = INSTANCE.execute(e, clazz);
         assertTrue(opt.isPresent());
         assertEquals(clazz.getName(), opt.get().getName());
         return opt.get();
     }
-    
+
     @Test
     public void containsEnvironmentVariables() throws IOException, NoSuchFieldException, SecurityException {
-        Variable<?> var1 = new Variable<>(true, Types.OBJECT, "var1", new Object());
-        Variable<?> var2 = new Variable<>(true, Types.INT, "var2", 5);
-        Variable<?> var3 = new Variable<>(Types.OBJECT, "var3", new Object());
-        Variable<?> var4 = new Variable<>(true, Types.CHAR, "var4", '5');
+        Variable<?> var1 = new Variable<>(true, GoogleTypes.OBJECT, "var1", new Object());
+        Variable<?> var2 = new Variable<>(true, GoogleTypes.INT, "var2", 5);
+        Variable<?> var3 = new Variable<>(GoogleTypes.OBJECT, "var3", new Object());
+        Variable<?> var4 = new Variable<>(true, GoogleTypes.CHAR, "var4", '5');
         List<Variable<?>> vars = Arrays.asList(var1, var2, var3, var4);
-        
+
         for (Variable<?> var : vars) {
             assertTrue(e.addVariable(var));
         }
-        
+
         GeneratedClass g = new GeneratedClass(e);
         Class<?> clazz = compile(g);
         for (Variable<?> var : vars) {

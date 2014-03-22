@@ -13,12 +13,12 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import com.google.common.reflect.TypeToken;
-import com.google.common.reflect.Types2;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.Variable;
+import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.Invokable;
-import falgout.jrepl.reflection.Types;
+import falgout.jrepl.reflection.JDTTypes;
 
 public class LocalVariableDeclarer implements Executor<VariableDeclarationStatement, Set<Variable<?>>> {
     public static final Executor<VariableDeclarationStatement, Set<Variable<?>>> INSTANCE = new LocalVariableDeclarer();
@@ -29,12 +29,12 @@ public class LocalVariableDeclarer implements Executor<VariableDeclarationStatem
     @Override
     public Optional<Set<Variable<?>>> execute(Environment env, VariableDeclarationStatement input) throws IOException {
         try {
-            TypeToken<?> baseType = Types.getType(input.getType());
+            TypeToken<?> baseType = JDTTypes.getType(input.getType());
             
             Set<String> names = new LinkedHashSet<>();
             Set<Variable<?>> variables = new LinkedHashSet<>();
             
-            boolean _final = Types.isFinal(input.modifiers());
+            boolean _final = JDTTypes.isFinal(input.modifiers());
             
             for (VariableDeclarationFragment frag : (List<VariableDeclarationFragment>) input.fragments()) {
                 String name = frag.getName().getIdentifier();
@@ -44,7 +44,7 @@ public class LocalVariableDeclarer implements Executor<VariableDeclarationStatem
                 }
                 
                 int extraDims = frag.getExtraDimensions();
-                TypeToken<?> variableType = Types2.addArraysToType(baseType, extraDims);
+                TypeToken<?> variableType = GoogleTypes.addArrays(baseType, extraDims);
                 Variable<?> var = new Variable<>(_final, variableType, name);
                 
                 Expression init = frag.getInitializer();

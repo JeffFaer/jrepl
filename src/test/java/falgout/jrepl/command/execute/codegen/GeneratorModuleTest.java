@@ -22,7 +22,7 @@ import falgout.jrepl.Environment;
 import falgout.jrepl.Variable;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
-import falgout.jrepl.reflection.Types;
+import falgout.jrepl.reflection.GoogleTypes;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
@@ -30,23 +30,23 @@ public class GeneratorModuleTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
     public Injector i;
-
-    public Variable<?> uninitialized = new Variable<>(Types.OBJECT, "foo");
-    public Variable<?> initialized = new Variable<>(Types.OBJECT, "foo2", true);
     
+    public Variable<?> uninitialized = new Variable<>(GoogleTypes.OBJECT, "foo");
+    public Variable<?> initialized = new Variable<>(GoogleTypes.OBJECT, "foo2", true);
+
     @Before
     public void before() {
         e.addVariable(uninitialized);
         e.addVariable(initialized);
-        
+
         i = Guice.createInjector(new GeneratorModule(e));
     }
-
+    
     @Test
     public void doesNotCreateBindingForUninitializedVariable() {
         assertEquals(1, getNamedBindings().size());
     }
-
+    
     private Set<Key<?>> getNamedBindings() {
         return i.getAllBindings()
                 .keySet()
