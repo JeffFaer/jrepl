@@ -56,4 +56,10 @@ public class EnvironmentTest {
     public void EnvironmentClassLoaderIsThreadContextClassLoader() {
         assertSame(e.getImportClassLoader(), Thread.currentThread().getContextClassLoader());
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void CannotAddUninitializedFinalVariable() {
+        Variable<?> uninitFinal = new Variable<>(true, Types.OBJECT, "foo");
+        e.addVariable(uninitFinal);
+    }
 }
