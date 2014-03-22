@@ -16,7 +16,7 @@ public class TerminalRunner {
         Injector injector = Guice.createInjector(new EnvironmentModule());
         try (Environment env = injector.getInstance(Environment.class)) {
             CommandFactory f = injector.getInstance(CommandFactory.class);
-            
+
             String prompt = "java: ";
             BufferedReader in = env.getInput();
             StringBuilder input = new StringBuilder();
@@ -32,18 +32,20 @@ public class TerminalRunner {
                         braces--;
                     }
                 }
-                
+
                 if (input.length() != 0) {
                     input.append("\n");
                 }
                 input.append(line);
-                
+
                 if (braces == 0) {
                     Command<?> c = f.getCommand(env, input.toString());
-                    c.execute(env);
+                    if (c != null) {
+                        c.execute(env);
+                    }
                     input = new StringBuilder();
                 }
-                
+
                 System.out.print(prompt);
             }
         }
