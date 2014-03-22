@@ -1,6 +1,5 @@
 package falgout.jrepl.command.execute;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,7 +20,6 @@ import falgout.jrepl.command.execute.codegen.GeneratedMethod;
 import falgout.jrepl.command.execute.codegen.GeneratedMethodExecutor;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.reflection.GoogleTypes;
-import falgout.jrepl.reflection.Invokable;
 import falgout.jrepl.reflection.JDTTypes;
 
 public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, List<Variable<?>>> {
@@ -59,14 +57,9 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
                     GeneratedMethod method = new GeneratedMethod(env);
                     method.addChild(SourceCode.from(input));
                     method.addChild(SourceCode.createReturnStatement(var));
-
-                    try {
-                        Invokable.Method m = GeneratedMethodExecutor.INSTANCE.execute(env, method);
-                        Object value = m.invoke();
-                        var.set(variableType, value);
-                    } catch (InvocationTargetException | IllegalAccessException e) {
-                        throw new Error(e);
-                    }
+                    
+                    Object value = GeneratedMethodExecutor.INSTANCE.execute(method);
+                    var.set(variableType, value);
                 }
                 
                 variables.add(var);

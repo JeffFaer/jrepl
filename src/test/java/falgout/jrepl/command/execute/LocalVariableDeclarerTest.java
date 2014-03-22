@@ -2,10 +2,10 @@ package falgout.jrepl.command.execute;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -36,7 +36,7 @@ public class LocalVariableDeclarerTest {
     @Inject public Environment e;
     public JavaCommandFactory<Optional<? extends List<Variable<?>>>> variableParser = new JavaCommandFactory<>(
             new Pair<>(Statements.INSTANCE, LocalVariableDeclarer.PARSE));
-
+    
     public List<Variable<?>> parse(String input) throws ExecutionException {
         Optional<? extends List<Variable<?>>> opt = variableParser.execute(e, input);
         return opt.get();
@@ -55,12 +55,12 @@ public class LocalVariableDeclarerTest {
     public void cannotHaveVoidVariable() throws ExecutionException {
         parse("void x = null;");
     }
-
+    
     @Test(expected = ExecutionException.class)
     public void cannotAssignStringToPrimitive() throws ExecutionException {
         parse("int x = \"hi\";");
     }
-
+    
     @Test
     public void canDeclareMultipleVariables() throws ExecutionException {
         List<Variable<?>> vars = parse("int x, y[], z[][];");
@@ -73,9 +73,23 @@ public class LocalVariableDeclarerTest {
     }
     
     @Test(expected = ExecutionException.class)
-    public void genericSafety() throws ExecutionException {
+    public void genericSafetyIsRetained() throws ExecutionException {
         env.execute("import java.util.*;");
-        assertNotNull(parse("List<String> x = Arrays.asList(\"1\");"));
+        
+        Variable<?> var = parse("List<String> x = Arrays.asList(\"1\");").get(0);
+        assertEquals(Arrays.asList("1"), var.get());
+        
         parse("List<String> y = Arrays.asList(1);");
+    }
+    
+    @Test(expected = ExecutionException.class)
+    public void cannotDeclareDuplicateVariablesOnSameLine() throws ExecutionException {
+        parse("int x, x[];");
+    }
+    
+    @Test(expected = ExecutionException.class)
+    public void cannotDeclareDuplicateVariableFromEnvironment() throws ExecutionException {
+        assertEquals(1, parse("int x;").size());
+        parse("String x;");
     }
 }
