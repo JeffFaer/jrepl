@@ -1,6 +1,9 @@
 package falgout.jrepl.guice;
 
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.CharArrayWriter;
@@ -62,6 +65,10 @@ public class TestEnvironment extends ExternalResource {
             System.err.print(err);
             fail(err);
         }
+    }
+    
+    public void assertErrors() {
+        assertThat(err.toString(), not(isEmptyString()));
     }
 
     @Override

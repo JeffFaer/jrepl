@@ -17,6 +17,9 @@ import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.Variable;
+import falgout.jrepl.command.execute.codegen.GeneratedMethod;
+import falgout.jrepl.command.execute.codegen.GeneratedMethodExecutor;
+import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.Invokable;
 import falgout.jrepl.reflection.JDTTypes;
@@ -32,6 +35,10 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
             throws IOException {
         try {
             TypeToken<?> baseType = JDTTypes.getType(input.getType());
+            if (baseType.equals(GoogleTypes.VOID)) {
+                env.getError().println("Cannot have a void variable.");
+                return Optional.empty();
+            }
             
             Set<String> names = new LinkedHashSet<>();
             List<Variable<?>> variables = new ArrayList<>();
@@ -51,13 +58,14 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
                 
                 Expression init = frag.getInitializer();
                 if (init != null) {
+                    GeneratedMethod method = new GeneratedMethod(env);
+                    method.addChild(SourceCode.from(input));
+                    method.addChild(SourceCode.createReturnStatement(var));
                     try {
-                        Optional<? extends Invokable.Method> opt = ExpressionExecutor.INSTANCE.execute(env, init);
+                        Optional<? extends Invokable.Method> opt = GeneratedMethodExecutor.INSTANCE.execute(env, method);
                         if (opt.isPresent()) {
                             Object value = opt.get().invoke();
                             var.set(variableType, value);
-                        } else {
-                            return Optional.empty();
                         }
                     } catch (InvocationTargetException | IllegalAccessException e) {
                         throw new Error(e);

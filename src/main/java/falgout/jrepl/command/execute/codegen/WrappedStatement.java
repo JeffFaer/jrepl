@@ -4,9 +4,12 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 
+import falgout.jrepl.Variable;
+
 public final class WrappedStatement {
     private Statement statement;
     private Expression expression;
+    private Variable<?> variable;
     
     WrappedStatement(Statement statement) {
         this.statement = statement;
@@ -20,9 +23,18 @@ public final class WrappedStatement {
     WrappedStatement(Expression expression) {
         this.expression = expression;
     }
+    
+    /**
+     * Returns the variable
+     *
+     * @param variable
+     */
+    WrappedStatement(Variable<?> variable) {
+        this.variable = variable;
+    }
 
     public boolean isReturn() {
-        return statement instanceof ReturnStatement || expression != null;
+        return statement instanceof ReturnStatement || expression != null || variable != null;
     }
 
     @Override
@@ -31,7 +43,12 @@ public final class WrappedStatement {
             return statement.toString();
         } else {
             StringBuilder b = new StringBuilder("return ");
-            b.append(expression).append(";");
+            if (expression == null) {
+                b.append(variable.getIdentifier());
+            } else {
+                b.append(expression);
+            }
+            b.append(";");
             return b.toString();
         }
     }
