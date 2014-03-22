@@ -26,7 +26,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
-import falgout.jrepl.command.Command;
 import falgout.jrepl.command.CommandModule;
 import falgout.jrepl.command.JavaCommandFactory;
 import falgout.jrepl.command.execute.Executor;
@@ -39,40 +38,39 @@ import falgout.jrepl.guice.TestModule;
 public class JDTTypesTest {
     @Inject @Rule public TestEnvironment env;
     public JavaCommandFactory<Type> typeParser;
-
+    
     @Before
     public void before() {
         Executor<List<? extends Statement>, Type> exec = (env, l) -> Optional.of(((VariableDeclarationStatement) l.get(0)).getType());
         typeParser = new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, exec));
     }
-    
+
     private Type parse(String input) throws IOException {
-        Command<? extends Optional<? extends Type>> c = typeParser.getCommand(env.getEnvironment(), input + " foo;");
-        Optional<? extends Type> opt = c.execute(env.getEnvironment());
+        Optional<? extends Type> opt = typeParser.execute(env.getEnvironment(), input + " foo;").get();
         env.assertNoErrors();
-        
+
         assertTrue(opt.isPresent());
         return opt.get();
     }
-
+    
     @Test
     public void returnsPrimitives() throws ClassNotFoundException, IOException {
         Type type = parse("int");
         assertEquals(TypeToken.of(int.class), JDTTypes.getType(type));
-
+        
         type = parse("int[]");
         assertEquals(TypeToken.of(int[].class), JDTTypes.getType(type));
     }
-
+    
     @Test
     public void returnsSimpleObjects() throws ClassNotFoundException, IOException {
         Type type = parse("Object");
         assertEquals(TypeToken.of(Object.class), JDTTypes.getType(type));
-
+        
         type = parse("Object[]");
         assertEquals(TypeToken.of(Object[].class), JDTTypes.getType(type));
     }
-
+    
     @Test
     public void returnsObjectsThatAreImports() throws IOException, ClassNotFoundException {
         try {
@@ -80,55 +78,55 @@ public class JDTTypesTest {
             JDTTypes.getType(type);
             fail();
         } catch (ClassNotFoundException e) {}
-
+        
         env.executeNoErrors("import java.util.*;");
-
+        
         Type type = parse("Random[][][]");
         assertEquals(TypeToken.of(Random[][][].class), JDTTypes.getType(type));
     }
-
+    
     @Test
     public void returnsSimpleGenericType() throws IOException, ClassNotFoundException {
         env.executeNoErrors("import java.util.*;");
-
+        
         Type type = parse("List<String>");
         assertEquals(new TypeToken<List<String>>() {
             private static final long serialVersionUID = 6065261116676637497L;
         }, JDTTypes.getType(type));
     }
-
+    
     @Test
     public void returnsCompoundGenericTypes() throws IOException, ClassNotFoundException {
         env.executeNoErrors("import java.util.*;");
-
+        
         Type type = parse("Map<List<String>, Set<int[]>>");
         assertEquals(new TypeToken<Map<List<String>, Set<int[]>>>() {
             private static final long serialVersionUID = 6065261116676637497L;
         }, JDTTypes.getType(type));
     }
-
+    
     @Test(expected = ClassNotFoundException.class)
     public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException, IOException {
         JDTTypes.getType(parse("Object<Object, Object>"));
     }
-
+    
     @Test
     public void returnsWildcards() throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException {
         env.executeNoErrors("import java.util.*;");
-
+        
         Type type = parse("List<? extends Number>");
         TypeToken<?> typeToken = JDTTypes.getType(type);
-
+        
         assertTrue(typeToken.isAssignableFrom(new TypeToken<List<Integer>>() {
             private static final long serialVersionUID = 1119604468904475049L;
         }));
         assertTrue(typeToken.isAssignableFrom(new TypeToken<ArrayList<Number>>() {
             private static final long serialVersionUID = -7833191612055147550L;
         }));
-
+        
         type = parse("List<? super Number>");
         typeToken = JDTTypes.getType(type);
-
+        
         assertTrue(typeToken.isAssignableFrom(new TypeToken<List<Object>>() {
             private static final long serialVersionUID = -2180513927254148611L;
         }));

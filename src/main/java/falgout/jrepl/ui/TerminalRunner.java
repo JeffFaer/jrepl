@@ -2,6 +2,7 @@ package falgout.jrepl.ui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Optional;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -40,9 +41,9 @@ public class TerminalRunner {
                 input.append(line);
 
                 if (braces == 0) {
-                    Command<?> c = f.getCommand(env, input.toString());
-                    if (c != null) {
-                        c.execute(env);
+                    Optional<? extends Command<?>> opt = f.getCommand(env, input.toString());
+                    if (opt.isPresent()) {
+                        opt.get().execute(env);
                     }
                     input = new StringBuilder();
                 }

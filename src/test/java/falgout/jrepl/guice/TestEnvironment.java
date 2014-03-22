@@ -11,7 +11,6 @@ import org.junit.rules.ExternalResource;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.command.Command;
 import falgout.jrepl.command.CommandFactory;
 
 public class TestEnvironment extends ExternalResource {
@@ -19,7 +18,7 @@ public class TestEnvironment extends ExternalResource {
     private final Environment e;
     private final CharArrayWriter out;
     private final CharArrayWriter err;
-    
+
     @Inject
     public TestEnvironment(CommandFactory<?> f, Environment e, @Stdout CharArrayWriter out, @Stderr CharArrayWriter err) {
         this.f = f;
@@ -27,39 +26,36 @@ public class TestEnvironment extends ExternalResource {
         this.out = out;
         this.err = err;
     }
-    
+
     public CommandFactory<?> getFactory() {
         return f;
     }
-    
+
     public CharArrayWriter getOutput() {
         return out;
     }
-    
+
     public CharArrayWriter getError() {
         return err;
     }
-    
+
     public Environment getEnvironment() {
         return e;
     }
-    
+
     public void execute(String input) throws IOException {
-        Command<?> c = f.getCommand(e, input);
-        if (c != null) {
-            c.execute(e);
-        }
+        f.execute(e, input);
     }
-    
+
     public void executeNoErrors(String input) throws IOException {
         execute(input);
         assertNoErrors();
     }
-    
+
     public void assertOutput(String expected) {
         assertEquals(expected, out.toString());
     }
-    
+
     public void assertNoErrors() {
         String err = this.err.toString();
         if (!err.isEmpty()) {
@@ -67,12 +63,12 @@ public class TestEnvironment extends ExternalResource {
             fail(err);
         }
     }
-    
+
     @Override
     protected void after() {
         out.reset();
         err.reset();
-        
+
         try {
             e.close();
         } catch (IOException e) {
