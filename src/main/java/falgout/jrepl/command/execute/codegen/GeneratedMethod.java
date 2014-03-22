@@ -2,8 +2,6 @@ package falgout.jrepl.command.execute.codegen;
 
 import java.lang.reflect.Method;
 
-import javax.lang.model.element.NestingKind;
-
 import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
@@ -13,12 +11,7 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatemen
     public GeneratedMethod(Environment env) {
         super(env);
     }
-
-    @Override
-    public NestingKind getNestingKind() {
-        return NestingKind.MEMBER;
-    }
-
+    
     @Override
     public Method getTarget(Class<?> clazz) {
         try {

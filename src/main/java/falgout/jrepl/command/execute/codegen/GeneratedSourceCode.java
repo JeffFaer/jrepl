@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.lang.model.element.Modifier;
-
 import falgout.jrepl.Environment;
 
 public abstract class GeneratedSourceCode<T, C> extends SourceCode<T> {
@@ -15,7 +13,7 @@ public abstract class GeneratedSourceCode<T, C> extends SourceCode<T> {
     
     private final Environment env;
     private final List<SourceCode<? extends C>> children = new ArrayList<>();
-
+    
     public GeneratedSourceCode(Environment env) {
         super("$Generated" + ID.incrementAndGet());
         this.env = env;
@@ -35,10 +33,5 @@ public abstract class GeneratedSourceCode<T, C> extends SourceCode<T> {
     
     public boolean removeChild(SourceCode<? extends C> child) {
         return children.remove(child);
-    }
-
-    @Override
-    public Modifier getAccessLevel() {
-        return Modifier.PUBLIC;
     }
 }

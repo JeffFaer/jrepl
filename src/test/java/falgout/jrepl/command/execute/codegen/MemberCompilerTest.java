@@ -2,18 +2,19 @@ package falgout.jrepl.command.execute.codegen;
 
 import static falgout.jrepl.command.execute.codegen.MemberCompiler.METHOD_COMPILER;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutionException;
-
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.NestingKind;
 
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.stubbing.Answer;
 
 import com.google.inject.Inject;
 
@@ -32,37 +33,21 @@ public class MemberCompilerTest {
         Method method = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { }"));
         assertEquals("foo", method.getName());
     }
-
+    
     @Test(expected = ExecutionException.class)
     public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException {
         METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { ERROR }"));
     }
-
+    
     private SourceCode<? extends Method> getCode(String name, String code) {
-        return new SourceCode<Method>(name) {
-            @Override
-            public Method getTarget(Class<?> clazz) {
-                try {
-                    return clazz.getMethod(name);
-                } catch (NoSuchMethodException e) {
-                    throw new Error(e);
-                }
-            }
-            
-            @Override
-            public NestingKind getNestingKind() {
-                return null;
-            }
-            
-            @Override
-            public Modifier getAccessLevel() {
-                return null;
-            }
-            
-            @Override
-            public String toString() {
-                return code;
-            }
-        };
+        SourceCode<Method> method = mock(SourceCode.class);
+        when(method.getName()).thenReturn(name);
+        when(method.toString()).thenReturn(code);
+        when(method.getTarget(Matchers.any())).then(returnMethod(name));
+        return method;
+    }
+    
+    private Answer<?> returnMethod(String name) {
+        return invocation -> ((Class<?>) invocation.getArguments()[0]).getMethod(name);
     }
 }

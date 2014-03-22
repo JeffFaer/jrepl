@@ -24,7 +24,7 @@ public enum ClassCompiler implements CodeCompiler<Class<?>> {
             throw new Error("Please run this program with the JDK");
         }
     }
-
+    
     @Override
     public Class<?> execute(Environment env, SourceCode<? extends Class<?>> input) throws ExecutionException {
         try {
@@ -38,7 +38,7 @@ public enum ClassCompiler implements CodeCompiler<Class<?>> {
             JavaFileManager manager = JAVAC.getStandardFileManager(diagnostics, null, null);
             
             CompilationTask task = JAVAC.getTask(env.getError(), manager, diagnostics, options, null,
-                    Arrays.asList(input));
+                    Arrays.asList(new SourceCodeJavaFile(input)));
             
             if (task.call()) {
                 try {

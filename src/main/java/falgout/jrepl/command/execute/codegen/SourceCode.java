@@ -1,97 +1,94 @@
 package falgout.jrepl.command.execute.codegen;
 
-import java.io.IOException;
-import java.net.URI;
+import java.lang.reflect.Field;
 
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.NestingKind;
-import javax.tools.SimpleJavaFileObject;
-
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.Statement;
 
+import com.google.common.base.Defaults;
+
 import falgout.jrepl.Variable;
+import falgout.jrepl.reflection.NestedClass;
 
-public abstract class SourceCode<T> extends SimpleJavaFileObject {
+public abstract class SourceCode<T> {
     private final String name;
-
+    
     protected SourceCode(String name) {
-        super(URI.create("string:///" + (name == null ? "" : name.replace('.', '/')) + Kind.SOURCE.extension),
-                Kind.SOURCE);
         this.name = name;
     }
-
+    
     public abstract T getTarget(Class<?> clazz);
-
-    @Override
+    
     public String getName() {
         return name;
     }
-
-    @Override
-    public abstract NestingKind getNestingKind();
-
-    @Override
-    public abstract Modifier getAccessLevel();
-
-    @Override
-    public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-        return toString();
-    }
-
+    
     @Override
     public abstract String toString();
-
-    private static class WrappedStatementSourceCode extends SourceCode<WrappedStatement> {
-        private final WrappedStatement w;
-
-        WrappedStatementSourceCode(WrappedStatement w) {
-            super(null);
-            this.w = w;
-        }
-        
-        WrappedStatementSourceCode(Expression expression) {
-            this(new WrappedStatement(expression));
-        }
-        
-        WrappedStatementSourceCode(Statement statement) {
-            this(new WrappedStatement(statement));
-        }
-
-        WrappedStatementSourceCode(Variable<?> variable) {
-            this(new WrappedStatement(variable));
-        }
-        
-        @Override
-        public WrappedStatement getTarget(Class<?> clazz) {
-            return w;
-        }
-        
-        @Override
-        public NestingKind getNestingKind() {
-            return NestingKind.ANONYMOUS;
-        }
-        
-        @Override
-        public Modifier getAccessLevel() {
-            return null;
-        }
-        
-        @Override
-        public String toString() {
-            return w.toString();
-        }
-    }
-
+    
     public static SourceCode<WrappedStatement> createReturnStatement(Variable<?> variable) {
         return new WrappedStatementSourceCode(variable);
     }
-
+    
     public static SourceCode<WrappedStatement> createReturnStatement(Expression expression) {
         return new WrappedStatementSourceCode(expression);
     }
-
+    
     public static SourceCode<WrappedStatement> from(Statement statement) {
         return new WrappedStatementSourceCode(statement);
+    }
+    
+    public static SourceCode<NestedClass<?>> from(AbstractTypeDeclaration decl) {
+        String name = decl.getName().toString();
+        return new SourceCode<NestedClass<?>>(name) {
+            @Override
+            public NestedClass<?> getTarget(Class<?> clazz) {
+                for (Class<?> nested : clazz.getDeclaredClasses()) {
+                    if (nested.getSimpleName().equals(name)) {
+                        return new NestedClass<>(nested);
+                    }
+                }
+                
+                throw new AssertionError();
+            }
+            
+            @Override
+            public String toString() {
+                return decl.toString();
+            }
+        };
+    }
+    
+    public static SourceCode<Field> from(Variable<?> variable) {
+        return new SourceCode<Field>(variable.getIdentifier()) {
+            @Override
+            public Field getTarget(Class<?> clazz) {
+                try {
+                    return clazz.getField(getName());
+                } catch (NoSuchFieldException e) {
+                    throw new Error(e);
+                }
+            }
+            
+            @Override
+            public String toString() {
+                StringBuilder b = new StringBuilder();
+                b.append("@com.google.inject.Inject ");
+                b.append("@javax.annotation.Nullable ");
+                b.append("@com.google.inject.name.Named(\"").append(getName()).append("\")");
+                b.append(" public ");
+                if (variable.isFinal()) {
+                    b.append("final ");
+                }
+                b.append(variable.getType()).append(" ").append(getName());
+                if (variable.isFinal()) {
+                    Object val = Defaults.defaultValue(variable.getType().getRawType());
+                    b.append(" = ").append(Variable.toString(val));
+                }
+                b.append(";\n");
+                return b.toString();
+            }
+        };
     }
 }

@@ -6,10 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.lang.model.element.NestingKind;
-
-import com.google.common.base.Defaults;
-
 import falgout.jrepl.Environment;
 import falgout.jrepl.Import;
 import falgout.jrepl.Variable;
@@ -18,17 +14,12 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
     public GeneratedClass(Environment env) {
         super(env);
     }
-
+    
     @Override
     public Class<?> getTarget(Class<?> clazz) {
         return clazz;
     }
-
-    @Override
-    public NestingKind getNestingKind() {
-        return NestingKind.TOP_LEVEL;
-    }
-
+    
     @Override
     public String toString() {
         Environment env = getEnvironment();
@@ -36,14 +27,8 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         Set<Import> imports = env.getImports();
         Collection<? extends Variable<?>> variables = env.getVariables();
         List<? extends SourceCode<? extends Member>> children = getChildren();
-
+        
         // imports
-        if (variables.size() > 0) {
-            b.append("import com.google.inject.Inject;\n");
-            b.append("import com.google.inject.name.Named;\n");
-            b.append("import javax.annotation.Nullable;\n");
-            b.append("\n");
-        }
         if (imports.size() > 0) {
             for (Import i : imports) {
                 b.append(i).append("\n");
@@ -53,23 +38,11 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         
         // class declaration
         b.append("public class ").append(getName()).append(" {\n");
-
+        
         // environment variables
         if (variables.size() > 0) {
             for (Variable<?> var : variables) {
-                String id = var.getIdentifier();
-                b.append(TAB);
-                b.append("@Inject ").append("@Nullable ").append("@Named(\"").append(id).append("\")");
-                b.append(" public ");
-                if (var.isFinal()) {
-                    b.append("final ");
-                }
-                b.append(var.getType()).append(" ").append(id);
-                if (var.isFinal()) {
-                    Object val = Defaults.defaultValue(var.getType().getRawType());
-                    b.append(" = ").append(Variable.toString(val));
-                }
-                b.append(";\n");
+                b.append(TAB).append(SourceCode.from(var));
             }
             b.append("\n");
         }
