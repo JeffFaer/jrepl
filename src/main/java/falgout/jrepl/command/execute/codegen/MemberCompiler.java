@@ -1,16 +1,15 @@
 package falgout.jrepl.command.execute.codegen;
 
-import java.io.IOException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import falgout.jrepl.Environment;
 
 /**
  * Compiles an arbitrary {@code Member} by creating a {@link GeneratedClass} for
  * it.
- * 
+ *
  * @author jeffrey
  *
  * @param <M> An arbitrary {@code Member}
@@ -20,14 +19,10 @@ public class MemberCompiler<M extends Member> implements CodeCompiler<M> {
     @SuppressWarnings("unchecked") public static final MemberCompiler<Method> METHOD_COMPILER = (MemberCompiler<Method>) INSTANCE;
 
     @Override
-    public Optional<? extends M> execute(Environment env, SourceCode<? extends M> input) throws IOException {
+    public M execute(Environment env, SourceCode<? extends M> input) throws ExecutionException {
         GeneratedClass genClass = new GeneratedClass(env);
         genClass.addChild(input);
-        Optional<? extends Class<?>> opt = ClassCompiler.INSTANCE.execute(env, genClass);
-        if (opt.isPresent()) {
-            return Optional.of(input.getTarget(opt.get()));
-        } else {
-            return Optional.empty();
-        }
+        Class<?> clazz = ClassCompiler.INSTANCE.execute(env, genClass);
+        return input.getTarget(clazz);
     }
 }

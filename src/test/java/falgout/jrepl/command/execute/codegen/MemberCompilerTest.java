@@ -1,16 +1,10 @@
 package falgout.jrepl.command.execute.codegen;
 
 import static falgout.jrepl.command.execute.codegen.MemberCompiler.METHOD_COMPILER;
-import static org.hamcrest.Matchers.isEmptyString;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
@@ -34,17 +28,14 @@ public class MemberCompilerTest {
     @Inject public Environment e;
     
     @Test
-    public void automaticallyCompiledMethods() throws IOException {
-        Optional<? extends Method> opt = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { }"));
-        assertTrue(opt.isPresent());
-        assertEquals("foo", opt.get().getName());
+    public void automaticallyCompiledMethods() throws ExecutionException {
+        Method method = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { }"));
+        assertEquals("foo", method.getName());
     }
 
-    @Test
-    public void ProvidesErrorFeedbackIfCannotCompile() throws IOException {
-        Optional<? extends Method> opt = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { ERROR }"));
-        assertFalse(opt.isPresent());
-        assertThat(env.getError().toString(), not(isEmptyString()));
+    @Test(expected = ExecutionException.class)
+    public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException {
+        METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { ERROR }"));
     }
 
     private SourceCode<? extends Method> getCode(String name, String code) {

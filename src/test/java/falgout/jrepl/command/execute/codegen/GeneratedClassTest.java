@@ -5,12 +5,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
@@ -31,32 +30,31 @@ import falgout.jrepl.reflection.GoogleTypes;
 public class GeneratedClassTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-    
+
     @Test
-    public void blankClassCanCompile() throws IOException {
+    public void blankClassCanCompile() throws ExecutionException {
         GeneratedClass g = new GeneratedClass(e);
         compile(g);
     }
-    
-    private Class<?> compile(GeneratedClass clazz) throws IOException {
-        Optional<? extends Class<?>> opt = INSTANCE.execute(e, clazz);
-        assertTrue(opt.isPresent());
-        assertEquals(clazz.getName(), opt.get().getName());
-        return opt.get();
-    }
 
+    private Class<?> compile(GeneratedClass clazz) throws ExecutionException {
+        Class<?> c = INSTANCE.execute(e, clazz);
+        assertEquals(clazz.getName(), c.getName());
+        return c;
+    }
+    
     @Test
-    public void containsEnvironmentVariables() throws IOException, NoSuchFieldException, SecurityException {
+    public void containsEnvironmentVariables() throws ExecutionException, NoSuchFieldException, SecurityException {
         Variable<?> var1 = new Variable<>(true, GoogleTypes.OBJECT, "var1", new Object());
         Variable<?> var2 = new Variable<>(true, GoogleTypes.INT, "var2", 5);
         Variable<?> var3 = new Variable<>(GoogleTypes.OBJECT, "var3", new Object());
         Variable<?> var4 = new Variable<>(true, GoogleTypes.CHAR, "var4", '5');
         List<Variable<?>> vars = Arrays.asList(var1, var2, var3, var4);
-
+        
         for (Variable<?> var : vars) {
             assertTrue(e.addVariable(var));
         }
-
+        
         GeneratedClass g = new GeneratedClass(e);
         Class<?> clazz = compile(g);
         for (Variable<?> var : vars) {

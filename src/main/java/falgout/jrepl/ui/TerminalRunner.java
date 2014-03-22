@@ -2,23 +2,23 @@ package falgout.jrepl.ui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.EnvironmentModule;
-import falgout.jrepl.command.Command;
 import falgout.jrepl.command.CommandFactory;
 import falgout.jrepl.command.CommandModule;
+import falgout.jrepl.command.ParsingException;
 
 public class TerminalRunner {
     public static void main(String[] args) throws IOException {
         Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule());
         try (Environment env = injector.getInstance(Environment.class)) {
             CommandFactory<?> f = injector.getInstance(CommandFactory.class);
-
+            
             String prompt = "java: ";
             BufferedReader in = env.getInput();
             StringBuilder input = new StringBuilder();
@@ -34,20 +34,26 @@ public class TerminalRunner {
                         braces--;
                     }
                 }
-
+                
                 if (input.length() != 0) {
                     input.append("\n");
                 }
                 input.append(line);
-
+                
                 if (braces == 0) {
-                    Optional<? extends Command<?>> opt = f.getCommand(env, input.toString());
-                    if (opt.isPresent()) {
-                        opt.get().execute(env);
+                    try {
+                        f.execute(env, input.toString());
+                    } catch (ParsingException e) {
+                        env.printStackTrace(e);
+                    } catch (ExecutionException e) {
+                        env.printStackTrace(e.getCause());
+                    } catch (RuntimeException e) {
+                        env.printStackTrace(e);
                     }
+                    
                     input = new StringBuilder();
                 }
-
+                
                 System.out.print(prompt);
             }
         }

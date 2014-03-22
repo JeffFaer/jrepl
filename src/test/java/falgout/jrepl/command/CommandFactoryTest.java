@@ -1,14 +1,5 @@
 package falgout.jrepl.command;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Optional;
-
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
@@ -34,17 +25,8 @@ public class CommandFactoryTest {
         factory = env.getFactory();
     }
     
-    @Test
-    public void parsingErrorsDontTakeUpExtraLines() throws IOException {
-        Optional<? extends Command<?>> c = factory.getCommand(e, "int foo");
-        assertFalse(c.isPresent());
-        String error = env.getError().toString();
-        assertThat(error, endsWith("\n"));
-        assertThat(error, not(endsWith("\n\n")));
-    }
-
     private void assertCommandExists(String input) {
-        assertTrue(factory.getCommand(e, input).isPresent());
+        factory.getCommand(e, input);
     }
 
     @Test

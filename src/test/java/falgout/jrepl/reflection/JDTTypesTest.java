@@ -4,13 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.Type;
@@ -37,24 +37,22 @@ import falgout.jrepl.guice.TestModule;
 @UseModules({ TestModule.class, CommandModule.class })
 public class JDTTypesTest {
     @Inject @Rule public TestEnvironment env;
-    public JavaCommandFactory<Type> typeParser;
+    public JavaCommandFactory<Optional<Type>> typeParser;
     
     @Before
     public void before() {
-        Executor<List<? extends Statement>, Type> exec = (env, l) -> Optional.of(((VariableDeclarationStatement) l.get(0)).getType());
+        Executor<List<? extends Statement>, Optional<Type>> exec = (env, l) -> Optional.of(((VariableDeclarationStatement) l.get(0)).getType());
         typeParser = new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, exec));
     }
 
-    private Type parse(String input) throws IOException {
-        Optional<? extends Type> opt = typeParser.execute(env.getEnvironment(), input + " foo;").get();
-        env.assertNoErrors();
-
+    private Type parse(String input) throws ExecutionException {
+        Optional<Type> opt = typeParser.execute(env.getEnvironment(), input + " foo;");
         assertTrue(opt.isPresent());
         return opt.get();
     }
     
     @Test
-    public void returnsPrimitives() throws ClassNotFoundException, IOException {
+    public void returnsPrimitives() throws ClassNotFoundException, ExecutionException {
         Type type = parse("int");
         assertEquals(TypeToken.of(int.class), JDTTypes.getType(type));
         
@@ -63,7 +61,7 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsSimpleObjects() throws ClassNotFoundException, IOException {
+    public void returnsSimpleObjects() throws ClassNotFoundException, ExecutionException {
         Type type = parse("Object");
         assertEquals(TypeToken.of(Object.class), JDTTypes.getType(type));
         
@@ -72,22 +70,22 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsObjectsThatAreImports() throws IOException, ClassNotFoundException {
+    public void returnsObjectsThatAreImports() throws ExecutionException, ClassNotFoundException {
         try {
             Type type = parse("Random[][][]");
             JDTTypes.getType(type);
             fail();
         } catch (ClassNotFoundException e) {}
         
-        env.executeNoErrors("import java.util.*;");
+        env.execute("import java.util.*;");
         
         Type type = parse("Random[][][]");
         assertEquals(TypeToken.of(Random[][][].class), JDTTypes.getType(type));
     }
     
     @Test
-    public void returnsSimpleGenericType() throws IOException, ClassNotFoundException {
-        env.executeNoErrors("import java.util.*;");
+    public void returnsSimpleGenericType() throws ExecutionException, ClassNotFoundException {
+        env.execute("import java.util.*;");
         
         Type type = parse("List<String>");
         assertEquals(new TypeToken<List<String>>() {
@@ -96,8 +94,8 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsCompoundGenericTypes() throws IOException, ClassNotFoundException {
-        env.executeNoErrors("import java.util.*;");
+    public void returnsCompoundGenericTypes() throws ExecutionException, ClassNotFoundException {
+        env.execute("import java.util.*;");
         
         Type type = parse("Map<List<String>, Set<int[]>>");
         assertEquals(new TypeToken<Map<List<String>, Set<int[]>>>() {
@@ -106,13 +104,13 @@ public class JDTTypesTest {
     }
     
     @Test(expected = ClassNotFoundException.class)
-    public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException, IOException {
+    public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException, ExecutionException {
         JDTTypes.getType(parse("Object<Object, Object>"));
     }
     
     @Test
-    public void returnsWildcards() throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException {
-        env.executeNoErrors("import java.util.*;");
+    public void returnsWildcards() throws ExecutionException, ClassNotFoundException, NoSuchMethodException {
+        env.execute("import java.util.*;");
         
         Type type = parse("List<? extends Number>");
         TypeToken<?> typeToken = JDTTypes.getType(type);

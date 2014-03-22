@@ -37,13 +37,13 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         IProblem[] p2 = CONVERTOR.apply(l2);
         int s1 = p1 == null ? Integer.MAX_VALUE : p1.length;
         int s2 = p2 == null ? Integer.MAX_VALUE : p2.length;
-        
+
         return Integer.compare(s1, s2);
     };
-    
+
     private final Map<?, ?> options;
     private final ThreadLocal<char[]> source = new ThreadLocal<char[]>();
-    
+
     @SafeVarargs
     @Inject
     public JavaCommandFactory(Pair<? super ASTParser, ? extends List<? extends ASTNode>, ? extends R>... pairs) {
@@ -51,13 +51,13 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         options = JavaCore.getOptions();
         JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
     }
-
+    
     @Override
     protected ASTParser createNewInput() {
         source.set(null);
         return ASTParser.newParser(AST.JLS4);
     }
-    
+
     @Override
     protected ASTParser initialize(ASTParser blank, String input) {
         char[] s = source.get();
@@ -69,31 +69,33 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         blank.setSource(s);
         return blank;
     }
-    
+
     @Override
     protected void reportSuccess(Environment env, List<? extends ASTNode> success) {
         source.set(null);
     }
-    
+
     @Override
-    protected void reportError(Environment env, List<? extends List<? extends ASTNode>> min) {
+    protected ParsingException createParsingException(List<? extends List<? extends ASTNode>> min) {
+        StringBuilder message = new StringBuilder();
         for (List<? extends ASTNode> nodes : min) {
             IProblem[] ps = CONVERTOR.apply(nodes);
             for (IProblem p : ps) {
-                env.getError().println(p.getMessage());
+                message.append(p.getMessage()).append("\n");
                 
                 int start = p.getSourceStart();
                 if (start != -1) {
                     int count = p.getSourceEnd() - start + 1;
                     if (count > 0) {
                         String problem = new String(source.get(), start, count);
-                        env.getError().print(GeneratedSourceCode.TAB);
-                        env.getError().println(problem);
+                        message.append(GeneratedSourceCode.TAB).append(problem).append("\n");
                     }
                 }
             }
         }
-
+        
         source.set(null);
+        
+        return new ParsingException(message.toString().trim());
     }
 }

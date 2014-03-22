@@ -1,12 +1,12 @@
 package falgout.jrepl.command.execute;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.Statement;
@@ -26,18 +26,16 @@ import falgout.jrepl.reflection.JDTTypes;
 
 public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, List<Variable<?>>> {
     INSTANCE;
-    public static final Executor<Statement, List<Variable<?>>> FILTER = Executor.filter(INSTANCE,
+    public static final Executor<Statement, Optional<? extends List<Variable<?>>>> FILTER = Executor.filter(INSTANCE,
             s -> (s instanceof VariableDeclarationStatement) ? (VariableDeclarationStatement) s : null);
-    public static final Executor<Iterable<? extends Statement>, List<Variable<?>>> PARSE = Executor.flatProcess(FILTER);
+    public static final Executor<Iterable<? extends Statement>, Optional<? extends List<Variable<?>>>> PARSE = Executor.flatProcess(FILTER);
     
     @Override
-    public Optional<? extends List<Variable<?>>> execute(Environment env, VariableDeclarationStatement input)
-            throws IOException {
+    public List<Variable<?>> execute(Environment env, VariableDeclarationStatement input) throws ExecutionException {
         try {
             TypeToken<?> baseType = JDTTypes.getType(input.getType());
             if (baseType.equals(GoogleTypes.VOID)) {
-                env.getError().println("Cannot have a void variable.");
-                return Optional.empty();
+                throw new ExecutionException(new IllegalArgumentException("Cannot have a void variable."));
             }
             
             Set<String> names = new LinkedHashSet<>();
@@ -48,8 +46,8 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
             for (VariableDeclarationFragment frag : (List<VariableDeclarationFragment>) input.fragments()) {
                 String name = frag.getName().getIdentifier();
                 if (names.contains(name) || env.containsVariable(name)) {
-                    env.getError().printf("%s already exists.\n", name);
-                    return Optional.empty();
+                    String message = String.format("%s already exists.", name);
+                    throw new ExecutionException(new IllegalArgumentException(message));
                 }
                 
                 int extraDims = frag.getExtraDimensions();
@@ -61,12 +59,11 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
                     GeneratedMethod method = new GeneratedMethod(env);
                     method.addChild(SourceCode.from(input));
                     method.addChild(SourceCode.createReturnStatement(var));
+
                     try {
-                        Optional<? extends Invokable.Method> opt = GeneratedMethodExecutor.INSTANCE.execute(env, method);
-                        if (opt.isPresent()) {
-                            Object value = opt.get().invoke();
-                            var.set(variableType, value);
-                        }
+                        Invokable.Method m = GeneratedMethodExecutor.INSTANCE.execute(env, method);
+                        Object value = m.invoke();
+                        var.set(variableType, value);
                     } catch (InvocationTargetException | IllegalAccessException e) {
                         throw new Error(e);
                     }
@@ -77,15 +74,14 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
             }
             
             for (Variable<?> var : variables) {
-                env.getOutput().println(var);
-                env.addVariable(var);
+                if (env.addVariable(var)) {
+                    env.getOutput().println(var);
+                }
             }
             
-            return Optional.of(variables);
+            return variables;
         } catch (ClassNotFoundException e) {
-            env.getError().println(e.getMessage());
+            throw new ExecutionException(e);
         }
-
-        return Optional.empty();
     }
 }

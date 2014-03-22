@@ -1,15 +1,9 @@
 package falgout.jrepl.command.execute.codegen;
 
 import static falgout.jrepl.command.execute.codegen.ClassCompiler.INSTANCE;
-import static org.hamcrest.Matchers.isEmptyString;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
@@ -33,19 +27,15 @@ public class ClassCompilerTest {
     @Inject public Environment e;
     
     @Test
-    public void CanCompileClass() throws IOException {
-        Optional<? extends Class<?>> opt = INSTANCE.execute(e, getCode("Foo", "public class Foo{}"));
+    public void CanCompileClass() throws ExecutionException {
+        Class<?> clazz = INSTANCE.execute(e, getCode("Foo", "public class Foo{}"));
         
-        assertTrue(opt.isPresent());
-        Class<?> clazz = opt.get();
         assertEquals("Foo", clazz.getName());
     }
     
-    @Test
-    public void ProvidesErrorFeedbackIfCannotCompile() throws IOException {
-        Optional<? extends Class<?>> opt = INSTANCE.execute(e, getCode("Foo", "public class Foo { ERROR }"));
-        assertFalse(opt.isPresent());
-        assertThat(env.getError().toString(), not(isEmptyString()));
+    @Test(expected = ExecutionException.class)
+    public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException {
+        INSTANCE.execute(e, getCode("Foo", "public class Foo { ERROR }"));
     }
 
     private SourceCode<? extends Class<?>> getCode(String name, String code) {

@@ -2,9 +2,8 @@ package falgout.jrepl.command.execute.codegen;
 
 import static falgout.jrepl.command.execute.codegen.MemberCompiler.METHOD_COMPILER;
 
-import java.io.IOException;
 import java.lang.reflect.Modifier;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -22,22 +21,16 @@ public enum GeneratedMethodExecutor implements Executor<GeneratedMethod, Invokab
      * receiver object is initialized with a {@link GeneratorModule}.
      */
     @Override
-    public Optional<? extends Invokable.Method> execute(Environment env, GeneratedMethod input) throws IOException {
-        Optional<? extends java.lang.reflect.Method> opt = METHOD_COMPILER.execute(env, input);
-        if (opt.isPresent()) {
-            java.lang.reflect.Method m = opt.get();
-            Object receiver;
-            if (Modifier.isStatic(m.getModifiers())) {
-                receiver = null;
-            } else {
-                Class<?> clazz = m.getDeclaringClass();
-                Injector i = Guice.createInjector(new GeneratorModule(env));
-                receiver = i.getInstance(clazz);
-            }
-
-            return Optional.of(Invokable.from(receiver, m));
+    public Invokable.Method execute(Environment env, GeneratedMethod input) throws ExecutionException {
+        java.lang.reflect.Method method = METHOD_COMPILER.execute(env, input);
+        Object receiver;
+        if (Modifier.isStatic(method.getModifiers())) {
+            receiver = null;
         } else {
-            return Optional.empty();
+            Class<?> clazz = method.getDeclaringClass();
+            Injector i = Guice.createInjector(new GeneratorModule(env));
+            receiver = i.getInstance(clazz);
         }
+        return Invokable.from(receiver, method);
     }
 }
