@@ -41,12 +41,10 @@ public class ClassDefinerTest {
         for (int i = 0; i < classes.size(); i++) {
             assertEquals(names[i], classes.get(i).getSimpleName());
         }
-        return classes; // TODO
-        
+        return classes;
     }
     
     @Test
-    // TODO // TODO
     public void canDefineSimpleClass() throws ParsingException, ExecutionException {
         parse("public class Foo {}", "Foo");
     }
