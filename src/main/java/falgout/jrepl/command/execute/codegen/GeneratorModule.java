@@ -17,13 +17,17 @@ import falgout.jrepl.Variable;
  */
 public class GeneratorModule extends AbstractModule {
     private final Environment env;
+    private final Class<?>[] classes;
     
-    public GeneratorModule(Environment env) {
+    public GeneratorModule(Environment env, Class<?>... generatedClasses) {
         this.env = env;
+        classes = generatedClasses;
     }
     
     @Override
     protected void configure() {
+        requestStaticInjection(classes);
+        
         for (Variable<?> var : env.getVariables()) {
             bindVariable(var);
         }

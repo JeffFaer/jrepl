@@ -1,14 +1,16 @@
 package falgout.jrepl.command.execute.codegen;
 
-import java.lang.reflect.Field;
+import java.util.List;
 
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Statement;
 
-import com.google.common.base.Defaults;
-
 import falgout.jrepl.Variable;
+import falgout.jrepl.reflection.JDTTypes;
 import falgout.jrepl.reflection.NestedClass;
 
 public abstract class SourceCode<T> {
@@ -40,6 +42,13 @@ public abstract class SourceCode<T> {
     }
     
     public static SourceCode<NestedClass<?>> from(AbstractTypeDeclaration decl) {
+        List<Modifier> modifiers = decl.modifiers();
+        if (!JDTTypes.isStatic(modifiers)) {
+            AST ast = decl.getAST();
+            Modifier mod = ast.newModifier(ModifierKeyword.STATIC_KEYWORD);
+            modifiers.add(mod);
+        }
+        
         String name = decl.getName().toString();
         return new SourceCode<NestedClass<?>>(name) {
             @Override
@@ -56,38 +65,6 @@ public abstract class SourceCode<T> {
             @Override
             public String toString() {
                 return decl.toString();
-            }
-        };
-    }
-    
-    public static SourceCode<Field> from(Variable<?> variable) {
-        return new SourceCode<Field>(variable.getIdentifier()) {
-            @Override
-            public Field getTarget(Class<?> clazz) {
-                try {
-                    return clazz.getField(getName());
-                } catch (NoSuchFieldException e) {
-                    throw new Error(e);
-                }
-            }
-            
-            @Override
-            public String toString() {
-                StringBuilder b = new StringBuilder();
-                b.append("@com.google.inject.Inject ");
-                b.append("@javax.annotation.Nullable ");
-                b.append("@com.google.inject.name.Named(\"").append(getName()).append("\")");
-                b.append(" public ");
-                if (variable.isFinal()) {
-                    b.append("final ");
-                }
-                b.append(variable.getType()).append(" ").append(getName());
-                if (variable.isFinal()) {
-                    Object val = Defaults.defaultValue(variable.getType().getRawType());
-                    b.append(" = ").append(Variable.toString(val));
-                }
-                b.append(";\n");
-                return b.toString();
             }
         };
     }

@@ -1,9 +1,9 @@
 package falgout.jrepl.command.execute.codegen;
 
 import java.lang.reflect.Member;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import falgout.jrepl.Environment;
@@ -11,6 +11,8 @@ import falgout.jrepl.Import;
 import falgout.jrepl.Variable;
 
 public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
+    public static final String PACKAGE = "jrepl";
+    
     public GeneratedClass(Environment env) {
         super(env);
     }
@@ -22,16 +24,39 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
     
     @Override
     public String toString() {
+        String toString = getChildren().stream().map(member -> member.toString()).map(member -> {
+            StringBuilder b2 = new StringBuilder();
+            for (String line : member.split("\n")) {
+                b2.append(TAB).append(line).append("\n");
+            }
+            return b2.toString();
+        }).collect(Collectors.joining("\n", "\n", ""));
+        
         Environment env = getEnvironment();
         StringBuilder b = new StringBuilder();
         
+        // package
+        b.append("package ").append(PACKAGE).append(";\n");
+        b.append("\n");
+        
         // imports
-        Set<Import> imports = env.getImports();
+        List<Collection<Import>> imports = new ArrayList<>();
+        imports.add(env.getImports());
+        // class / method imports
+        List<Import> runtimeImports = env.getMembers()
+                .stream()
+                .sequential()
+                .map(member -> Import.create(member))
+                .collect(Collectors.toList());
+        if (!runtimeImports.isEmpty()) {
+            imports.add(runtimeImports);
+        }
+        
         if (imports.size() > 0) {
-            for (Import i : imports) {
-                b.append(i).append("\n");
+            for (Collection<Import> group : imports) {
+                group.stream().map(i -> i.toString() + "\n").forEach(b::append);
+                b.append("\n");
             }
-            b.append("\n");
         }
         
         // class declaration
@@ -41,7 +66,9 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         Collection<? extends Variable<?>> variables = env.getVariables();
         if (variables.size() > 0) {
             for (Variable<?> var : variables) {
-                b.append(TAB).append(SourceCode.from(var));
+                if (toString.contains(var.getIdentifier())) {
+                    b.append(TAB).append(var.asField());
+                }
             }
             b.append("\n");
         }
@@ -50,17 +77,6 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         b.append(TAB).append("public ").append(getName()).append("() {}\n");
         
         // members
-        Set<SourceCode<? extends Member>> members = new LinkedHashSet<>();
-        members.addAll(getChildren());
-        members.addAll(env.getMembers());
-        
-        String toString = members.stream().map(member -> member.toString()).map(member -> {
-            StringBuilder b2 = new StringBuilder();
-            for (String line : member.split("\n")) {
-                b2.append(TAB).append(line).append("\n");
-            }
-            return b2.toString();
-        }).collect(Collectors.joining("\n", "\n", ""));
         b.append(toString);
         
         b.append("}\n");

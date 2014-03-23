@@ -37,7 +37,7 @@ public enum ClassDefiner implements Executor<AbstractTypeDeclaration, Class<?>> 
         }
         
         NestedClass<?> clazz = NESTED_CLASS_COMPILER.execute(env, code);
-        env.addClass(code);
+        env.addClass(clazz);
         return clazz.getDeclaredClass();
     }
 }

@@ -29,7 +29,7 @@ public enum GeneratedMethodExecutor implements Executor<GeneratedMethod, Object>
             receiver = null;
         } else {
             Class<?> clazz = method.getDeclaringClass();
-            Injector i = Guice.createInjector(new GeneratorModule(env));
+            Injector i = Guice.createInjector(new GeneratorModule(env, clazz));
             receiver = i.getInstance(clazz);
         }
         try {

@@ -3,6 +3,7 @@ package falgout.jrepl.command.execute;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -80,5 +81,11 @@ public class ClassDefinerTest {
     public void cannotDeclareDuplicateClass() throws ParsingException, ExecutionException {
         parse("public class Foo {}", "Foo");
         parse("public class Foo {}", "Foo");
+    }
+    
+    @Test
+    public void definedClassesAreStatic() throws ParsingException, ExecutionException {
+        Class<?> clazz = parse("public class Foo {}", "Foo").get(0);
+        assertTrue(Modifier.isStatic(clazz.getModifiers()));
     }
 }

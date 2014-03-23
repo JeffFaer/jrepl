@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.awt.Window.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -97,11 +98,17 @@ public class VariableTest {
     public void variablesHaveDefaultValue() {
         Variable<Integer> i = new Variable<>(TypeToken.of(int.class), "i");
         assertEquals(0, (int) i.get());
-
+        
         i.set((Integer) null);
         assertEquals(0, (int) i.get());
         
         Variable<Integer> wrapped = new Variable<>(TypeToken.of(Integer.class), "i2");
         assertNull(wrapped.get());
+    }
+    
+    @Test
+    public void rendersInnerTypesCorrectly() {
+        Variable<Type> v = new Variable<>(TypeToken.of(Type.class), "v");
+        assertEquals("java.awt.Window.Type v;", v.toString());
     }
 }

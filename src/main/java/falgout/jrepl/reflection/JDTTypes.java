@@ -107,6 +107,10 @@ public class JDTTypes {
         return modifiers.stream().anyMatch(Modifier::isFinal);
     }
     
+    public static boolean isStatic(List<Modifier> modifiers) {
+        return modifiers.stream().anyMatch(Modifier::isStatic);
+    }
+    
     public static javax.lang.model.element.Modifier getVisibilityModifier(List<Modifier> modifiers) {
         for (Modifier mod : modifiers) {
             if (mod.isPublic()) {

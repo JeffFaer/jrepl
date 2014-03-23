@@ -19,7 +19,6 @@ import java.util.Set;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.guice.Stderr;
 import falgout.jrepl.guice.Stdout;
 import falgout.jrepl.reflection.NestedClass;
@@ -36,8 +35,8 @@ public final class Environment implements Closeable {
     }
     private final EnvironmentClassLoader cl = new EnvironmentClassLoader(this);
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
-    private final Map<String, SourceCode<Method>> methods = new LinkedHashMap<>();
-    private final Map<String, SourceCode<NestedClass<?>>> classes = new LinkedHashMap<>();
+    private final Map<String, Method> methods = new LinkedHashMap<>();
+    private final Map<String, NestedClass<?>> classes = new LinkedHashMap<>();
     
     @Inject
     public Environment(Reader in, @Stdout Writer out, @Stderr Writer err) {
@@ -105,21 +104,21 @@ public final class Environment implements Closeable {
         return cl;
     }
     
-    public boolean addMethod(SourceCode<Method> code) {
-        if (methods.containsKey(code.getName())) {
+    public boolean addMethod(Method method) {
+        if (methods.containsKey(method.getName())) {
             return false;
         }
         
-        methods.put(code.getName(), code);
+        methods.put(method.getName(), method);
         return true;
     }
     
-    public boolean addClass(SourceCode<NestedClass<?>> code) {
-        if (classes.containsKey(code.getName())) {
+    public boolean addClass(NestedClass<?> clazz) {
+        if (classes.containsKey(clazz.getName())) {
             return false;
         }
         
-        classes.put(code.getName(), code);
+        classes.put(clazz.getName(), clazz);
         return true;
     }
     
@@ -127,12 +126,12 @@ public final class Environment implements Closeable {
         return classes.containsKey(className);
     }
     
-    public SourceCode<NestedClass<?>> getClass(String className) {
+    public NestedClass<?> getClass(String className) {
         return classes.get(className);
     }
     
-    public List<? extends SourceCode<? extends Member>> getMembers() {
-        List<SourceCode<? extends Member>> members = new ArrayList<>(methods.size() + classes.size());
+    public List<? extends Member> getMembers() {
+        List<Member> members = new ArrayList<>(methods.size() + classes.size());
         members.addAll(methods.values());
         members.addAll(classes.values());
         

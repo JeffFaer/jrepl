@@ -1,7 +1,5 @@
 package falgout.jrepl;
 
-import static falgout.jrepl.command.execute.codegen.MemberCompiler.NESTED_CLASS_COMPILER;
-
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -10,13 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import falgout.jrepl.command.execute.codegen.SourceCode;
-import falgout.jrepl.reflection.NestedClass;
+import falgout.jrepl.command.execute.codegen.GeneratedClass;
 
 public class EnvironmentClassLoader extends URLClassLoader {
     private final Environment env;
@@ -46,54 +42,41 @@ public class EnvironmentClassLoader extends URLClassLoader {
             return super.loadClass(name);
         } catch (ClassNotFoundException e) {}
         
-        Class<?> clazz = loadEnvironmentClass(name);
-        if (clazz != null) {
-            return clazz;
+        if (env.containsClass(name)) {
+            return env.getClass(name).getDeclaredClass();
         }
         
         return loadImportedClass(name);
     }
     
-    private Class<?> loadEnvironmentClass(String name) {
-        if (env.containsClass(name)) {
-            SourceCode<NestedClass<?>> code = env.getClass(name);
+    private Class<?> loadImportedClass(String simpleName) throws ClassNotFoundException {
+        Class<?> clazz = null;
+        try {
+            // check to see if we generated it
+            clazz = super.loadClass(GeneratedClass.PACKAGE + "." + simpleName);
+        } catch (ClassNotFoundException e) {}
+        
+        Set<String> names = env.getImports().stream().map(i -> i.resolveClass(simpleName)).collect(Collectors.toSet());
+        for (String name : names) {
+            Class<?> next;
             try {
-                return NESTED_CLASS_COMPILER.execute(env, code).getDeclaredClass();
-            } catch (ExecutionException e) {
-                // if this class had already been compiled
-                // this exception shouldn't be happening
-                throw new Error(e);
+                next = super.loadClass(name);
+            } catch (ClassNotFoundException e) {
+                continue;
+            }
+            
+            if (clazz != null) {
+                throw new ClassNotFoundException("Ambiguous import. " + Arrays.asList(next, clazz));
+            } else {
+                clazz = next;
             }
         }
-        return null;
-    }
-    
-    private Class<?> loadImportedClass(String simpleName) throws ClassNotFoundException {
-        return verify(simpleName,
-                env.getImports().stream().map(i -> i.resolveClass(simpleName)).collect(Collectors.toList()));
-    }
-    
-    private List<Class<?>> loadAll(Iterable<String> names) {
-        List<Class<?>> classes = new ArrayList<>();
-        for (String className : names) {
-            try {
-                classes.add(super.loadClass(className));
-            } catch (ClassNotFoundException e) {}
+        
+        if (clazz == null) {
+            throw new ClassNotFoundException("Could not find " + simpleName + " in " + env.getImports());
         }
         
-        return classes;
-    }
-    
-    private Class<?> verify(String name, Iterable<String> names) throws ClassNotFoundException {
-        List<Class<?>> classes = loadAll(names);
-        
-        if (classes.size() > 1) {
-            throw new ClassNotFoundException("Ambiguous import. " + classes);
-        } else if (classes.size() == 0) {
-            throw new ClassNotFoundException("Could not find " + name + " in " + env.getImports());
-        }
-        
-        return classes.get(0);
+        return clazz;
     }
     
     @Override

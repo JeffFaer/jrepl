@@ -1,5 +1,6 @@
 package falgout.jrepl;
 
+import java.lang.reflect.Member;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +13,7 @@ public abstract class Import {
     private final String type;
     private final List<String> innerTypes;
     private final boolean onDemand;
-
+    
     protected Import(Import other) {
         _static = other._static;
         _package = other._package;
@@ -20,70 +21,50 @@ public abstract class Import {
         innerTypes = other.innerTypes;
         onDemand = other.onDemand;
     }
-
-    protected Import(boolean _static, String name, boolean onDemand) {
+    
+    protected Import(boolean _static, String _package, String type, List<String> innerTypes, boolean onDemand) {
         this._static = _static;
+        this._package = _package;
+        this.type = type;
+        this.innerTypes = innerTypes;
         this.onDemand = onDemand;
-        
-        String[] parts = name.split("\\.");
-        StringBuilder _package = new StringBuilder();
-        String type = null;
-        int i;
-        for (i = 0; i < parts.length; i++) {
-            String temp = parts[i];
-            try {
-                getClass().getClassLoader().loadClass(String.join(".", _package.toString(), temp));
-                type = temp;
-                i++;
-                break;
-            } catch (ClassNotFoundException e) {}
-
-            if (_package.length() != 0) {
-                _package.append(".");
-            }
-            _package.append(temp);
-        }
-        
-        this._package = _package.toString();
-        this.type = type == null ? null : type;
-        innerTypes = Arrays.asList(parts).subList(i, parts.length);
     }
-
+    
     public abstract String resolveClass(String className);
-
+    
     public abstract String resolveClassForMethod(String methodName);
-
+    
     public abstract String resolveClassForField(String fieldName);
-
+    
     public boolean contains(Import other) {
         if (equals(other)) {
             return true;
         }
-
+        
         if (!onDemand) {
             return false;
         } else if (!other.onDemand) {
             String base = getImportedName();
             String otherBase = other.getImportedName();
-
+            
             // base = java.util (java.util.*)
             // otherBase = java.util.SomeClass
             int i = otherBase.lastIndexOf('.');
-            if(i == -1) {
+            if (i == -1) {
                 i = otherBase.length();
             }
             if (base.equals(otherBase.substring(0, i))) {
                 return true;
             }
         }
-
+        
         return false;
     }
     
     protected String getImportedName() {
         return getImportedName(Optional.empty());
     }
-
+    
     protected String getImportedType() {
         return getImportedType(Optional.empty());
     }
@@ -91,15 +72,18 @@ public abstract class Import {
     protected String getImportedName(Optional<String> extraClass) {
         return join(".", extraClass);
     }
-
+    
     protected String getImportedType(Optional<String> extraClass) {
         return join("$", extraClass);
     }
-
+    
     private String join(String delim, Optional<String> extraClass) {
         StringBuilder name = new StringBuilder(_package);
         if (type != null) {
-            name.append(".").append(type);
+            if (name.length() > 0) {
+                name.append(".");
+            }
+            name.append(type);
             for (String innerType : innerTypes) {
                 name.append(delim);
                 name.append(innerType);
@@ -109,7 +93,7 @@ public abstract class Import {
         } else {
             extraClass.ifPresent(clazz -> name.append(".").append(clazz));
         }
-
+        
         return name.toString();
     }
     
@@ -179,30 +163,30 @@ public abstract class Import {
             b.append(".*");
         }
         b.append(";");
-
+        
         return b.toString();
     }
-
+    
     private static class SingleImport extends Import {
-        public SingleImport(boolean _static, String type, boolean onDemand) {
-            super(_static, type, onDemand);
+        public SingleImport(boolean _static, String _package, String type, List<String> innerTypes, boolean onDemand) {
+            super(_static, _package, type, innerTypes, onDemand);
         }
         
         @Override
         public String resolveClass(String className) {
             return resolve(className, false);
         }
-
+        
         @Override
         public String resolveClassForMethod(String methodName) {
             return resolve(methodName, true);
         }
-
+        
         @Override
         public String resolveClassForField(String fieldName) {
             return resolve(fieldName, true);
         }
-
+        
         private String resolve(String memberName, boolean truncate) {
             String importedName = getImportedName();
             if (importedName.endsWith(memberName)) {
@@ -217,91 +201,126 @@ public abstract class Import {
             return null;
         }
     }
-
+    
     private static class StarImport extends Import {
-        public StarImport(boolean _static, String type, boolean onDemand) {
-            super(_static, type, onDemand);
+        public StarImport(boolean _static, String _package, String type, List<String> innerTypes, boolean onDemand) {
+            super(_static, _package, type, innerTypes, onDemand);
         }
-
+        
         @Override
         public String resolveClass(String className) {
             return getImportedType(Optional.of(className));
         }
-
+        
         @Override
         public String resolveClassForMethod(String methodName) {
             return getImportedType();
         }
-
+        
         @Override
         public String resolveClassForField(String fieldName) {
             return getImportedType();
         }
     }
-
+    
     private static class StaticImport extends Import {
         protected final Import delegate;
-
+        
         public StaticImport(Import delegate) {
             super(delegate);
             this.delegate = delegate;
         }
-
+        
         @Override
         public String resolveClass(String className) {
             return delegate.resolveClass(className);
         }
-
+        
         @Override
         public String resolveClassForMethod(String methodName) {
             return delegate.resolveClassForMethod(methodName);
         }
-
+        
         @Override
         public String resolveClassForField(String fieldName) {
             return delegate.resolveClassForField(fieldName);
         }
-
+        
         @Override
         public int hashCode() {
             return delegate.hashCode();
         }
-
+        
         @Override
         public boolean equals(Object obj) {
             return delegate.equals(obj);
         }
-
+        
         @Override
         public String toString() {
             return delegate.toString();
         }
     }
-
+    
     private static class NormalImport extends StaticImport {
         public NormalImport(Import delegate) {
             super(delegate);
         }
-
+        
         @Override
         public String resolveClassForField(String fieldName) {
             return null;
         }
-
+        
         @Override
         public String resolveClassForMethod(String methodName) {
             return null;
         }
     }
-
-    public static Import create(boolean _static, String name, boolean onDemand) {
-        Import baseImport = onDemand ? new StarImport(_static, name, onDemand) : new SingleImport(_static, name,
-                onDemand);
-        return _static ? new StaticImport(baseImport) : new NormalImport(baseImport);
-        
-    }
-
+    
     public static Import create(ImportDeclaration _import) {
         return create(_import.isStatic(), _import.getName().toString().trim(), _import.isOnDemand());
+    }
+    
+    public static Import create(Member member) {
+        boolean _static = true;
+        Package p = member.getDeclaringClass().getPackage();
+        String _package = p == null ? "" : p.getName();
+        String type = member.getDeclaringClass().getSimpleName();
+        List<String> innerType = Arrays.asList(member.getName());
+        boolean onDemand = false;
+        
+        return create(_static, _package, type, innerType, onDemand);
+    }
+    
+    public static Import create(boolean _static, String name, boolean onDemand) {
+        String[] parts = name.split("\\.");
+        StringBuilder _package = new StringBuilder();
+        String type = null;
+        int i;
+        for (i = 0; i < parts.length; i++) {
+            String temp = parts[i];
+            try {
+                Import.class.getClassLoader().loadClass(String.join(".", _package.toString(), temp));
+                type = temp;
+                i++;
+                break;
+            } catch (ClassNotFoundException e) {}
+            
+            if (_package.length() != 0) {
+                _package.append(".");
+            }
+            _package.append(temp);
+        }
+        
+        List<String> innerTypes = Arrays.asList(parts).subList(i, parts.length);
+        return create(_static, _package.toString(), type, innerTypes, onDemand);
+    }
+    
+    private static Import create(boolean _static, String _package, String type, List<String> innerTypes,
+            boolean onDemand) {
+        Import baseImport = onDemand ? new StarImport(_static, _package, type, innerTypes, onDemand)
+                : new SingleImport(_static, _package, type, innerTypes, onDemand);
+        return _static ? new StaticImport(baseImport) : new NormalImport(baseImport);
     }
 }

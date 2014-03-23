@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -94,9 +95,26 @@ public class LocalVariableDeclarerTest {
     }
     
     @Test
+    public void canAccessPreviousVariables() throws ExecutionException {
+        Variable<?> var1 = parse("int x = 5;").get(0);
+        Variable<?> var2 = parse("int z = x;").get(0);
+        
+        assertSame(var1.get(), var2.get());
+    }
+    
+    @Test
     public void canDeclareVariableOfGeneratedType() throws ExecutionException {
         env.execute("public class Foo {}");
         Variable<?> var = parse("Foo bar = new Foo();").get(0);
         assertEquals("Foo", var.getType().getRawType().getSimpleName());
+    }
+    
+    @Test
+    public void canUseVariablesOfGeneratedType() throws ExecutionException {
+        env.execute("public class Foo {}");
+        Variable<?> var1 = parse("Foo f1 = new Foo();").get(0);
+        Variable<?> var2 = parse("Foo f2 = f1;").get(0);
+        
+        assertSame(var1.get(), var2.get());
     }
 }
