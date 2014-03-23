@@ -12,13 +12,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -122,7 +122,7 @@ public class Environment implements Closeable {
     @Override
     public void close() throws IOException {
         if (Files.exists(generatedCodeLocation)) {
-            Queue<IOException> exceptions = Collections.asLifoQueue(new LinkedList<>());
+            List<IOException> exceptions = new ArrayList<>();
             
             Files.walkFileTree(generatedCodeLocation, new SimpleFileVisitor<Path>() {
                 @Override

@@ -2,14 +2,13 @@ package falgout.util;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
 
 public class Closeables {
     public static void closeAll(Closeable... closeables) throws IOException {
-        Queue<IOException> exceptions = Collections.asLifoQueue(new LinkedList<>());
+        List<IOException> exceptions = new ArrayList<>();
         for (Closeable c : closeables) {
             try {
                 c.close();
