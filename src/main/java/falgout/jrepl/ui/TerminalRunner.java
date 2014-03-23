@@ -2,6 +2,8 @@ package falgout.jrepl.ui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import com.google.inject.Guice;
@@ -17,7 +19,7 @@ public class TerminalRunner {
     public static void main(String[] args) throws IOException {
         Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule());
         try (Environment env = injector.getInstance(Environment.class)) {
-            CommandFactory<?> f = injector.getInstance(CommandFactory.class);
+            CommandFactory<Optional<? extends Collection<?>>> f = injector.getInstance(CommandFactory.class);
             
             String prompt = "java: ";
             BufferedReader in = env.getInput();
@@ -42,7 +44,14 @@ public class TerminalRunner {
                 
                 if (braces == 0) {
                     try {
-                        f.execute(env, input.toString());
+                        Optional<? extends Collection<?>> opt = f.execute(env, input.toString());
+                        if (opt.isPresent()) {
+                            for (Object o : opt.get()) {
+                                System.out.println(o);
+                            }
+                        } else {
+                            System.err.println("Did not execute");
+                        }
                     } catch (ParsingException e) {
                         env.printStackTrace(e);
                     } catch (ExecutionException e) {

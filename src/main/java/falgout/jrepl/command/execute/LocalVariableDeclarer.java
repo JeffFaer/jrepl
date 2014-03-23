@@ -67,8 +67,8 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
             }
             
             for (Variable<?> var : variables) {
-                if (env.addVariable(var)) {
-                    env.getOutput().println(var);
+                if (!env.addVariable(var)) {
+                    throw new Error("How the heck did this happen?!");
                 }
             }
             
