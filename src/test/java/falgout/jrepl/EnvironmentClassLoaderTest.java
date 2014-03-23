@@ -24,13 +24,13 @@ import falgout.jrepl.guice.TestModule;
 @UseModules({ TestModule.class, CommandModule.class })
 public class EnvironmentClassLoaderTest {
     @Inject @Rule public TestEnvironment env;
-    public ClassLoader cl;
-
+    public EnvironmentClassLoader cl;
+    
     @Before
     public void before() {
-        cl = env.getEnvironment().getImportClassLoader();
+        cl = (EnvironmentClassLoader) Thread.currentThread().getContextClassLoader();
     }
-
+    
     @Test
     public void LoadsImports() throws ClassNotFoundException {
         assertSame(Object.class, cl.loadClass("Object"));
@@ -41,13 +41,13 @@ public class EnvironmentClassLoaderTest {
         env.execute("import java.awt.Window.Type;");
         assertSame(Type.class, cl.loadClass("Type"));
     }
-
+    
     @Test(expected = ClassNotFoundException.class)
     public void CannotLoadAmbiguousClass() throws ExecutionException, ClassNotFoundException {
         env.execute("import java.lang.reflect.Type; import java.awt.Window.Type;");
         cl.loadClass("Type");
     }
-
+    
     @Test
     public void CanLoadGeneratedClasses() throws ExecutionException, ClassNotFoundException, ExecutionException {
         GeneratedClass c = new GeneratedClass(env.getEnvironment());

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Set;
 
 import org.jukito.JukitoRunner;
@@ -40,26 +41,28 @@ public class EnvironmentTest {
         e.getImports().add(i);
         assertThat(e.getImports(), hasItem(i));
     }
-
+    
     @Test
     public void cannotHaveDuplicateVariables() {
         Variable<?> var1 = new Variable<>(GoogleTypes.OBJECT, "foo", new Object());
         Variable<?> var2 = new Variable<>(GoogleTypes.OBJECT, "foo", new Object());
-
+        
         assertTrue(e.addVariable(var1));
         assertFalse(e.addVariable(var2));
-
+        
         assertSame(var1.get(), e.getVariable("foo").get());
     }
     
-    @Test
-    public void EnvironmentClassLoaderIsThreadContextClassLoader() {
-        assertSame(e.getImportClassLoader(), Thread.currentThread().getContextClassLoader());
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void CannotAddUninitializedFinalVariable() {
         Variable<?> uninitFinal = new Variable<>(true, GoogleTypes.OBJECT, "foo");
         e.addVariable(uninitFinal);
+    }
+    
+    @Test
+    public void CloseDeletesCodeDirectory() throws IOException {
+        assertTrue(Files.exists(e.getGeneratedCodeLocation()));
+        e.close();
+        assertFalse(Files.exists(e.getGeneratedCodeLocation()));
     }
 }

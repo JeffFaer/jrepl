@@ -8,42 +8,47 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.ProvidedBy;
 
-import falgout.jrepl.guice.Stderr;
-import falgout.jrepl.guice.Stdout;
+import falgout.jrepl.guice.EnvironmentProvider;
 import falgout.jrepl.reflection.NestedClass;
+import falgout.util.Closeables;
 
-@Singleton
-public final class Environment implements Closeable {
+@ProvidedBy(EnvironmentProvider.class)
+public class Environment implements Closeable {
     private final BufferedReader in;
     private final PrintWriter out;
     private final PrintWriter err;
+    
+    private Path generatedCodeLocation;
     
     private final Set<Import> imports = new ImportSet();
     {
         imports.add(Import.create(false, "java.lang", true));
     }
-    private final EnvironmentClassLoader cl = new EnvironmentClassLoader(this);
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
     private final Map<String, Method> methods = new LinkedHashMap<>();
     private final Map<String, NestedClass<?>> classes = new LinkedHashMap<>();
     
-    @Inject
-    public Environment(Reader in, @Stdout Writer out, @Stderr Writer err) {
+    public Environment(Reader in, Writer out, Writer err, Path generatedCodeLocation) {
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
-        
-        Thread.currentThread().setContextClassLoader(cl);
+        this.generatedCodeLocation = generatedCodeLocation;
     }
     
     private PrintWriter createPrintWriter(Writer w) {
@@ -60,6 +65,10 @@ public final class Environment implements Closeable {
     
     public PrintWriter getError() {
         return err;
+    }
+    
+    public Path getGeneratedCodeLocation() {
+        return generatedCodeLocation;
     }
     
     public boolean addVariable(Variable<?> variable) {
@@ -87,10 +96,6 @@ public final class Environment implements Closeable {
     
     public Set<Import> getImports() {
         return imports;
-    }
-    
-    public EnvironmentClassLoader getImportClassLoader() {
-        return cl;
     }
     
     public boolean addMethod(Method method) {
@@ -129,6 +134,28 @@ public final class Environment implements Closeable {
     
     @Override
     public void close() throws IOException {
-        cl.close();
+        if (Files.exists(generatedCodeLocation)) {
+            Queue<IOException> exceptions = Collections.asLifoQueue(new LinkedList<>());
+            
+            Files.walkFileTree(generatedCodeLocation, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+                
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    if (exc != null) {
+                        exceptions.add(exc);
+                    }
+                    
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            
+            Closeables.throwFirst(exceptions);
+        }
     }
 }
