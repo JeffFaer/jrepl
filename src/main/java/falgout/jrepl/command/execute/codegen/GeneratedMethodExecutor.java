@@ -11,15 +11,13 @@ import com.google.inject.Injector;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.Executor;
-import falgout.jrepl.reflection.Invokable;
 
 public enum GeneratedMethodExecutor implements Executor<GeneratedMethod, Object> {
     INSTANCE;
     
     /**
-     * Creates an {@link Invokable} from the given {@code GeneratedMethod}. When
-     * {@link Invokable#invoke invoked}, it will execute the method. The
-     * receiver object is initialized with a {@link GeneratorModule}.
+     * Compiles and invokes the given {@code GeneratedMethod}. The receiver
+     * object is initialized with a {@link GeneratorModule} before invocation.
      */
     @Override
     public Object execute(Environment env, GeneratedMethod input) throws ExecutionException {
