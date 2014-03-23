@@ -15,6 +15,7 @@ import com.google.common.escape.ArrayBasedCharEscaper;
 import com.google.common.escape.Escaper;
 import com.google.common.reflect.TypeToken;
 
+import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 
 public class Variable<T> {
@@ -302,6 +303,6 @@ public class Variable<T> {
     
     private static boolean isGenerated(Class<?> clazz) {
         Package p = clazz.getPackage();
-        return p != null && p.getName().equals("jrepl") && clazz.getName().contains("$Generated");
+        return p != null && p.getName().equals("jrepl") && clazz.getName().contains(GeneratedSourceCode.TEMPLATE);
     }
 }

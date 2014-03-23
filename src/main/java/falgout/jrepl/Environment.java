@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -18,6 +20,7 @@ import java.util.Set;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 import falgout.jrepl.guice.Stderr;
 import falgout.jrepl.guice.Stdout;
 import falgout.jrepl.reflection.NestedClass;
@@ -63,12 +66,25 @@ public final class Environment implements Closeable {
     }
     
     public void printStackTrace(Throwable t) {
-        while (t != null) {
-            String message = t.getLocalizedMessage();
-            if (!message.isEmpty()) {
-                err.println(message);
-            }
+        if (t instanceof InvocationTargetException) {
             t = t.getCause();
+            StackTraceElement[] st = t.getStackTrace();
+            int i;
+            for (i = 0; i < st.length; i++) {
+                if (!st[i].getClassName().contains(GeneratedSourceCode.TEMPLATE)) {
+                    break;
+                }
+            }
+            t.setStackTrace(Arrays.copyOf(st, i));
+            t.printStackTrace(err);
+        } else {
+            while (t != null) {
+                String message = t.getLocalizedMessage();
+                if (!message.isEmpty()) {
+                    err.println(message);
+                }
+                t = t.getCause();
+            }
         }
     }
     

@@ -37,7 +37,8 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatemen
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
-        b.append("public ").append(getReturnType()).append(" ").append(getName()).append("() {\n");
+        b.append("public ").append(getReturnType()).append(" ").append(getName());
+        b.append("() throws Throwable {\n");
         for (SourceCode<?> child : getChildren()) {
             for (String line : child.toString().split("\n")) {
                 b.append(TAB).append(line).append("\n");

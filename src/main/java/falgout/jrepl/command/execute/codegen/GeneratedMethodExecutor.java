@@ -32,8 +32,10 @@ public enum GeneratedMethodExecutor implements Executor<GeneratedMethod, Object>
         }
         try {
             return method.invoke(receiver);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (IllegalAccessException e) {
             throw new Error(e);
+        } catch (InvocationTargetException e) {
+            throw new ExecutionException(e);
         }
     }
     

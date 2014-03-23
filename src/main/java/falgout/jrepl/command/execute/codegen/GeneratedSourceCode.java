@@ -9,13 +9,14 @@ import falgout.jrepl.Environment;
 
 public abstract class GeneratedSourceCode<T, C> extends SourceCode<T> {
     private static final AtomicInteger ID = new AtomicInteger(0);
+    public static final String TEMPLATE = "$Generated";
     public static final String TAB = "    ";
     
     private final Environment env;
     private final List<SourceCode<? extends C>> children = new ArrayList<>();
     
     public GeneratedSourceCode(Environment env) {
-        super("$Generated" + ID.incrementAndGet());
+        super(TEMPLATE + ID.incrementAndGet());
         this.env = env;
     }
     

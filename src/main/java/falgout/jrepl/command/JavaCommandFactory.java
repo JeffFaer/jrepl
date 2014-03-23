@@ -37,13 +37,13 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         IProblem[] p2 = CONVERTOR.apply(l2);
         int s1 = p1 == null ? Integer.MAX_VALUE : p1.length;
         int s2 = p2 == null ? Integer.MAX_VALUE : p2.length;
-
+        
         return Integer.compare(s1, s2);
     };
-
+    
     private final Map<?, ?> options;
     private final ThreadLocal<char[]> source = new ThreadLocal<char[]>();
-
+    
     @SafeVarargs
     @Inject
     public JavaCommandFactory(Pair<? super ASTParser, ? extends List<? extends ASTNode>, ? extends R>... pairs) {
@@ -57,7 +57,7 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         source.set(null);
         return ASTParser.newParser(AST.JLS4);
     }
-
+    
     @Override
     protected ASTParser initialize(ASTParser blank, String input) {
         char[] s = source.get();
@@ -69,12 +69,12 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
         blank.setSource(s);
         return blank;
     }
-
+    
     @Override
     protected void reportSuccess(Environment env, List<? extends ASTNode> success) {
         source.set(null);
     }
-
+    
     @Override
     protected ParsingException createParsingException(List<? extends List<? extends ASTNode>> min) {
         StringBuilder message = new StringBuilder();
