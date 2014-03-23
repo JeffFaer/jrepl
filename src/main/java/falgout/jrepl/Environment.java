@@ -68,14 +68,7 @@ public final class Environment implements Closeable {
     public void printStackTrace(Throwable t) {
         if (t instanceof InvocationTargetException) {
             t = t.getCause();
-            StackTraceElement[] st = t.getStackTrace();
-            int i;
-            for (i = 0; i < st.length; i++) {
-                if (!st[i].getClassName().contains(GeneratedSourceCode.TEMPLATE)) {
-                    break;
-                }
-            }
-            t.setStackTrace(Arrays.copyOf(st, i));
+            truncateStackTrace(t);
             t.printStackTrace(err);
         } else {
             while (t != null) {
@@ -85,6 +78,23 @@ public final class Environment implements Closeable {
                 }
                 t = t.getCause();
             }
+        }
+    }
+    
+    private void truncateStackTrace(Throwable t) {
+        if (t == null) {
+            return;
+        }
+        
+        StackTraceElement[] st = t.getStackTrace();
+        int i;
+        for (i = 0; i < st.length && st[i].getClassName().contains(GeneratedSourceCode.TEMPLATE); i++) {}
+        t.setStackTrace(Arrays.copyOf(st, i));
+        t.printStackTrace(err);
+        
+        truncateStackTrace(t.getCause());
+        for (Throwable s : t.getSuppressed()) {
+            truncateStackTrace(s);
         }
     }
     
