@@ -14,14 +14,13 @@ import org.junit.runner.RunWith;
 
 import com.google.inject.Inject;
 
-import falgout.jrepl.command.CommandModule;
 import falgout.jrepl.command.execute.codegen.ClassCompiler;
 import falgout.jrepl.command.execute.codegen.GeneratedClass;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 
 @RunWith(JukitoRunner.class)
-@UseModules({ TestModule.class, CommandModule.class })
+@UseModules(TestModule.class)
 public class EnvironmentClassLoaderTest {
     @Inject @Rule public TestEnvironment env;
     public EnvironmentClassLoader cl;

@@ -12,7 +12,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 
 import falgout.jrepl.guice.CodeDirectory;
-import falgout.jrepl.guice.EnvironmentProvider;
 import falgout.jrepl.guice.Stderr;
 import falgout.jrepl.guice.Stdout;
 import falgout.jrepl.guice.TemporaryDirectoryProvider;
@@ -58,6 +57,5 @@ public class EnvironmentModule extends AbstractModule {
         bind(Writer.class).annotatedWith(Stderr.class).toInstance(stderr);
         
         bind(Path.class).annotatedWith(CodeDirectory.class).toProvider(dir);
-        bind(Environment.class).toProvider(EnvironmentProvider.class);
     }
 }

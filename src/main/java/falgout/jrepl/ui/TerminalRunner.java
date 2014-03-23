@@ -18,12 +18,13 @@ import falgout.jrepl.EnvironmentModule;
 import falgout.jrepl.command.CommandFactory;
 import falgout.jrepl.command.CommandModule;
 import falgout.jrepl.command.ParsingException;
+import falgout.jrepl.command.execute.codegen.CodeGenModule;
 import falgout.jrepl.command.execute.codegen.GeneratedClass;
 import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 
 public class TerminalRunner {
     public static void main(String[] args) throws IOException {
-        Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule());
+        Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule(), new CodeGenModule());
         try (Environment env = injector.getInstance(Environment.class)) {
             CommandFactory<Optional<? extends Collection<?>>> f = injector.getInstance(CommandFactory.class);
             

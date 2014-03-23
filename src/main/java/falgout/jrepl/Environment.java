@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,14 +15,18 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import com.google.inject.ProvidedBy;
 
+import falgout.jrepl.command.execute.codegen.CodeCompiler;
+import falgout.jrepl.command.execute.codegen.CodeRepository;
+import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.guice.EnvironmentProvider;
 import falgout.jrepl.reflection.NestedClass;
 import falgout.util.Closeables;
@@ -41,14 +44,15 @@ public class Environment implements Closeable {
         imports.add(Import.create(false, "java.lang", true));
     }
     private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
-    private final Map<String, Method> methods = new LinkedHashMap<>();
-    private final Map<String, NestedClass<?>> classes = new LinkedHashMap<>();
+    private final CodeRepository<NestedClass<?>> classes;
     
-    public Environment(Reader in, Writer out, Writer err, Path generatedCodeLocation) {
+    public Environment(Reader in, Writer out, Writer err, Path generatedCodeLocation,
+            CodeCompiler<NestedClass<?>> classCompiler) {
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
         this.generatedCodeLocation = generatedCodeLocation;
+        classes = new CodeRepository<>(classCompiler);
     }
     
     private PrintWriter createPrintWriter(Writer w) {
@@ -98,38 +102,21 @@ public class Environment implements Closeable {
         return imports;
     }
     
-    public boolean addMethod(Method method) {
-        if (methods.containsKey(method.getName())) {
-            return false;
-        }
-        
-        methods.put(method.getName(), method);
-        return true;
+    public boolean containsClass(String name) {
+        return classes.contains(name);
     }
     
-    public boolean addClass(NestedClass<?> clazz) {
-        if (classes.containsKey(clazz.getName())) {
-            return false;
-        }
-        
-        classes.put(clazz.getName(), clazz);
-        return true;
+    public NestedClass<?> getClass(String name) {
+        return classes.getCompiled(name);
     }
     
-    public boolean containsClass(String className) {
-        return classes.containsKey(className);
+    public Optional<? extends NestedClass<?>> compile(SourceCode<? extends NestedClass<?>> code)
+            throws ExecutionException {
+        return classes.compile(this, code);
     }
     
-    public NestedClass<?> getClass(String className) {
-        return classes.get(className);
-    }
-    
-    public Set<? extends Member> getMembers() {
-        Set<Member> members = new LinkedHashSet<>(methods.size() + classes.size());
-        members.addAll(methods.values());
-        members.addAll(classes.values());
-        
-        return Collections.unmodifiableSet(members);
+    public Collection<? extends Member> getMembers() {
+        return classes.getAllCompiled();
     }
     
     @Override

@@ -26,7 +26,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
-import falgout.jrepl.command.CommandModule;
 import falgout.jrepl.command.JavaCommandFactory;
 import falgout.jrepl.command.execute.Executor;
 import falgout.jrepl.command.parse.Statements;
@@ -34,7 +33,7 @@ import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 
 @RunWith(JukitoRunner.class)
-@UseModules({ TestModule.class, CommandModule.class })
+@UseModules(TestModule.class)
 public class JDTTypesTest {
     @Inject @Rule public TestEnvironment env;
     public JavaCommandFactory<Optional<Type>> typeParser;
@@ -44,7 +43,7 @@ public class JDTTypesTest {
         Executor<List<? extends Statement>, Optional<Type>> exec = (env, l) -> Optional.of(((VariableDeclarationStatement) l.get(0)).getType());
         typeParser = new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, exec));
     }
-
+    
     private Type parse(String input) throws ExecutionException {
         Optional<Type> opt = typeParser.execute(env.getEnvironment(), input + " foo;");
         assertTrue(opt.isPresent());

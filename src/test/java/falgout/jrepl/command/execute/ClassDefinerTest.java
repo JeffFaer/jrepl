@@ -19,7 +19,6 @@ import com.google.inject.Inject;
 import falgout.jrepl.Environment;
 import falgout.jrepl.Variable;
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
-import falgout.jrepl.command.CommandModule;
 import falgout.jrepl.command.JavaCommandFactory;
 import falgout.jrepl.command.ParsingException;
 import falgout.jrepl.command.parse.ClassDeclaration;
@@ -28,7 +27,7 @@ import falgout.jrepl.guice.TestModule;
 import falgout.jrepl.reflection.GoogleTypes;
 
 @RunWith(JukitoRunner.class)
-@UseModules({ TestModule.class, CommandModule.class })
+@UseModules(TestModule.class)
 public class ClassDefinerTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;

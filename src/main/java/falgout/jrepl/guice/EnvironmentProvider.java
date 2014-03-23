@@ -10,6 +10,8 @@ import com.google.inject.Singleton;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.EnvironmentClassLoader;
+import falgout.jrepl.command.execute.codegen.CodeCompiler;
+import falgout.jrepl.reflection.NestedClass;
 
 @Singleton
 public class EnvironmentProvider implements Provider<Environment> {
@@ -18,8 +20,8 @@ public class EnvironmentProvider implements Provider<Environment> {
     
     @Inject
     public EnvironmentProvider(Reader in, @Stdout Writer out, @Stderr Writer err,
-            @CodeDirectory Path generatedCodeLocation) {
-        env = new Environment(in, out, err, generatedCodeLocation);
+            @CodeDirectory Path generatedCodeLocation, CodeCompiler<NestedClass<?>> classCompiler) {
+        env = new Environment(in, out, err, generatedCodeLocation, classCompiler);
         cl = new EnvironmentClassLoader(env);
     }
     

@@ -14,7 +14,7 @@ import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 
 @RunWith(JukitoRunner.class)
-@UseModules({ TestModule.class, CommandModule.class })
+@UseModules(TestModule.class)
 public class CommandFactoryTest {
     @Inject @Rule public TestEnvironment env;
     public CommandFactory<?> factory;
