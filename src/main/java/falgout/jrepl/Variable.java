@@ -294,9 +294,18 @@ public class Variable<T> {
             }
         } else {
             Class<?> clazz = (Class<?>) value;
-            b.append(clazz.getCanonicalName());
+            if (isGenerated(clazz)) {
+                b.append(clazz.getSimpleName());
+            } else {
+                b.append(clazz.getCanonicalName());
+            }
         }
         
         return b.toString();
+    }
+    
+    private static boolean isGenerated(Class<?> clazz) {
+        Package p = clazz.getPackage();
+        return p != null && p.getName().equals("jrepl") && clazz.getName().contains("$Generated");
     }
 }

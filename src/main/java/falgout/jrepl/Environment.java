@@ -8,11 +8,10 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -130,12 +129,12 @@ public final class Environment implements Closeable {
         return classes.get(className);
     }
     
-    public List<? extends Member> getMembers() {
-        List<Member> members = new ArrayList<>(methods.size() + classes.size());
+    public Set<? extends Member> getMembers() {
+        Set<Member> members = new LinkedHashSet<>(methods.size() + classes.size());
         members.addAll(methods.values());
         members.addAll(classes.values());
         
-        return Collections.unmodifiableList(members);
+        return Collections.unmodifiableSet(members);
     }
     
     @Override
