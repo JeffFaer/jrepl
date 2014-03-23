@@ -174,12 +174,8 @@ public class Variable<T> {
     public SourceCode<Field> asField() {
         return new SourceCode<Field>(identifier) {
             @Override
-            public Field getTarget(Class<?> clazz) {
-                try {
-                    return clazz.getField(getName());
-                } catch (NoSuchFieldException e) {
-                    throw new Error(e);
-                }
+            public Field getTarget(Class<?> clazz) throws NoSuchFieldException {
+                return clazz.getField(getName());
             }
             
             @Override

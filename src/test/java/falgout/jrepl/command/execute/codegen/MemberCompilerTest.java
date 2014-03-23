@@ -29,17 +29,17 @@ public class MemberCompilerTest {
     @Inject public Environment e;
     
     @Test
-    public void automaticallyCompiledMethods() throws ExecutionException {
+    public void automaticallyCompiledMethods() throws ExecutionException, ReflectiveOperationException {
         Method method = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { }"));
         assertEquals("foo", method.getName());
     }
     
     @Test(expected = ExecutionException.class)
-    public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException {
+    public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException, ReflectiveOperationException {
         METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { ERROR }"));
     }
     
-    private SourceCode<? extends Method> getCode(String name, String code) {
+    private SourceCode<? extends Method> getCode(String name, String code) throws ReflectiveOperationException {
         SourceCode<Method> method = mock(SourceCode.class);
         when(method.getName()).thenReturn(name);
         when(method.toString()).thenReturn(code);

@@ -28,18 +28,18 @@ public class ClassCompilerTest {
     @Inject public Environment e;
     
     @Test
-    public void CanCompileClass() throws ExecutionException {
+    public void CanCompileClass() throws ExecutionException, ReflectiveOperationException {
         Class<?> clazz = INSTANCE.execute(e, getCode("Foo", "public class Foo{}"));
         
         assertEquals("Foo", clazz.getName());
     }
     
     @Test(expected = ExecutionException.class)
-    public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException {
+    public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException, ReflectiveOperationException {
         INSTANCE.execute(e, getCode("Foo", "public class Foo { ERROR }"));
     }
     
-    private SourceCode<? extends Class<?>> getCode(String name, String code) {
+    private SourceCode<? extends Class<?>> getCode(String name, String code) throws ReflectiveOperationException {
         SourceCode<Class<?>> clazz = mock(SourceCode.class);
         when(clazz.getName()).thenReturn(name);
         when(clazz.toString()).thenReturn(code);

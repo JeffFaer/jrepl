@@ -13,19 +13,21 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatemen
     }
     
     @Override
-    public Method getTarget(Class<?> clazz) {
-        try {
-            return clazz.getMethod(getName());
-        } catch (NoSuchMethodException e) {
-            throw new Error("The method should have been created.", e);
-        }
+    public Method getTarget(Class<?> clazz) throws NoSuchMethodException {
+        return clazz.getMethod(getName());
     }
     
     public TypeToken<?> getReturnType() {
         for (SourceCode<? extends WrappedStatement> child : getChildren()) {
             // still kind of hacky, but it's a bit better
-            if (child.getTarget(null).isReturn()) {
-                return GoogleTypes.OBJECT;
+            try {
+                if (child.getTarget(null).isReturn()) {
+                    return GoogleTypes.OBJECT;
+                }
+            } catch (ReflectiveOperationException e) {
+                // this shouldn't happen. The package controls the creation of
+                // SourceCode<WrappedStatement> and WrappedStatement
+                throw new Error(e);
             }
         }
         

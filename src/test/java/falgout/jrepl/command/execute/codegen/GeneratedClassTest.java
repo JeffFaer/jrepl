@@ -48,8 +48,8 @@ public class GeneratedClassTest {
     }
     
     @Test
-    public void containsEnvironmentVariablesThatAreNeeded() throws ExecutionException, NoSuchFieldException,
-            SecurityException {
+    public void containsEnvironmentVariablesThatAreNeeded() throws ExecutionException, SecurityException,
+            ReflectiveOperationException {
         Variable<?> var1 = new Variable<>(true, GoogleTypes.OBJECT, "var1", new Object());
         Variable<?> var2 = new Variable<>(true, GoogleTypes.INT, "var2", 5);
         Variable<?> var3 = new Variable<>(GoogleTypes.OBJECT, "var3", new Object());
@@ -87,9 +87,9 @@ public class GeneratedClassTest {
         vars.removeAll(usedVariables.values());
         for (Variable<?> var : vars) {
             try {
-                clazz.getField(var.getIdentifier());
+                var.asField().getTarget(clazz);
                 fail();
-            } catch (NoSuchFieldException e) {}
+            } catch (ReflectiveOperationException e) {}
         }
     }
 }

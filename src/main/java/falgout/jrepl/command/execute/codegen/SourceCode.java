@@ -20,7 +20,7 @@ public abstract class SourceCode<T> {
         this.name = name;
     }
     
-    public abstract T getTarget(Class<?> clazz);
+    public abstract T getTarget(Class<?> clazz) throws ReflectiveOperationException;
     
     public String getName() {
         return name;

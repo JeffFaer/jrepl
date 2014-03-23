@@ -43,7 +43,7 @@ public class GeneratedMethodTest {
     }
 
     @Test
-    public void canAccessEnvironmentVariables() throws ExecutionException {
+    public void canAccessEnvironmentVariables() throws ExecutionException, ReflectiveOperationException {
         Variable<?> var = new Variable<>(true, GoogleTypes.INT, "foo", 5);
         e.addVariable(var);
         
@@ -52,7 +52,7 @@ public class GeneratedMethodTest {
         compile(g);
     }
 
-    private SourceCode<? extends WrappedStatement> getCode(String code) {
+    private SourceCode<? extends WrappedStatement> getCode(String code) throws ReflectiveOperationException {
         SourceCode<WrappedStatement> sc = mock(SourceCode.class);
         WrappedStatement st = new WrappedStatement(mock(Expression.class));
         when(sc.getTarget(Matchers.any())).thenReturn(st);

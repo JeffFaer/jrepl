@@ -25,6 +25,10 @@ public class MemberCompiler<M extends Member> implements CodeCompiler<M> {
         GeneratedClass genClass = new GeneratedClass(env);
         genClass.addChild(input);
         Class<?> clazz = ClassCompiler.INSTANCE.execute(env, genClass);
-        return input.getTarget(clazz);
+        try {
+            return input.getTarget(clazz);
+        } catch (ReflectiveOperationException e) {
+            throw new ExecutionException(e);
+        }
     }
 }
