@@ -92,9 +92,11 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
             clazz.addChild(code);
         }
         
-        GeneratedBlock block = new GeneratedBlock(env, true);
-        block.addChild(SourceCode.createInitializer(initialize));
-        clazz.addChild(block);
+        if (initialize.size() > 0) {
+            GeneratedBlock block = new GeneratedBlock(env, true);
+            block.addChild(SourceCode.createInitializer(initialize));
+            clazz.addChild(block);
+        }
         
         Class<?> c = ClassCompiler.INSTANCE.execute(clazz);
         

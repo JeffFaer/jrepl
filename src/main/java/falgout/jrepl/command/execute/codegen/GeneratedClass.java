@@ -57,7 +57,7 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         b.append(TAB).append("public ").append(getName()).append("() {}\n");
         
         // members
-        b.append(addTabsToChildren());
+        b.append(addTabsToChildren("\n"));
         
         b.append("}\n");
         

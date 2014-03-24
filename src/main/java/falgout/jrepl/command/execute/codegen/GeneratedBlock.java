@@ -25,7 +25,7 @@ public class GeneratedBlock extends GeneratedSourceCode<Block, Statement> {
             b.append("static ");
         }
         b.append("{\n");
-        b.append(addTabsToChildren("", "\n", ""));
+        b.append(addTabsToChildren());
         b.append("}");
         
         return b.toString();

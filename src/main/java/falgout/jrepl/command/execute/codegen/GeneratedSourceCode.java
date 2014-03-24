@@ -39,16 +39,20 @@ public abstract class GeneratedSourceCode<T, C> extends SourceCode<T> {
     }
     
     public String addTabsToChildren() {
-        return addTabsToChildren("\n", "\n", "");
+        return addTabsToChildren("");
     }
     
-    public String addTabsToChildren(String delim, String prefix, String suffix) {
+    public String addTabsToChildren(String prefix) {
+        return addTabsToChildren(prefix, "");
+    }
+    
+    public String addTabsToChildren(String prefix, String suffix) {
         return children.stream().map(child -> child.toString()).map(s -> {
             StringBuilder b = new StringBuilder();
             for (String line : s.split("\n")) {
                 b.append(TAB).append(line).append("\n");
             }
             return b.toString();
-        }).collect(joining(delim, prefix, suffix));
+        }).collect(joining("\n", prefix, suffix));
     }
 }
