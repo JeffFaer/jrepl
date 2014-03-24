@@ -15,21 +15,22 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.Variable;
+import falgout.jrepl.LocalVariable;
 import falgout.jrepl.command.execute.codegen.GeneratedMethod;
 import falgout.jrepl.command.execute.codegen.GeneratedMethodExecutor;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.JDTTypes;
 
-public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, List<Variable<?>>> {
+public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, List<LocalVariable<?>>> {
     INSTANCE;
-    public static final Executor<Statement, Optional<? extends List<Variable<?>>>> FILTER = Executor.filter(INSTANCE,
-            s -> (s instanceof VariableDeclarationStatement) ? (VariableDeclarationStatement) s : null);
-    public static final Executor<Iterable<? extends Statement>, Optional<? extends List<Variable<?>>>> PARSE = Executor.flatProcess(FILTER);
+    public static final Executor<Statement, Optional<? extends List<LocalVariable<?>>>> FILTER = Executor.filter(
+            INSTANCE, s -> (s instanceof VariableDeclarationStatement) ? (VariableDeclarationStatement) s : null);
+    public static final Executor<Iterable<? extends Statement>, Optional<? extends List<LocalVariable<?>>>> PARSE = Executor.flatProcess(FILTER);
     
     @Override
-    public List<Variable<?>> execute(Environment env, VariableDeclarationStatement input) throws ExecutionException {
+    public List<LocalVariable<?>> execute(Environment env, VariableDeclarationStatement input)
+            throws ExecutionException {
         try {
             TypeToken<?> baseType = JDTTypes.getType(input.getType());
             if (baseType.equals(GoogleTypes.VOID)) {
@@ -37,7 +38,7 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
             }
             
             Set<String> names = new LinkedHashSet<>();
-            List<Variable<?>> variables = new ArrayList<>();
+            List<LocalVariable<?>> variables = new ArrayList<>();
             
             boolean _final = JDTTypes.isFinal(input.modifiers());
             
@@ -50,7 +51,7 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
                 
                 int extraDims = frag.getExtraDimensions();
                 TypeToken<?> variableType = GoogleTypes.addArrays(baseType, extraDims);
-                Variable<?> var = new Variable<>(_final, variableType, name);
+                LocalVariable<?> var = new LocalVariable<>(_final, variableType, name);
                 
                 Expression init = frag.getInitializer();
                 if (init != null) {
@@ -66,7 +67,7 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
                 names.add(name);
             }
             
-            for (Variable<?> var : variables) {
+            for (LocalVariable<?> var : variables) {
                 if (!env.addVariable(var)) {
                     throw new Error("How the heck did this happen?!");
                 }

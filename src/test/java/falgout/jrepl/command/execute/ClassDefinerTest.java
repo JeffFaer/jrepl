@@ -17,7 +17,7 @@ import org.junit.runner.RunWith;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.Variable;
+import falgout.jrepl.LocalVariable;
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
 import falgout.jrepl.command.JavaCommandFactory;
 import falgout.jrepl.command.ParsingException;
@@ -51,7 +51,7 @@ public class ClassDefinerTest {
     
     @Test
     public void canAccessEnvironmentVariables() throws ParsingException, ExecutionException {
-        Variable<?> var1 = new Variable<>(false, GoogleTypes.OBJECT, "var1", new Object());
+        LocalVariable<?> var1 = new LocalVariable<>(false, GoogleTypes.OBJECT, "var1", new Object());
         e.addVariable(var1);
         
         parse("public class Foo { { System.out.println(var1); } }", "Foo");

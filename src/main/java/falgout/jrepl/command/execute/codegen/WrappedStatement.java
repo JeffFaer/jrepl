@@ -14,7 +14,7 @@ public final class WrappedStatement {
     WrappedStatement(Statement statement) {
         this.statement = statement;
     }
-
+    
     /**
      * Creates a return statement out of the expression.
      *
@@ -32,11 +32,11 @@ public final class WrappedStatement {
     WrappedStatement(Variable<?> variable) {
         this.variable = variable;
     }
-
+    
     public boolean isReturn() {
         return statement instanceof ReturnStatement || expression != null || variable != null;
     }
-
+    
     @Override
     public String toString() {
         if (statement != null) {
@@ -44,7 +44,7 @@ public final class WrappedStatement {
         } else {
             StringBuilder b = new StringBuilder("return ");
             if (expression == null) {
-                b.append(variable.getIdentifier());
+                b.append(variable.getName());
             } else {
                 b.append(expression);
             }

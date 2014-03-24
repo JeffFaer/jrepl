@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import com.google.common.reflect.TypeToken;
 
-public class VariableTest {
+public class LocalVariableTest {
     private static final TypeToken<List<String>> STRING_LIST = new TypeToken<List<String>>() {
         private static final long serialVersionUID = -47114539417584131L;
     };
@@ -29,11 +29,11 @@ public class VariableTest {
     private static final TypeToken<String[]> STRING_ARRAY = TypeToken.of(String[].class);
     private static final TypeToken<CharSequence[]> SEQUENCE_ARRAY = TypeToken.of(CharSequence[].class);
     
-    public Variable<List<String>> var = new Variable<>(STRING_LIST, "var", null);
+    public LocalVariable<List<String>> var = new LocalVariable<>(STRING_LIST, "var", null);
     
     @Test
     public void variablesOfTheSameTypeCanBeAssigned() {
-        Variable<List<String>> var2 = new Variable<List<String>>(STRING_LIST, "var2", Collections.EMPTY_LIST);
+        LocalVariable<List<String>> var2 = new LocalVariable<List<String>>(STRING_LIST, "var2", Collections.EMPTY_LIST);
         
         assertTrue(var.set(var2));
         assertSame(var2.get(), var.get());
@@ -41,7 +41,7 @@ public class VariableTest {
     
     @Test
     public void variablesOfCovariantTypesCanBeAssigned() {
-        Variable<ArrayList<String>> var2 = new Variable<>(STRING_ARRAY_LIST, "var2", new ArrayList<String>());
+        LocalVariable<ArrayList<String>> var2 = new LocalVariable<>(STRING_ARRAY_LIST, "var2", new ArrayList<String>());
         
         assertTrue(var.set(var2));
         assertSame(var2.get(), var.get());
@@ -54,7 +54,7 @@ public class VariableTest {
     
     @Test
     public void genericTypesAreNotCovariant() {
-        Variable<List<Integer>> var2 = new Variable<List<Integer>>(INT_LIST, "var2", Collections.EMPTY_LIST);
+        LocalVariable<List<Integer>> var2 = new LocalVariable<List<Integer>>(INT_LIST, "var2", Collections.EMPTY_LIST);
         
         assertFalse(var.set(var2));
         assertNotNull(var2.get());
@@ -67,8 +67,8 @@ public class VariableTest {
     
     @Test
     public void arraysAreCovariant() {
-        Variable<CharSequence[]> var = new Variable<>(SEQUENCE_ARRAY, "var", null);
-        Variable<String[]> var2 = new Variable<>(STRING_ARRAY, "var2", new String[] { "1" });
+        LocalVariable<CharSequence[]> var = new LocalVariable<>(SEQUENCE_ARRAY, "var", null);
+        LocalVariable<String[]> var2 = new LocalVariable<>(STRING_ARRAY, "var2", new String[] { "1" });
         
         assertTrue(var.set(var2));
         assertSame(var2.get(), var.get());
@@ -81,13 +81,13 @@ public class VariableTest {
     
     @Test
     public void variablesCanBeUninitialized() {
-        Variable<Object> o = new Variable<>(TypeToken.of(Object.class), "o");
+        LocalVariable<Object> o = new LocalVariable<>(TypeToken.of(Object.class), "o");
         assertFalse(o.isInitialized());
         assertTrue(o.set((Object) null));
         assertTrue(o.isInitialized());
         assertTrue(o.set(new Object()));
         
-        Variable<Object> o2 = new Variable<>(true, TypeToken.of(Object.class), "o2");
+        LocalVariable<Object> o2 = new LocalVariable<>(true, TypeToken.of(Object.class), "o2");
         assertFalse(o2.isInitialized());
         assertTrue(o2.set((Object) null));
         assertTrue(o2.isInitialized());
@@ -96,19 +96,19 @@ public class VariableTest {
     
     @Test
     public void variablesHaveDefaultValue() {
-        Variable<Integer> i = new Variable<>(TypeToken.of(int.class), "i");
+        LocalVariable<Integer> i = new LocalVariable<>(TypeToken.of(int.class), "i");
         assertEquals(0, (int) i.get());
         
         i.set((Integer) null);
         assertEquals(0, (int) i.get());
         
-        Variable<Integer> wrapped = new Variable<>(TypeToken.of(Integer.class), "i2");
+        LocalVariable<Integer> wrapped = new LocalVariable<>(TypeToken.of(Integer.class), "i2");
         assertNull(wrapped.get());
     }
     
     @Test
     public void rendersInnerTypesCorrectly() {
-        Variable<Type> v = new Variable<>(TypeToken.of(Type.class), "v");
+        LocalVariable<Type> v = new LocalVariable<>(TypeToken.of(Type.class), "v");
         assertEquals("java.awt.Window.Type v;", v.toString());
     }
 }

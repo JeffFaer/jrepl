@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.Import;
-import falgout.jrepl.Variable;
+import falgout.jrepl.LocalVariable;
 
 public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
     public static final String PACKAGE = "jrepl";
@@ -63,10 +63,10 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         b.append("public class ").append(getName()).append(" {\n");
         
         // environment variables
-        Collection<? extends Variable<?>> variables = env.getVariables();
+        Collection<? extends LocalVariable<?>> variables = env.getVariables();
         if (variables.size() > 0) {
-            for (Variable<?> var : variables) {
-                if (toString.contains(var.getIdentifier())) {
+            for (LocalVariable<?> var : variables) {
+                if (toString.contains(var.getName())) {
                     b.append(TAB).append(var.asField());
                 }
             }

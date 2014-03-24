@@ -19,7 +19,7 @@ import org.mockito.Matchers;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.Variable;
+import falgout.jrepl.LocalVariable;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 import falgout.jrepl.reflection.GoogleTypes;
@@ -29,29 +29,29 @@ import falgout.jrepl.reflection.GoogleTypes;
 public class GeneratedMethodTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-
+    
     @Test
     public void blankMethodCanCompile() throws ExecutionException {
         GeneratedMethod g = new GeneratedMethod(e);
         compile(g);
     }
-
+    
     private Method compile(GeneratedMethod g) throws ExecutionException {
         Method method = METHOD_COMPILER.execute(e, g);
         assertEquals(g.getName(), method.getName());
         return method;
     }
-
+    
     @Test
     public void canAccessEnvironmentVariables() throws ExecutionException, ReflectiveOperationException {
-        Variable<?> var = new Variable<>(true, GoogleTypes.INT, "foo", 5);
+        LocalVariable<?> var = new LocalVariable<>(true, GoogleTypes.INT, "foo", 5);
         e.addVariable(var);
         
         GeneratedMethod g = new GeneratedMethod(e);
         g.addChild(getCode("return foo;"));
         compile(g);
     }
-
+    
     private SourceCode<? extends WrappedStatement> getCode(String code) throws ReflectiveOperationException {
         SourceCode<WrappedStatement> sc = mock(SourceCode.class);
         WrappedStatement st = new WrappedStatement(mock(Expression.class));

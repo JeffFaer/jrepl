@@ -48,7 +48,7 @@ public class LocalVariableDeclarerTest {
         Variable<?> var = parse("int x = 5;").get(0);
         assertThat(e.getVariables(), contains(var));
         assertTrue(e.containsVariable("x"));
-        assertEquals(5, e.getVariable("x").get(GoogleTypes.INT));
+        assertEquals((Object) 5, e.getVariable("x").get(GoogleTypes.INT));
     }
     
     @Test(expected = ExecutionException.class)

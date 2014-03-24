@@ -19,7 +19,7 @@ import com.google.inject.Key;
 import com.google.inject.name.Named;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.Variable;
+import falgout.jrepl.LocalVariable;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 import falgout.jrepl.reflection.GoogleTypes;
@@ -31,14 +31,14 @@ public class GeneratorModuleTest {
     @Inject public Environment e;
     public Injector i;
     
-    public Variable<?> uninitialized = new Variable<>(GoogleTypes.OBJECT, "foo");
-    public Variable<?> initialized = new Variable<>(GoogleTypes.OBJECT, "foo2", true);
-
+    public LocalVariable<?> uninitialized = new LocalVariable<>(GoogleTypes.OBJECT, "foo");
+    public LocalVariable<?> initialized = new LocalVariable<>(GoogleTypes.OBJECT, "foo2", true);
+    
     @Before
     public void before() {
         e.addVariable(uninitialized);
         e.addVariable(initialized);
-
+        
         i = Guice.createInjector(new GeneratorModule(e));
     }
     

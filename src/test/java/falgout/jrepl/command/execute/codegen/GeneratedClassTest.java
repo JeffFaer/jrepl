@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.Variable;
+import falgout.jrepl.LocalVariable;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 import falgout.jrepl.reflection.GoogleTypes;
@@ -50,20 +50,20 @@ public class GeneratedClassTest {
     @Test
     public void containsEnvironmentVariablesThatAreNeeded() throws ExecutionException, SecurityException,
             ReflectiveOperationException {
-        Variable<?> var1 = new Variable<>(true, GoogleTypes.OBJECT, "var1", new Object());
-        Variable<?> var2 = new Variable<>(true, GoogleTypes.INT, "var2", 5);
-        Variable<?> var3 = new Variable<>(GoogleTypes.OBJECT, "var3", new Object());
-        Variable<?> var4 = new Variable<>(true, GoogleTypes.CHAR, "var4", '5');
-        Variable<?> var5 = new Variable<>(GoogleTypes.INT, "var5", 5);
-        List<Variable<?>> vars = Arrays.asList(var1, var2, var3, var4, var5);
+        LocalVariable<?> var1 = new LocalVariable<>(true, GoogleTypes.OBJECT, "var1", new Object());
+        LocalVariable<?> var2 = new LocalVariable<>(true, GoogleTypes.INT, "var2", 5);
+        LocalVariable<?> var3 = new LocalVariable<>(GoogleTypes.OBJECT, "var3", new Object());
+        LocalVariable<?> var4 = new LocalVariable<>(true, GoogleTypes.CHAR, "var4", '5');
+        LocalVariable<?> var5 = new LocalVariable<>(GoogleTypes.INT, "var5", 5);
+        List<LocalVariable<?>> vars = Arrays.asList(var1, var2, var3, var4, var5);
         
-        for (Variable<?> var : vars) {
+        for (LocalVariable<?> var : vars) {
             assertTrue(e.addVariable(var));
         }
         
-        Map<GeneratedMethod, Variable<?>> usedVariables = new LinkedHashMap<>();
+        Map<GeneratedMethod, LocalVariable<?>> usedVariables = new LinkedHashMap<>();
         for (int i = 0; i < 4; i++) {
-            Variable<?> var = vars.get(i);
+            LocalVariable<?> var = vars.get(i);
             GeneratedMethod m = new GeneratedMethod(e);
             m.addChild(SourceCode.createReturnStatement(var));
             usedVariables.put(m, var);
@@ -75,7 +75,7 @@ public class GeneratedClassTest {
         }
         
         Class<?> clazz = compile(g);
-        for (Variable<?> var : usedVariables.values()) {
+        for (LocalVariable<?> var : usedVariables.values()) {
             Field f = var.asField().getTarget(clazz);
             assertNotNull(f);
             if (var.isFinal()) {
@@ -85,7 +85,7 @@ public class GeneratedClassTest {
         
         vars = new ArrayList<>(vars);
         vars.removeAll(usedVariables.values());
-        for (Variable<?> var : vars) {
+        for (LocalVariable<?> var : vars) {
             try {
                 var.asField().getTarget(clazz);
                 fail();

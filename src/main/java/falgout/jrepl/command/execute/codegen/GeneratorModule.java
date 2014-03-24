@@ -36,7 +36,7 @@ public class GeneratorModule extends AbstractModule {
     @SuppressWarnings("unchecked")
     private <T> void bindVariable(Variable<T> var) {
         if (var.isInitialized()) {
-            Key<T> key = (Key<T>) Key.get(var.getType().getType(), Names.named(var.getIdentifier()));
+            Key<T> key = (Key<T>) Key.get(var.getType().getType(), Names.named(var.getName()));
             T value = var.get();
             if (value == null) {
                 bind(key).toProvider(Providers.of(null));

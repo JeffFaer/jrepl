@@ -43,7 +43,7 @@ public class Environment implements Closeable {
     {
         imports.add(Import.create(false, "java.lang", true));
     }
-    private final Map<String, Variable<?>> variables = new LinkedHashMap<>();
+    private final Map<String, LocalVariable<?>> variables = new LinkedHashMap<>();
     private final CodeRepository<NestedClass<?>> classes;
     
     public Environment(Reader in, Writer out, Writer err, Path generatedCodeLocation,
@@ -75,14 +75,14 @@ public class Environment implements Closeable {
         return generatedCodeLocation;
     }
     
-    public boolean addVariable(Variable<?> variable) {
-        if (containsVariable(variable.getIdentifier())) {
+    public boolean addVariable(LocalVariable<?> variable) {
+        if (containsVariable(variable.getName())) {
             return false;
         } else if (variable.isFinal() && !variable.isInitialized()) {
             throw new IllegalArgumentException("Uninitialized final variables are not allowed.");
         }
         
-        variables.put(variable.getIdentifier(), variable);
+        variables.put(variable.getName(), variable);
         return true;
     }
     
@@ -90,11 +90,11 @@ public class Environment implements Closeable {
         return variables.containsKey(variableName);
     }
     
-    public Variable<?> getVariable(String variableName) {
+    public LocalVariable<?> getVariable(String variableName) {
         return variables.get(variableName);
     }
     
-    public Collection<? extends Variable<?>> getVariables() {
+    public Collection<? extends LocalVariable<?>> getVariables() {
         return Collections.unmodifiableCollection(variables.values());
     }
     
