@@ -80,11 +80,7 @@ public class LocalVariable<T> extends AbstractVariable<T> {
             @Override
             public String toString() {
                 StringBuilder b = new StringBuilder();
-                b.append(getHeader(Modifier.PUBLIC | Modifier.STATIC));
-                if (isPrimitive()) {
-                    b.append(" = ").append(AbstractVariable.toString(get()));
-                }
-                b.append(";\n");
+                b.append(getHeader(Modifier.PUBLIC | Modifier.STATIC)).append(";\n");
                 return b.toString();
             }
         };
