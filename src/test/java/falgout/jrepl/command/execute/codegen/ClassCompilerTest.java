@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.jukito.JukitoRunner;
@@ -37,6 +38,13 @@ public class ClassCompilerTest {
     @Test(expected = ExecutionException.class)
     public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException, ReflectiveOperationException {
         INSTANCE.execute(e, getCode("Foo", "public class Foo { ERROR }"));
+    }
+    
+    @Test
+    public void canCompileMultipleClassesAtOnce() throws ExecutionException, ReflectiveOperationException {
+        List<? extends Class<?>> classes = INSTANCE.execute(e, getCode("Foo", "public class Foo {}"),
+                getCode("Bar", "public class Bar {}"));
+        assertEquals(2, classes.size());
     }
     
     private SourceCode<? extends Class<?>> getCode(String name, String code) throws ReflectiveOperationException {
