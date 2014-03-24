@@ -3,7 +3,6 @@ package falgout.jrepl.command.execute.codegen;
 import static falgout.jrepl.command.execute.codegen.MemberCompiler.METHOD_COMPILER;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.util.concurrent.ExecutionException;
 
 import falgout.jrepl.Environment;
@@ -14,15 +13,9 @@ public enum GeneratedMethodExecutor implements Executor<GeneratedMethod, Object>
     
     @Override
     public Object execute(Environment env, GeneratedMethod input) throws ExecutionException {
-        java.lang.reflect.Method method = METHOD_COMPILER.execute(env, input);
-        Object receiver;
-        if (Modifier.isStatic(method.getModifiers())) {
-            receiver = null;
-        } else {
-            throw new Error("Should've been static");
-        }
+        java.lang.reflect.Method method = METHOD_COMPILER.execute(input);
         try {
-            return method.invoke(receiver);
+            return method.invoke(null);
         } catch (IllegalAccessException e) {
             throw new Error(e);
         } catch (InvocationTargetException e) {
