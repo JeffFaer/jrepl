@@ -21,6 +21,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.LocalVariable;
 import falgout.jrepl.Variable;
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
 import falgout.jrepl.command.JavaCommandFactory;
@@ -34,11 +35,11 @@ import falgout.jrepl.reflection.GoogleTypes;
 public class LocalVariableDeclarerTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-    public JavaCommandFactory<Optional<? extends List<Variable<?>>>> variableParser = new JavaCommandFactory<>(
+    public JavaCommandFactory<Optional<? extends List<LocalVariable<?>>>> variableParser = new JavaCommandFactory<>(
             new Pair<>(Statements.INSTANCE, LocalVariableDeclarer.PARSE));
     
-    public List<Variable<?>> parse(String input) throws ExecutionException {
-        Optional<? extends List<Variable<?>>> opt = variableParser.execute(e, input);
+    public List<? extends Variable<?>> parse(String input) throws ExecutionException {
+        Optional<? extends List<LocalVariable<?>>> opt = variableParser.execute(e, input);
         return opt.get();
     }
     
@@ -63,7 +64,7 @@ public class LocalVariableDeclarerTest {
     
     @Test
     public void canDeclareMultipleVariables() throws ExecutionException {
-        List<Variable<?>> vars = parse("int x, y[], z[][];");
+        List<? extends Variable<?>> vars = parse("int x, y[], z[][];");
         assertEquals(3, vars.size());
         assertEquals(GoogleTypes.INT, vars.get(0).getType());
         TypeToken<?> type = GoogleTypes.addArrays(GoogleTypes.INT, 1);
