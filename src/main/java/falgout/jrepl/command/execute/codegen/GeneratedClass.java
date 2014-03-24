@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.Import;
-import falgout.jrepl.LocalVariable;
 
 public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
     public static final String PACKAGE = "jrepl";
@@ -24,14 +23,6 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
     
     @Override
     public String toString() {
-        String toString = getChildren().stream().map(member -> member.toString()).map(member -> {
-            StringBuilder b2 = new StringBuilder();
-            for (String line : member.split("\n")) {
-                b2.append(TAB).append(line).append("\n");
-            }
-            return b2.toString();
-        }).collect(Collectors.joining("\n", "\n", ""));
-        
         Environment env = getEnvironment();
         StringBuilder b = new StringBuilder();
         
@@ -42,7 +33,7 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         // imports
         List<Collection<Import>> imports = new ArrayList<>();
         imports.add(env.getImports());
-        // class / method imports
+        // class / method / variable imports
         List<Import> runtimeImports = env.getMembers()
                 .stream()
                 .sequential()
@@ -62,22 +53,11 @@ public class GeneratedClass extends GeneratedSourceCode<Class<?>, Member> {
         // class declaration
         b.append("public class ").append(getName()).append(" {\n");
         
-        // environment variables
-        Collection<? extends LocalVariable<?>> variables = env.getVariables();
-        if (variables.size() > 0) {
-            for (LocalVariable<?> var : variables) {
-                if (toString.contains(var.getName())) {
-                    b.append(TAB).append(var.asField());
-                }
-            }
-            b.append("\n");
-        }
-        
         // constructor
         b.append(TAB).append("public ").append(getName()).append("() {}\n");
         
         // members
-        b.append(toString);
+        b.append(addTabsToChildren());
         
         b.append("}\n");
         

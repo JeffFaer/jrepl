@@ -38,12 +38,12 @@ public class Environment implements Closeable {
     private final PrintWriter err;
     
     private Path generatedCodeLocation;
-    
     private final Set<Import> imports = new ImportSet();
     {
         imports.add(Import.create(false, "java.lang", true));
     }
-    private final Map<String, LocalVariable<?>> variables = new LinkedHashMap<>();
+    
+    private final Map<String, FieldVariable<?>> variables = new LinkedHashMap<>();
     private final CodeRepository<NestedClass<?>> classes;
     
     public Environment(Reader in, Writer out, Writer err, Path generatedCodeLocation,
@@ -51,7 +51,9 @@ public class Environment implements Closeable {
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
+        
         this.generatedCodeLocation = generatedCodeLocation;
+        
         classes = new CodeRepository<>(classCompiler);
     }
     
@@ -75,13 +77,10 @@ public class Environment implements Closeable {
         return generatedCodeLocation;
     }
     
-    public boolean addVariable(LocalVariable<?> variable) {
+    public boolean addVariable(FieldVariable<?> variable) {
         if (containsVariable(variable.getName())) {
             return false;
-        } else if (variable.isFinal() && !variable.isInitialized()) {
-            throw new IllegalArgumentException("Uninitialized final variables are not allowed.");
         }
-        
         variables.put(variable.getName(), variable);
         return true;
     }
@@ -90,11 +89,11 @@ public class Environment implements Closeable {
         return variables.containsKey(variableName);
     }
     
-    public LocalVariable<?> getVariable(String variableName) {
+    public Variable<?> getVariable(String variableName) {
         return variables.get(variableName);
     }
     
-    public Collection<? extends LocalVariable<?>> getVariables() {
+    public Collection<? extends Variable<?>> getVariables() {
         return Collections.unmodifiableCollection(variables.values());
     }
     
@@ -116,7 +115,10 @@ public class Environment implements Closeable {
     }
     
     public Collection<? extends Member> getMembers() {
-        return classes.getAllCompiled();
+        Collection<Member> members = new ArrayList<>();
+        variables.values().stream().map(var -> var.getField()).forEach(members::add);
+        members.addAll(classes.getAllCompiled());
+        return Collections.unmodifiableCollection(members);
     }
     
     @Override

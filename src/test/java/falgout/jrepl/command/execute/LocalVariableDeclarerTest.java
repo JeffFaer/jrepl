@@ -99,7 +99,7 @@ public class LocalVariableDeclarerTest {
         Variable<?> var1 = parse("int x = 5;").get(0);
         Variable<?> var2 = parse("int z = x;").get(0);
         
-        assertSame(var1.get(), var2.get());
+        assertEquals(var1.get(), var2.get());
     }
     
     @Test
@@ -116,5 +116,16 @@ public class LocalVariableDeclarerTest {
         Variable<?> var2 = parse("Foo f2 = f1;").get(0);
         
         assertSame(var1.get(), var2.get());
+    }
+    
+    @Test(expected = ExecutionException.class)
+    public void cannotHaveDuplicateVariables() throws ExecutionException {
+        env.execute("Object foo = new Object();");
+        env.execute("Object foo = new Object();");
+    }
+    
+    @Test(expected = ExecutionException.class)
+    public void CannotAddUninitializedFinalVariable() throws ExecutionException {
+        env.execute("final Object foo;");
     }
 }

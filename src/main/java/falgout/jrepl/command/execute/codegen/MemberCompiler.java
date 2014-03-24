@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute.codegen;
 
 import static java.util.stream.Collectors.toList;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ public class MemberCompiler<M extends Member> extends CodeCompiler<M> {
     private static final MemberCompiler<?> INSTANCE = new MemberCompiler<>();
     @SuppressWarnings("unchecked") public static final MemberCompiler<Method> METHOD_COMPILER = (MemberCompiler<Method>) INSTANCE;
     @SuppressWarnings("unchecked") public static final MemberCompiler<NestedClass<?>> NESTED_CLASS_COMPILER = (MemberCompiler<NestedClass<?>>) INSTANCE;
+    @SuppressWarnings("unchecked") public static final MemberCompiler<Field> FIELD_COMPILER = (MemberCompiler<Field>) INSTANCE;
     
     @Override
     public List<? extends M> execute(Environment env, List<? extends SourceCode<? extends M>> input)

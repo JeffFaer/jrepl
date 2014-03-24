@@ -1,6 +1,8 @@
 package falgout.jrepl.command.execute.codegen;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -9,7 +11,7 @@ import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Statement;
 
-import falgout.jrepl.Variable;
+import falgout.jrepl.LocalVariable;
 import falgout.jrepl.reflection.JDTTypes;
 import falgout.jrepl.reflection.NestedClass;
 
@@ -59,16 +61,18 @@ public abstract class SourceCode<T> {
     @Override
     public abstract String toString();
     
-    public static SourceCode<WrappedStatement> createReturnStatement(Variable<?> variable) {
-        return new WrappedStatementSourceCode(variable);
-    }
-    
-    public static SourceCode<WrappedStatement> createReturnStatement(Expression expression) {
-        return new WrappedStatementSourceCode(expression);
-    }
-    
-    public static SourceCode<WrappedStatement> from(Statement statement) {
-        return new WrappedStatementSourceCode(statement);
+    public static SourceCode<Statement> from(Statement statement) {
+        return new SourceCode<Statement>(null) {
+            @Override
+            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
+                return statement;
+            }
+            
+            @Override
+            public String toString() {
+                return statement.toString();
+            }
+        };
     }
     
     public static SourceCode<NestedClass<?>> from(AbstractTypeDeclaration decl) {
@@ -95,6 +99,30 @@ public abstract class SourceCode<T> {
             @Override
             public String toString() {
                 return decl.toString();
+            }
+        };
+    }
+    
+    public static GeneratedSourceCode<Statement, Void> createInitializer(Map<LocalVariable<?>, Expression> initialize) {
+        return new GeneratedSourceCode<Statement, Void>(null) {
+            @Override
+            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
+                return null;
+            }
+            
+            @Override
+            public String toString() {
+                StringBuilder b = new StringBuilder();
+                b.append("try {\n");
+                for (Entry<LocalVariable<?>, Expression> e : initialize.entrySet()) {
+                    String name = e.getKey().getName();
+                    Expression init = e.getValue();
+                    b.append(TAB).append(name).append(" = ").append(init).append(";\n");
+                }
+                b.append("} catch (Exception $e) {\n");
+                b.append(TAB).append("throw new ExceptionInInitializerError($e);\n");
+                b.append("}");
+                return b.toString();
             }
         };
     }

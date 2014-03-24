@@ -1,5 +1,7 @@
 package falgout.jrepl.command.execute.codegen;
 
+import static java.util.stream.Collectors.joining;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,5 +36,19 @@ public abstract class GeneratedSourceCode<T, C> extends SourceCode<T> {
     
     public boolean removeChild(SourceCode<? extends C> child) {
         return children.remove(child);
+    }
+    
+    public String addTabsToChildren() {
+        return addTabsToChildren("\n", "\n", "");
+    }
+    
+    public String addTabsToChildren(String delim, String prefix, String suffix) {
+        return children.stream().map(child -> child.toString()).map(s -> {
+            StringBuilder b = new StringBuilder();
+            for (String line : s.split("\n")) {
+                b.append(TAB).append(line).append("\n");
+            }
+            return b.toString();
+        }).collect(joining(delim, prefix, suffix));
     }
 }

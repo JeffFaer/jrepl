@@ -2,12 +2,15 @@ package falgout.jrepl.command.execute.codegen;
 
 import java.lang.reflect.Method;
 
+import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.Statement;
+
 import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.reflection.GoogleTypes;
 
-public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatement> {
+public class GeneratedMethod extends GeneratedSourceCode<Method, Statement> {
     public GeneratedMethod(Environment env) {
         super(env);
     }
@@ -18,10 +21,10 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatemen
     }
     
     public TypeToken<?> getReturnType() {
-        for (SourceCode<? extends WrappedStatement> child : getChildren()) {
+        for (SourceCode<? extends Statement> child : getChildren()) {
             // still kind of hacky, but it's a bit better
             try {
-                if (child.getTarget(null).isReturn()) {
+                if (child.getTarget(null) instanceof ReturnStatement) {
                     return GoogleTypes.OBJECT;
                 }
             } catch (ReflectiveOperationException e) {
@@ -37,13 +40,9 @@ public class GeneratedMethod extends GeneratedSourceCode<Method, WrappedStatemen
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
-        b.append("public ").append(getReturnType()).append(" ").append(getName());
+        b.append("public static ").append(getReturnType()).append(" ").append(getName());
         b.append("() throws Throwable {\n");
-        for (SourceCode<?> child : getChildren()) {
-            for (String line : child.toString().split("\n")) {
-                b.append(TAB).append(line).append("\n");
-            }
-        }
+        b.append(addTabsToChildren());
         b.append("}");
         return b.toString();
     }

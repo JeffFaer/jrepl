@@ -7,6 +7,10 @@ public interface Variable<T> {
     
     public TypeToken<T> getType();
     
+    default public boolean isPrimitive() {
+        return getType().isPrimitive();
+    }
+    
     public String getName();
     
     public boolean isInitialized();

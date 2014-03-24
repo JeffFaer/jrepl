@@ -2,14 +2,15 @@ package falgout.jrepl;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
@@ -21,7 +22,6 @@ import com.google.inject.Inject;
 
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
-import falgout.jrepl.reflection.GoogleTypes;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
@@ -43,26 +43,23 @@ public class EnvironmentTest {
     }
     
     @Test
-    public void cannotHaveDuplicateVariables() {
-        LocalVariable<?> var1 = new LocalVariable<>(GoogleTypes.OBJECT, "foo", new Object());
-        LocalVariable<?> var2 = new LocalVariable<>(GoogleTypes.OBJECT, "foo", new Object());
-        
-        assertTrue(e.addVariable(var1));
-        assertFalse(e.addVariable(var2));
-        
-        assertSame(var1.get(), e.getVariable("foo").get());
-    }
-    
-    @Test(expected = IllegalArgumentException.class)
-    public void CannotAddUninitializedFinalVariable() {
-        LocalVariable<?> uninitFinal = new LocalVariable<>(true, GoogleTypes.OBJECT, "foo");
-        e.addVariable(uninitFinal);
-    }
-    
-    @Test
     public void CloseDeletesCodeDirectory() throws IOException {
         assertTrue(Files.exists(e.getGeneratedCodeLocation()));
         e.close();
         assertFalse(Files.exists(e.getGeneratedCodeLocation()));
+    }
+    
+    @Test
+    public void VariablesAreMembers() throws ExecutionException {
+        assertEquals(0, e.getMembers().size());
+        env.execute("Object foo;");
+        assertEquals(1, e.getMembers().size());
+    }
+    
+    @Test
+    public void ClassesAreMembers() throws ExecutionException {
+        assertEquals(0, e.getMembers().size());
+        env.execute("public class Foo { }");
+        assertEquals(1, e.getMembers().size());
     }
 }
