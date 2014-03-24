@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -127,5 +128,18 @@ public class LocalVariableDeclarerTest {
     @Test(expected = ExecutionException.class)
     public void CannotAddUninitializedFinalVariable() throws ExecutionException {
         env.execute("final Object foo;");
+    }
+    
+    @Test
+    public void CanCreateVariableWithThrowingDeclaration() throws ExecutionException {
+        env.execute("public class Foo { public Foo() throws Throwable { } }");
+        Variable<?> var = parse("Foo f = new Foo();").get(0);
+        assertNotNull(var.get());
+    }
+    
+    @Test(expected = ExecutionException.class)
+    public void ThrownExceptionsDuringInitializationAreVisible() throws ExecutionException {
+        env.execute("public class Foo { public Foo() throws Throwable { throw new RuntimeException(); } }");
+        parse("Foo f = new Foo();");
     }
 }

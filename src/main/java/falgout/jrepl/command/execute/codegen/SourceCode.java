@@ -119,7 +119,7 @@ public abstract class SourceCode<T> {
                     Expression init = e.getValue();
                     b.append(TAB).append(name).append(" = ").append(init).append(";\n");
                 }
-                b.append("} catch (Exception $e) {\n");
+                b.append("} catch (Throwable $e) {\n");
                 b.append(TAB).append("throw new ExceptionInInitializerError($e);\n");
                 b.append("}");
                 return b.toString();

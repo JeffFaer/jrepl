@@ -107,7 +107,11 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
                 
                 LocalVariable<?> var = variables.get(i);
                 FieldVariable<?> fv = new FieldVariable<>(var.getType(), f);
-                var.set(fv);
+                try {
+                    var.set(fv);
+                } catch (ExceptionInInitializerError e) {
+                    throw new ExecutionException(e);
+                }
                 env.addVariable(fv);
             } catch (ReflectiveOperationException e) {
                 throw new ExecutionException(e);
