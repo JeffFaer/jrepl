@@ -1,36 +1,36 @@
 package falgout.jrepl.command.execute;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.reflection.NestedClass;
 
-public enum ClassDefiner implements Executor<AbstractTypeDeclaration, Class<?>> {
-    INSTANCE;
-    public static final Executor<AbstractTypeDeclaration, Optional<? extends Class<?>>> OPT = Executor.optional(INSTANCE);
-    public static final Executor<Iterable<? extends AbstractTypeDeclaration>, List<Class<?>>> LIST = Executor.process(OPT);
-    public static final Executor<CompilationUnit, Optional<? extends List<Class<?>>>> FILTERED = Executor.filter(LIST,
-            t -> {
-                List<AbstractTypeDeclaration> l = t.types();
-                return l;
-            });
-    public static final Executor<Iterable<? extends CompilationUnit>, Optional<? extends List<Class<?>>>> PARSE = Executor.flatProcess(FILTERED);
+public class ClassDefiner extends BatchExecutor<AbstractTypeDeclaration, NestedClass<?>> {
+    public static final ClassDefiner INSTANCE = new ClassDefiner();
     
     @Override
-    public Class<?> execute(Environment env, AbstractTypeDeclaration input) throws ExecutionException {
-        SourceCode<NestedClass<?>> code = SourceCode.from(input);
-        Optional<? extends NestedClass<?>> opt = env.compile(code);
+    public List<? extends NestedClass<?>> execute(Environment env, Iterable<? extends AbstractTypeDeclaration> input)
+            throws ExecutionException {
+        List<SourceCode<NestedClass<?>>> code = new ArrayList<>();
+        input.forEach(decl -> code.add(SourceCode.from(decl)));
+        Optional<? extends List<? extends NestedClass<?>>> opt = env.getClassRepository().compile(env, code);
         if (opt.isPresent()) {
-            return opt.get().getDeclaredClass();
+            return opt.get();
         }
         
-        String message = String.format("%s already exists.", code.getName());
-        throw new ExecutionException(new IllegalArgumentException(message));
+        for (SourceCode<NestedClass<?>> c : code) {
+            String name = c.getName();
+            if (env.getClassRepository().contains(c.getName())) {
+                String message = String.format("%s already exists.", name);
+                throw new ExecutionException(new IllegalArgumentException(message));
+            }
+        }
+        throw new AssertionError("One of the classes must have already existed.");
     }
 }

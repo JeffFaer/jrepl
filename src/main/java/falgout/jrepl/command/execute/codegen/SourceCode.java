@@ -32,7 +32,7 @@ public abstract class SourceCode<T> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((toString() == null) ? 0 : toString().hashCode());
         return result;
     }
     
@@ -48,11 +48,11 @@ public abstract class SourceCode<T> {
             return false;
         }
         SourceCode<?> other = (SourceCode<?>) obj;
-        if (name == null) {
-            if (other.name != null) {
+        if (toString() == null) {
+            if (other.toString() != null) {
                 return false;
             }
-        } else if (!name.equals(other.name)) {
+        } else if (!toString().equals(other.toString())) {
             return false;
         }
         return true;

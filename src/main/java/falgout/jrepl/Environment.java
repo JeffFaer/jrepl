@@ -18,15 +18,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import com.google.inject.ProvidedBy;
 
 import falgout.jrepl.command.execute.codegen.CodeCompiler;
 import falgout.jrepl.command.execute.codegen.CodeRepository;
-import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.guice.EnvironmentProvider;
 import falgout.jrepl.reflection.NestedClass;
 import falgout.util.Closeables;
@@ -101,17 +98,8 @@ public class Environment implements Closeable {
         return imports;
     }
     
-    public boolean containsClass(String name) {
-        return classes.contains(name);
-    }
-    
-    public NestedClass<?> getClass(String name) {
-        return classes.getCompiled(name);
-    }
-    
-    public Optional<? extends NestedClass<?>> compile(SourceCode<? extends NestedClass<?>> code)
-            throws ExecutionException {
-        return classes.compile(this, code);
+    public CodeRepository<NestedClass<?>> getClassRepository() {
+        return classes;
     }
     
     public Collection<? extends Member> getMembers() {

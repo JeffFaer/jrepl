@@ -1,6 +1,5 @@
 package falgout.jrepl.command.execute.codegen;
 
-import static falgout.jrepl.command.execute.codegen.MemberCompiler.METHOD_COMPILER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,16 +26,17 @@ import falgout.jrepl.guice.TestModule;
 public class MemberCompilerTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
+    @Inject public CodeCompiler<Method> compiler;
     
     @Test
     public void automaticallyCompiledMethods() throws ExecutionException, ReflectiveOperationException {
-        Method method = METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { }"));
+        Method method = compiler.execute(e, getCode("foo", "public void foo() { }"));
         assertEquals("foo", method.getName());
     }
     
     @Test(expected = ExecutionException.class)
     public void ProvidesErrorFeedbackIfCannotCompile() throws ExecutionException, ReflectiveOperationException {
-        METHOD_COMPILER.execute(e, getCode("foo", "public void foo() { ERROR }"));
+        compiler.execute(e, getCode("foo", "public void foo() { ERROR }"));
     }
     
     private SourceCode<? extends Method> getCode(String name, String code) throws ReflectiveOperationException {

@@ -5,10 +5,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Rule;
@@ -28,17 +29,20 @@ import falgout.jrepl.guice.TestModule;
 @UseModules(TestModule.class)
 public class ImportTest {
     @Inject @Rule public TestEnvironment env;
-    public JavaCommandFactory<Optional<? extends List<Import>>> importParser = new JavaCommandFactory<>(new Pair<>(
-            ClassDeclaration.INSTANCE, Importer.PARSE));
+    public JavaCommandFactory<List<Import>> importParser = new JavaCommandFactory<>(new Pair<>(
+            ClassDeclaration.INSTANCE, (env, input) -> {
+                List<Import> imports = new ArrayList<>();
+                for (CompilationUnit u : input) {
+                    imports.addAll(Importer.INSTANCE.execute(env, u.imports()));
+                }
+                return imports;
+            }));
     
     public List<Import> create(String... imports) throws ExecutionException {
         String source = String.join("", imports);
-        
-        Optional<? extends List<Import>> opt = importParser.execute(env.getEnvironment(), source);
-        assertTrue(opt.isPresent());
-        return opt.get();
+        return importParser.execute(env.getEnvironment(), source);
     }
-
+    
     @Test
     public void containsKeepsMostGeneralImport() throws ExecutionException {
         List<Import> imports = create("import foo.bar.Class;", "import foo.*;", "import foo.bar.*;",
@@ -94,7 +98,7 @@ public class ImportTest {
         assertEquals("java.lang.Object", staticStar.resolveClassForMethod("methodName"));
         assertEquals("java.lang.Object", staticStar.resolveClassForField("fieldName"));
     }
-
+    
     @Test
     public void resolveInnerTypesCorrectly() throws ExecutionException {
         Import i = create("import java.awt.Window.Type;").get(0);

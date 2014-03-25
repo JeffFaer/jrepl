@@ -13,7 +13,6 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import falgout.jrepl.Environment;
@@ -45,7 +44,6 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
     private final ThreadLocal<char[]> source = new ThreadLocal<char[]>();
     
     @SafeVarargs
-    @Inject
     public JavaCommandFactory(Pair<? super ASTParser, ? extends List<? extends ASTNode>, ? extends R>... pairs) {
         super(ACCEPT, RANKER, pairs);
         options = JavaCore.getOptions();

@@ -7,13 +7,16 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +29,7 @@ import falgout.jrepl.LocalVariable;
 import falgout.jrepl.Variable;
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
 import falgout.jrepl.command.JavaCommandFactory;
+import falgout.jrepl.command.execute.codegen.CodeCompiler;
 import falgout.jrepl.command.parse.Statements;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
@@ -36,12 +40,24 @@ import falgout.jrepl.reflection.GoogleTypes;
 public class LocalVariableDeclarerTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-    public JavaCommandFactory<Optional<? extends List<LocalVariable<?>>>> variableParser = new JavaCommandFactory<>(
-            new Pair<>(Statements.INSTANCE, LocalVariableDeclarer.PARSE));
+    public JavaCommandFactory<List<LocalVariable<?>>> variableParser;
+    
+    @Before
+    public void before(CodeCompiler<Class<?>> compiler) {
+        LocalVariableDeclarer declarer = new LocalVariableDeclarer(compiler);
+        variableParser = new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, (env, input) -> {
+            List<LocalVariable<?>> vars = new ArrayList<>();
+            for (Statement st : input) {
+                if (st instanceof VariableDeclarationStatement) {
+                    vars.addAll(declarer.execute(env, (VariableDeclarationStatement) st));
+                }
+            }
+            return vars;
+        }));
+    }
     
     public List<? extends Variable<?>> parse(String input) throws ExecutionException {
-        Optional<? extends List<LocalVariable<?>>> opt = variableParser.execute(e, input);
-        return opt.get();
+        return variableParser.execute(e, input);
     }
     
     @SuppressWarnings("unchecked")

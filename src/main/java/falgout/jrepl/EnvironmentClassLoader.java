@@ -30,8 +30,8 @@ public class EnvironmentClassLoader extends URLClassLoader {
             return super.loadClass(name);
         } catch (ClassNotFoundException e) {}
         
-        if (env.containsClass(name)) {
-            return env.getClass(name).getDeclaredClass();
+        if (env.getClassRepository().isCompiled(name)) {
+            return env.getClassRepository().getCompiled(name).getDeclaredClass();
         }
         
         return loadImportedClass(name);

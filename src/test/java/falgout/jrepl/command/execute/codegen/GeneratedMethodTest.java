@@ -1,6 +1,5 @@
 package falgout.jrepl.command.execute.codegen;
 
-import static falgout.jrepl.command.execute.codegen.MemberCompiler.METHOD_COMPILER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -26,6 +25,7 @@ import falgout.jrepl.guice.TestModule;
 public class GeneratedMethodTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
+    @Inject public CodeCompiler<Method> compiler;
     
     @Test
     public void blankMethodCanCompile() throws ExecutionException {
@@ -34,7 +34,7 @@ public class GeneratedMethodTest {
     }
     
     private Method compile(GeneratedMethod g) throws ExecutionException {
-        Method method = METHOD_COMPILER.execute(e, g);
+        Method method = compiler.execute(e, g);
         assertEquals(g.getName(), method.getName());
         return method;
     }

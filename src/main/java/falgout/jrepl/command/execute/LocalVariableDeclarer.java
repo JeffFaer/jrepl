@@ -6,32 +6,33 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.FieldVariable;
 import falgout.jrepl.LocalVariable;
-import falgout.jrepl.command.execute.codegen.ClassCompiler;
+import falgout.jrepl.command.execute.codegen.CodeCompiler;
 import falgout.jrepl.command.execute.codegen.GeneratedBlock;
 import falgout.jrepl.command.execute.codegen.GeneratedClass;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.JDTTypes;
 
-public enum LocalVariableDeclarer implements Executor<VariableDeclarationStatement, List<LocalVariable<?>>> {
-    INSTANCE;
-    public static final Executor<Statement, Optional<? extends List<LocalVariable<?>>>> FILTER = Executor.filter(
-            INSTANCE, s -> (s instanceof VariableDeclarationStatement) ? (VariableDeclarationStatement) s : null);
-    public static final Executor<Iterable<? extends Statement>, Optional<? extends List<LocalVariable<?>>>> PARSE = Executor.flatProcess(FILTER);
+public class LocalVariableDeclarer extends AbstractExecutor<VariableDeclarationStatement, List<LocalVariable<?>>> {
+    private final CodeCompiler<Class<?>> classCompiler;
+    
+    @Inject
+    public LocalVariableDeclarer(CodeCompiler<Class<?>> classCompiler) {
+        this.classCompiler = classCompiler;
+    }
     
     @Override
     public List<LocalVariable<?>> execute(Environment env, VariableDeclarationStatement input)
@@ -50,7 +51,6 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
         
         List<LocalVariable<?>> variables = new ArrayList<>();
         Set<String> names = new LinkedHashSet<>();
-        
         Map<LocalVariable<?>, Expression> initialize = new LinkedHashMap<>();
         
         for (VariableDeclarationFragment frag : (List<VariableDeclarationFragment>) input.fragments()) {
@@ -98,7 +98,7 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
             clazz.addChild(block);
         }
         
-        Class<?> c = ClassCompiler.INSTANCE.execute(clazz);
+        Class<?> c = classCompiler.execute(clazz);
         
         for (int i = 0; i < source.size(); i++) {
             SourceCode<Field> s = source.get(i);
@@ -109,13 +109,9 @@ public enum LocalVariableDeclarer implements Executor<VariableDeclarationStateme
                 
                 LocalVariable<?> var = variables.get(i);
                 FieldVariable<?> fv = new FieldVariable<>(var.getType(), f);
-                try {
-                    var.set(fv);
-                } catch (ExceptionInInitializerError e) {
-                    throw new ExecutionException(e);
-                }
+                var.set(fv);
                 env.addVariable(fv);
-            } catch (ReflectiveOperationException e) {
+            } catch (ReflectiveOperationException | ExceptionInInitializerError e) {
                 throw new ExecutionException(e);
             }
         }

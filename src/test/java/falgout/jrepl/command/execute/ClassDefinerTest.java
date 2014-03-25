@@ -4,10 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Rule;
@@ -23,21 +24,30 @@ import falgout.jrepl.command.ParsingException;
 import falgout.jrepl.command.parse.ClassDeclaration;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
+import falgout.jrepl.reflection.NestedClass;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
 public class ClassDefinerTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
-    public JavaCommandFactory<Optional<? extends List<Class<?>>>> typeParser = new JavaCommandFactory<>(new Pair<>(
-            ClassDeclaration.INSTANCE, ClassDefiner.PARSE));
+    public JavaCommandFactory<List<? extends NestedClass<?>>> typeParser = new JavaCommandFactory<>(new Pair<>(
+            ClassDeclaration.INSTANCE, (env, input) -> {
+                List<NestedClass<?>> classes = new ArrayList<>();
+                for (CompilationUnit u : input) {
+                    classes.addAll(ClassDefiner.INSTANCE.execute(env, u.types()));
+                }
+                return classes;
+            }));
     
     public List<Class<?>> parse(String input, String... names) throws ParsingException, ExecutionException {
-        Optional<? extends List<Class<?>>> opt = typeParser.execute(e, input);
-        assertTrue(opt.isPresent());
-        List<Class<?>> classes = opt.get();
-        for (int i = 0; i < classes.size(); i++) {
-            assertEquals(names[i], classes.get(i).getSimpleName());
+        List<? extends NestedClass<?>> nested = typeParser.execute(e, input);
+        assertEquals(names.length, nested.size());
+        List<Class<?>> classes = new ArrayList<>(nested.size());
+        for (int i = 0; i < nested.size(); i++) {
+            Class<?> clazz = nested.get(i).getDeclaredClass();
+            classes.add(clazz);
+            assertEquals(names[i], clazz.getSimpleName());
         }
         return classes;
     }
@@ -76,7 +86,7 @@ public class ClassDefinerTest {
     @Test(expected = ExecutionException.class)
     public void cannotDeclareDuplicateClass() throws ParsingException, ExecutionException {
         parse("public class Foo {}", "Foo");
-        parse("public class Foo {}", "Foo");
+        parse("public class Foo { public static int different; }", "Foo");
     }
     
     @Test

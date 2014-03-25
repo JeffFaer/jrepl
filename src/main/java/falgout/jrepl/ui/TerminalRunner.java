@@ -26,7 +26,7 @@ public class TerminalRunner {
     public static void main(String[] args) throws IOException {
         Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule(), new CodeGenModule());
         try (Environment env = injector.getInstance(Environment.class)) {
-            CommandFactory<Optional<? extends Collection<?>>> f = injector.getInstance(CommandFactory.class);
+            CommandFactory<? extends Collection<? extends Optional<?>>> f = injector.getInstance(CommandFactory.class);
             
             String prompt = "java: ";
             BufferedReader in = env.getInput();
@@ -51,20 +51,16 @@ public class TerminalRunner {
                 
                 if (braces == 0) {
                     try {
-                        Optional<? extends Collection<?>> opt = f.execute(env, input.toString());
-                        if (opt.isPresent()) {
-                            for (Object o : opt.get()) {
-                                System.out.println(o);
+                        Collection<? extends Optional<?>> ret = f.execute(env, input.toString());
+                        for (Optional<?> opt : ret) {
+                            if (opt.isPresent()) {
+                                System.out.println(opt.get());
                             }
-                        } else {
-                            System.err.println("Did not execute");
                         }
                     } catch (ParsingException e) {
                         printStackTrace(env, e);
                     } catch (ExecutionException e) {
                         printStackTrace(env, e.getCause());
-                    } catch (RuntimeException e) {
-                        printStackTrace(env, e);
                     }
                     
                     input = new StringBuilder();
