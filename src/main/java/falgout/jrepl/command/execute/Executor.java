@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +25,15 @@ public interface Executor<I, R> {
      * @throws ExecutionException If an exception occurs during execution.
      */
     public R execute(Environment env, I input) throws ExecutionException;
+    
+    default public List<? extends R> execute(Environment env, Iterable<? extends I> input) throws ExecutionException {
+        List<R> ret = new ArrayList<>();
+        for (I i : input) {
+            ret.add(execute(env, i));
+        }
+        
+        return ret;
+    }
     
     public static <I, R> Executor<I, Optional<? extends R>> optional(Executor<? super I, ? extends R> executor) {
         return (env, input) -> {

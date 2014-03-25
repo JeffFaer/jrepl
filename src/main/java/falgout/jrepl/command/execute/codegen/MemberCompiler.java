@@ -1,9 +1,8 @@
 package falgout.jrepl.command.execute.codegen;
 
-import static java.util.stream.Collectors.toList;
-
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -25,18 +24,20 @@ public class MemberCompiler<M extends Member> extends CodeCompiler<M> {
     @SuppressWarnings("unchecked") public static final MemberCompiler<NestedClass<?>> NESTED_CLASS_COMPILER = (MemberCompiler<NestedClass<?>>) INSTANCE;
     
     @Override
-    public List<? extends M> execute(Environment env, List<? extends SourceCode<? extends M>> input)
+    public List<? extends M> execute(Environment env, Iterable<? extends SourceCode<? extends M>> input)
             throws ExecutionException {
         GeneratedClass generated = new GeneratedClass(env);
         input.forEach(generated::addChild);
         Class<?> clazz = ClassCompiler.INSTANCE.execute(env, Arrays.asList(generated)).get(0);
         
-        return input.stream().map(code -> {
+        List<M> members = new ArrayList<>(generated.getChildren().size());
+        for (SourceCode<? extends M> code : input) {
             try {
-                return code.getTarget(clazz);
+                members.add(code.getTarget(clazz));
             } catch (ReflectiveOperationException e) {
-                throw new Error("We just made the method, it should be there", e);
+                throw new Error("We just made the member.", e);
             }
-        }).collect(toList());
+        }
+        return members;
     }
 }

@@ -9,13 +9,13 @@ import javax.tools.JavaFileObject;
 public class CompilationException extends IllegalArgumentException {
     private static final long serialVersionUID = 7774053476250643623L;
     
-    private final List<? extends SourceCode<? extends Class<?>>> source;
+    private final Iterable<? extends SourceCode<? extends Class<?>>> source;
     private final List<Diagnostic<? extends JavaFileObject>> diagnostics;
     
-    public CompilationException(List<? extends SourceCode<? extends Class<?>>> source,
+    public CompilationException(Iterable<? extends SourceCode<? extends Class<?>>> input,
             List<Diagnostic<? extends JavaFileObject>> diagnostics) {
         super(createMessage(diagnostics));
-        this.source = source;
+        this.source = input;
         this.diagnostics = diagnostics;
     }
     
@@ -23,7 +23,7 @@ public class CompilationException extends IllegalArgumentException {
         return diagnostics.stream().map(d -> d.getMessage(null)).collect(Collectors.joining("\n"));
     }
     
-    public List<? extends SourceCode<? extends Class<?>>> getSource() {
+    public Iterable<? extends SourceCode<? extends Class<?>>> getSource() {
         return source;
     }
     

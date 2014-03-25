@@ -1,12 +1,12 @@
 package falgout.jrepl.command.execute.codegen;
 
-import static java.util.stream.Collectors.toList;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
 
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -27,10 +27,14 @@ public class ClassCompiler extends CodeCompiler<Class<?>> {
     public static final ClassCompiler INSTANCE = new ClassCompiler();
     
     @Override
-    public List<? extends Class<?>> execute(Environment env, List<? extends SourceCode<? extends Class<?>>> input)
+    public List<? extends Class<?>> execute(Environment env, Iterable<? extends SourceCode<? extends Class<?>>> input)
             throws ExecutionException {
-        List<JavaFileObject> sources = input.stream().map(code -> new SourceCodeJavaFile(code)).collect(toList());
-        Stream<String> names = input.stream().map(code -> code.getName());
+        List<JavaFileObject> sources = new ArrayList<>();
+        Set<String> names = new LinkedHashSet<>();
+        for (SourceCode<? extends Class<?>> code : input) {
+            sources.add(new SourceCodeJavaFile(code));
+            names.add(code.getName());
+        }
         
         String out = env.getGeneratedCodeLocation().toAbsolutePath().toString();
         String cp = System.getProperty("java.class.path") + File.pathSeparator + out;
@@ -43,13 +47,15 @@ public class ClassCompiler extends CodeCompiler<Class<?>> {
         
         if (task.call()) {
             ClassLoader l = Thread.currentThread().getContextClassLoader();
-            return names.map(name -> {
+            List<Class<?>> classes = new ArrayList<>(names.size());
+            for (String name : names) {
                 try {
-                    return l.loadClass(name);
+                    classes.add(l.loadClass(name));
                 } catch (ClassNotFoundException e) {
-                    throw new Error("We just made this class, it should be there.", e);
+                    throw new Error("We just made this class.", e);
                 }
-            }).collect(toList());
+            }
+            return classes;
         } else {
             throw new ExecutionException(new CompilationException(input, diagnostics.getDiagnostics()));
         }
