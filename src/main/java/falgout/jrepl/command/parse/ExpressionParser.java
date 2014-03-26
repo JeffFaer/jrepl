@@ -9,10 +9,7 @@ public enum ExpressionParser implements JavaParserRule<Expression> {
     @Override
     public Expression parse(ASTParser input) {
         input.setKind(ASTParser.K_EXPRESSION);
-        ASTNode n = input.createAST(null);
-        if (n instanceof Expression) {
-            return (Expression) n;
-        }
-        return null;
+        ASTNode node = input.createAST(null);
+        return node instanceof Expression ? (Expression) node : null;
     }
 }

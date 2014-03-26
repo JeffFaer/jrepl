@@ -67,7 +67,6 @@ public class ClassDefinerTest {
     public void canAccessEnvironmentMethods() throws ParsingException, ExecutionException {
         env.execute("public void foo() {}");
         parse("public class Foo { { foo(); } }", "Foo");
-        // TODO
     }
     
     @Test
