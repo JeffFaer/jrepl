@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Statement;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -17,6 +17,8 @@ import falgout.jrepl.command.execute.codegen.CodeExecutor;
 import falgout.jrepl.command.execute.codegen.GeneratedMethod;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.guice.MethodExecutorFactory;
+import falgout.jrepl.reflection.GoogleTypes;
+import falgout.jrepl.reflection.JDTTypes;
 
 @Singleton
 public class ExpressionExecutor extends BatchExecutor<Expression, Object> {
@@ -34,7 +36,15 @@ public class ExpressionExecutor extends BatchExecutor<Expression, Object> {
         
         input.forEach(e -> {
             SourceCode<Statement> st;
-            if (e instanceof MethodInvocation) {
+            
+            TypeToken<?> returnType = GoogleTypes.VOID;
+            try {
+                returnType = JDTTypes.getType(e, env);
+            } catch (ReflectiveOperationException e1) {
+                // looks like the code doesn't make sense.
+                // let the compiler have its say
+            }
+            if (returnType.equals(GoogleTypes.VOID)) {
                 st = SourceCode.createStatement(e);
             } else {
                 st = SourceCode.createReturnStatement(e);

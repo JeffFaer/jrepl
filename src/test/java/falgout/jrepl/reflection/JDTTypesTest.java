@@ -51,7 +51,7 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsPrimitives() throws ClassNotFoundException, ExecutionException {
+    public void returnsPrimitives() throws ExecutionException, ReflectiveOperationException {
         Type type = parse("int");
         assertEquals(TypeToken.of(int.class), JDTTypes.getType(type));
         
@@ -60,7 +60,7 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsSimpleObjects() throws ClassNotFoundException, ExecutionException {
+    public void returnsSimpleObjects() throws ExecutionException, ReflectiveOperationException {
         Type type = parse("Object");
         assertEquals(TypeToken.of(Object.class), JDTTypes.getType(type));
         
@@ -69,7 +69,7 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsObjectsThatAreImports() throws ExecutionException, ClassNotFoundException {
+    public void returnsObjectsThatAreImports() throws ExecutionException, ReflectiveOperationException {
         try {
             Type type = parse("Random[][][]");
             JDTTypes.getType(type);
@@ -83,7 +83,7 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsSimpleGenericType() throws ExecutionException, ClassNotFoundException {
+    public void returnsSimpleGenericType() throws ExecutionException, ReflectiveOperationException {
         env.execute("import java.util.*;");
         
         Type type = parse("List<String>");
@@ -93,7 +93,7 @@ public class JDTTypesTest {
     }
     
     @Test
-    public void returnsCompoundGenericTypes() throws ExecutionException, ClassNotFoundException {
+    public void returnsCompoundGenericTypes() throws ExecutionException, ReflectiveOperationException {
         env.execute("import java.util.*;");
         
         Type type = parse("Map<List<String>, Set<int[]>>");
@@ -102,13 +102,13 @@ public class JDTTypesTest {
         }, JDTTypes.getType(type));
     }
     
-    @Test(expected = ClassNotFoundException.class)
-    public void invalidGenericTypesThrowClassNotFound() throws ClassNotFoundException, ExecutionException {
+    @Test(expected = ReflectiveOperationException.class)
+    public void invalidGenericTypesThrowClassNotFound() throws ExecutionException, ReflectiveOperationException {
         JDTTypes.getType(parse("Object<Object, Object>"));
     }
     
     @Test
-    public void returnsWildcards() throws ExecutionException, ClassNotFoundException, NoSuchMethodException {
+    public void returnsWildcards() throws ExecutionException, ReflectiveOperationException {
         env.execute("import java.util.*;");
         
         Type type = parse("List<? extends Number>");

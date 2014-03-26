@@ -5,8 +5,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 import com.google.common.reflect.Types2;
 import com.google.inject.TypeLiteral;
@@ -18,10 +22,29 @@ import com.google.inject.TypeLiteral;
  * @author jeffrey
  */
 public class GoogleTypes {
+    private static final Map<String, TypeToken<?>> PRIMITIVES;
+    static {
+        Map<String, TypeToken<?>> temp = new LinkedHashMap<>();
+        for (Class<?> primitive : Primitives.allPrimitiveTypes()) {
+            temp.put(primitive.getSimpleName(), TypeToken.of(primitive));
+        }
+        
+        PRIMITIVES = ImmutableMap.<String, TypeToken<?>> builder().putAll(temp).build();
+    }
+    
     public static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
-    public static final TypeToken<?> VOID = TypeToken.of(void.class);
-    public static final TypeToken<Integer> INT = TypeToken.of(int.class);
-    public static final TypeToken<Character> CHAR = TypeToken.of(char.class);
+    public static final TypeToken<String> STRING = TypeToken.of(String.class);
+    @SuppressWarnings("unchecked") public static final TypeToken<Void> VOID = (TypeToken<Void>) PRIMITIVES.get("void");
+    @SuppressWarnings("unchecked") public static final TypeToken<Boolean> BOOLEAN = (TypeToken<Boolean>) PRIMITIVES.get("boolean");
+    @SuppressWarnings("unchecked") public static final TypeToken<Character> CHAR = (TypeToken<Character>) PRIMITIVES.get("char");
+    @SuppressWarnings("unchecked") public static final TypeToken<Integer> INT = (TypeToken<Integer>) PRIMITIVES.get("int");
+    @SuppressWarnings("unchecked") public static final TypeToken<Long> LONG = (TypeToken<Long>) PRIMITIVES.get("long");
+    @SuppressWarnings("unchecked") public static final TypeToken<Float> FLOAT = (TypeToken<Float>) PRIMITIVES.get("float");
+    @SuppressWarnings("unchecked") public static final TypeToken<Double> DOUBLE = (TypeToken<Double>) PRIMITIVES.get("double");
+    
+    public static TypeToken<?> getPrimitive(String name) {
+        return PRIMITIVES.get(name);
+    }
     
     @SuppressWarnings("unchecked")
     public static <T> TypeLiteral<T> get(TypeToken<T> type) {
