@@ -18,13 +18,15 @@ import falgout.jrepl.EnvironmentModule;
 import falgout.jrepl.command.CommandFactory;
 import falgout.jrepl.command.CommandModule;
 import falgout.jrepl.command.ParsingException;
+import falgout.jrepl.command.execute.ExecutorModule;
 import falgout.jrepl.command.execute.codegen.CodeGenModule;
 import falgout.jrepl.command.execute.codegen.GeneratedClass;
 import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 
 public class TerminalRunner {
     public static void main(String[] args) throws IOException {
-        Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule(), new CodeGenModule());
+        Injector injector = Guice.createInjector(new EnvironmentModule(), new CommandModule(), new CodeGenModule(),
+                new ExecutorModule());
         try (Environment env = injector.getInstance(Environment.class)) {
             CommandFactory<? extends Collection<? extends Optional<?>>> f = injector.getInstance(CommandFactory.class);
             
@@ -72,6 +74,8 @@ public class TerminalRunner {
     }
     
     public static void printStackTrace(Environment env, Throwable t) {
+        t.printStackTrace();
+        /*
         if (t instanceof InvocationTargetException) {
             t = t.getCause();
             filterStackTrace(t);
@@ -84,7 +88,7 @@ public class TerminalRunner {
                 }
                 t = t.getCause();
             }
-        }
+        }*/
     }
     
     private static void filterStackTrace(Throwable t) {

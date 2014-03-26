@@ -14,7 +14,8 @@ public class CodeGenModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(new TypeLiteral<CodeCompiler<Class<?>>>() {}).toInstance(ClassCompiler.INSTANCE);
-        install(new FactoryModuleBuilder().build(MethodExecutorFactory.class));
+        install(new FactoryModuleBuilder().implement(new TypeLiteral<CodeExecutor<Method, Object>>() {},
+                MethodExecutor.class).build(MethodExecutorFactory.class));
     }
     
     @Provides

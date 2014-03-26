@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
@@ -12,14 +14,19 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.LocalVariable;
 import falgout.util.Optionals;
 
 public class StatementExecutor extends BatchExecutor<Statement, Optional<?>> {
-    private final LocalVariableDeclarer variableDeclarer;
+    private final Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer;
+    private final Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor;
     
     @Inject
-    public StatementExecutor(LocalVariableDeclarer variableDeclarer) {
+    public StatementExecutor(
+            Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer,
+            Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor) {
         this.variableDeclarer = variableDeclarer;
+        this.expressionExecutor = expressionExecutor;
     }
     
     @Override
@@ -71,7 +78,10 @@ public class StatementExecutor extends BatchExecutor<Statement, Optional<?>> {
         if (current == VariableDeclarationStatement.class) {
             variableDeclarer.execute(env, (List<VariableDeclarationStatement>) l).forEach(ret::addAll);
         } else if (current == ExpressionStatement.class) {
-            env.getError().println("Not yet implemented.");
+            List<Expression> expressions = l.stream()
+                    .map(s -> ((ExpressionStatement) s).getExpression())
+                    .collect(Collectors.toList());
+            expressionExecutor.execute(env, expressions).forEach(ret::add);
         } else {
             throw new AssertionError("Should only have been one of these three types.");
         }

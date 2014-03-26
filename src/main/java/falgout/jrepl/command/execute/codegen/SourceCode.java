@@ -9,6 +9,7 @@ import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 
 import falgout.jrepl.LocalVariable;
@@ -123,6 +124,35 @@ public abstract class SourceCode<T> {
                 b.append(TAB).append("throw new ExceptionInInitializerError($e);\n");
                 b.append("}");
                 return b.toString();
+            }
+        };
+    }
+    
+    public static SourceCode<Statement> createStatement(Expression e) {
+        return new SourceCode<Statement>(null) {
+            @Override
+            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
+                return null;
+            }
+            
+            @Override
+            public String toString() {
+                return e + ";";
+            }
+        };
+    }
+    
+    public static SourceCode<Statement> createReturnStatement(Expression e) {
+        ReturnStatement st = e.getAST().newReturnStatement();
+        return new SourceCode<Statement>(null) {
+            @Override
+            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
+                return st;
+            }
+            
+            @Override
+            public String toString() {
+                return "return " + e + ";";
             }
         };
     }

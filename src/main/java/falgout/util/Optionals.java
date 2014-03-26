@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public class Optionals {
     public static <E> Collection<? extends Optional<? extends E>> optionalize(List<? extends E> execute) {
-        return execute.stream().map(e -> Optional.of(e)).collect(toList());
+        return execute.stream().map(e -> Optional.ofNullable(e)).collect(toList());
     }
 }

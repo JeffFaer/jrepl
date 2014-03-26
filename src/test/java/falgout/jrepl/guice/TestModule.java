@@ -9,6 +9,7 @@ import com.google.inject.AbstractModule;
 import falgout.jrepl.Environment;
 import falgout.jrepl.EnvironmentModule;
 import falgout.jrepl.command.CommandModule;
+import falgout.jrepl.command.execute.ExecutorModule;
 import falgout.jrepl.command.execute.codegen.CodeGenModule;
 
 public class TestModule extends AbstractModule {
@@ -28,6 +29,7 @@ public class TestModule extends AbstractModule {
             install(new EnvironmentModule(CharSource.empty().openStream(), out, err));
             install(new CommandModule());
             install(new CodeGenModule());
+            install(new ExecutorModule());
         } catch (IOException e) {
             throw new Error(e);
         }

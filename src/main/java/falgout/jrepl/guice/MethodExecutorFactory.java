@@ -1,7 +1,9 @@
 package falgout.jrepl.guice;
 
-import falgout.jrepl.command.execute.codegen.MethodExecutor;
+import java.lang.reflect.Method;
+
+import falgout.jrepl.command.execute.codegen.CodeExecutor;
 
 public interface MethodExecutorFactory {
-    public MethodExecutor create(Object[] args);
+    public CodeExecutor<Method, Object> create(Object... args);
 }
