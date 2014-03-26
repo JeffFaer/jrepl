@@ -2,6 +2,7 @@ package falgout.jrepl.guice;
 
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 
 import com.google.inject.Inject;
@@ -20,8 +21,9 @@ public class EnvironmentProvider implements Provider<Environment> {
     
     @Inject
     public EnvironmentProvider(Reader in, @Stdout Writer out, @Stderr Writer err,
-            @CodeDirectory Path generatedCodeLocation, CodeCompiler<NestedClass<?>> classCompiler) {
-        env = new Environment(in, out, err, generatedCodeLocation, classCompiler);
+            @CodeDirectory Path generatedCodeLocation, CodeCompiler<NestedClass<?>> classCompiler,
+            CodeCompiler<Method> methodCompiler) {
+        env = new Environment(in, out, err, generatedCodeLocation, classCompiler, methodCompiler);
         cl = new EnvironmentClassLoader(env);
     }
     

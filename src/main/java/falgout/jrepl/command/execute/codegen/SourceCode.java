@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -7,14 +8,20 @@ import java.util.Map.Entry;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 
+import com.google.common.reflect.TypeToken;
+
 import falgout.jrepl.LocalVariable;
+import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.JDTTypes;
 import falgout.jrepl.reflection.NestedClass;
+import falgout.utils.reflection.MethodInvoker;
 
 public abstract class SourceCode<T> {
     private final String name;
@@ -76,13 +83,43 @@ public abstract class SourceCode<T> {
         };
     }
     
-    public static SourceCode<NestedClass<?>> from(AbstractTypeDeclaration decl) {
+    public static SourceCode<Method> from(MethodDeclaration decl) {
         List<Modifier> modifiers = decl.modifiers();
+        addStatic(decl.getAST(), modifiers);
+        
+        String name = decl.getName().toString();
+        return new SourceCode<Method>(name) {
+            @Override
+            public Method getTarget(Class<?> clazz) throws ReflectiveOperationException {
+                List<SingleVariableDeclaration> parameters = decl.parameters();
+                Class<?>[] params = new Class<?>[parameters.size()];
+                for (int i = 0; i < params.length; i++) {
+                    SingleVariableDeclaration param = parameters.get(i);
+                    TypeToken<?> type = JDTTypes.getType(param.getType());
+                    type = GoogleTypes.addArrays(type, param.getExtraDimensions());
+                    params[i] = type.getRawType();
+                }
+                
+                return MethodInvoker.getDefault().getMethodLocator().getMethod(clazz, name, params);
+            }
+            
+            @Override
+            public String toString() {
+                return decl.toString();
+            }
+        };
+    }
+    
+    private static void addStatic(AST ast, List<Modifier> modifiers) {
         if (!JDTTypes.isStatic(modifiers)) {
-            AST ast = decl.getAST();
             Modifier mod = ast.newModifier(ModifierKeyword.STATIC_KEYWORD);
             modifiers.add(mod);
         }
+    }
+    
+    public static SourceCode<NestedClass<?>> from(AbstractTypeDeclaration decl) {
+        List<Modifier> modifiers = decl.modifiers();
+        addStatic(decl.getAST(), modifiers);
         
         String name = decl.getName().toString();
         return new SourceCode<NestedClass<?>>(name) {

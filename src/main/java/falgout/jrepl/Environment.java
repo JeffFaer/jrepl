@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,9 +43,10 @@ public class Environment implements Closeable {
     
     private final Map<String, FieldVariable<?>> variables = new LinkedHashMap<>();
     private final CodeRepository<NestedClass<?>> classes;
+    private final CodeRepository<Method> methods;
     
     public Environment(Reader in, Writer out, Writer err, Path generatedCodeLocation,
-            CodeCompiler<NestedClass<?>> classCompiler) {
+            CodeCompiler<NestedClass<?>> classCompiler, CodeCompiler<Method> methodCompiler) {
         this.in = in instanceof BufferedReader ? (BufferedReader) in : new BufferedReader(in);
         this.out = createPrintWriter(out);
         this.err = createPrintWriter(err);
@@ -52,6 +54,7 @@ public class Environment implements Closeable {
         this.generatedCodeLocation = generatedCodeLocation;
         
         classes = new CodeRepository<>(classCompiler);
+        methods = new CodeRepository<>(methodCompiler);
     }
     
     private PrintWriter createPrintWriter(Writer w) {
@@ -102,10 +105,15 @@ public class Environment implements Closeable {
         return classes;
     }
     
+    public CodeRepository<Method> getMethodRepository() {
+        return methods;
+    }
+    
     public Collection<? extends Member> getMembers() {
         Collection<Member> members = new ArrayList<>();
         variables.values().stream().map(var -> var.getField()).forEach(members::add);
         members.addAll(classes.getAllCompiled());
+        members.addAll(methods.getAllCompiled());
         return Collections.unmodifiableCollection(members);
     }
     

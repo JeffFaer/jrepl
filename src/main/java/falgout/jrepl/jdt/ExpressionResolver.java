@@ -141,16 +141,21 @@ public class ExpressionResolver extends ValuedThrowingASTVisitor<TypeToken<?>, R
     
     @Override
     public TypeToken<?> visit(MethodInvocation node) throws ReflectiveOperationException {
-        TypeToken<?> type = visit(node.getExpression());
-        String name = node.getName().toString();
-        
-        List<Expression> arguments = node.arguments();
-        Class<?>[] args = new Class<?>[arguments.size()];
-        for (int i = 0; i < arguments.size(); i++) {
-            args[i] = visit(arguments.get(i)).getRawType();
+        Method method;
+        if (node.getExpression() == null) {
+            method = env.getMethodRepository().getCompiled(node.getName().toString());
+        } else {
+            TypeToken<?> type = visit(node.getExpression());
+            String name = node.getName().toString();
+            
+            List<Expression> arguments = node.arguments();
+            Class<?>[] args = new Class<?>[arguments.size()];
+            for (int i = 0; i < arguments.size(); i++) {
+                args[i] = visit(arguments.get(i)).getRawType();
+            }
+            
+            method = methodLocator.getMethod(type.getRawType(), name, args);
         }
-        
-        Method method = methodLocator.getMethod(type.getRawType(), name, args);
         return TypeToken.of(method.getGenericReturnType());
     }
     

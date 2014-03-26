@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import com.google.common.reflect.TypeToken;
@@ -47,6 +49,7 @@ public class ExecutorModule extends AbstractModule {
         bindAbstractExecutor(CompilationUnitExecutor.class, CompilationUnit.class, r3);
         bindAbstractExecutor(Providers.of(Importer.INSTANCE), ImportDeclaration.class, Import.class);
         bindAbstractExecutor(ExpressionExecutor.class, Expression.class, Object.class);
+        bindAbstractExecutor(MethodDefiner.class, MethodDeclaration.class, Method.class);
     }
     
     private <I, R> void bindAbstractExecutor(Class<? extends AbstractExecutor<I, R>> clazz, Class<I> in, Class<R> out) {
