@@ -1,11 +1,13 @@
 package falgout.jrepl.command;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.Expression;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -14,6 +16,7 @@ import com.google.inject.TypeLiteral;
 import falgout.jrepl.command.AbstractCommandFactory.Pair;
 import falgout.jrepl.command.execute.Executor;
 import falgout.jrepl.command.parse.ClassDeclaration;
+import falgout.jrepl.command.parse.ExpressionParser;
 import falgout.jrepl.command.parse.Statements;
 
 public class CommandModule extends AbstractModule {
@@ -27,10 +30,13 @@ public class CommandModule extends AbstractModule {
     
     @Provides
     public CommandFactory<? extends Collection<? extends Optional<?>>> createCommandFactory(
+            Executor<Expression, Object> expressionExec,
             Executor<CompilationUnit, List<? extends Optional<?>>> compilationExec,
             Executor<Block, List<? extends Optional<?>>> statementExec) {
+        Executor<Expression, Collection<? extends Optional<?>>> exp = expressionExec.andThen(Optional::ofNullable)
+                .andThen(Collections::singleton);
         
-        return new JavaCommandFactory<>(new Pair<>(ClassDeclaration.INSTANCE, compilationExec), new Pair<>(
-                Statements.INSTANCE, statementExec));
+        return new JavaCommandFactory<>(new Pair<>(ExpressionParser.INSTANCE, exp), new Pair<>(
+                ClassDeclaration.INSTANCE, compilationExec), new Pair<>(Statements.INSTANCE, statementExec));
     }
 }

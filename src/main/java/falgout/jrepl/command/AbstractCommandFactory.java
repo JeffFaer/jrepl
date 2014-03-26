@@ -32,7 +32,7 @@ public abstract class AbstractCommandFactory<I, M, R> implements CommandFactory<
             intermediary = parser.parse(input);
             return intermediary;
         }
-
+        
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
@@ -42,11 +42,11 @@ public abstract class AbstractCommandFactory<I, M, R> implements CommandFactory<
             return builder.toString();
         }
     }
-
+    
     private final Predicate<? super M> accept;
     private final Comparator<? super M> ranker;
     private final List<Pair<? super I, ? extends M, ? extends R>> pairs;
-
+    
     @SafeVarargs
     protected AbstractCommandFactory(Predicate<? super M> accept, Comparator<? super M> ranker,
             Pair<? super I, ? extends M, ? extends R>... pairs) {
@@ -54,7 +54,7 @@ public abstract class AbstractCommandFactory<I, M, R> implements CommandFactory<
         this.ranker = ranker;
         this.pairs = Arrays.asList(pairs);
     }
-
+    
     @Override
     public Command<? extends R> getCommand(Environment env, String input) throws ParsingException {
         I in = createNewInput();
@@ -64,30 +64,32 @@ public abstract class AbstractCommandFactory<I, M, R> implements CommandFactory<
             in = initialize(in, input);
             
             M result = pair.parse(in);
-            int c = 1;
-            if (accept.test(result)) {
-                reportSuccess(env, result);
-                return pair;
-            } else if (min.size() > 0) {
-                c = ranker.compare(result, min.get(0));
-                if (c < 0) {
-                    min.clear();
+            if (result != null) {
+                int c = 1;
+                if (accept.test(result)) {
+                    reportSuccess(env, result);
+                    return pair;
+                } else if (min.size() > 0) {
+                    c = ranker.compare(result, min.get(0));
+                    if (c < 0) {
+                        min.clear();
+                    }
                 }
-            }
-            
-            if (min.size() == 0 || c <= 0) {
-                min.add(result);
+                
+                if (min.size() == 0 || c <= 0) {
+                    min.add(result);
+                }
             }
         }
         
         throw createParsingException(min);
     }
-
+    
     protected abstract I createNewInput();
     
     protected abstract I initialize(I blank, String input);
     
     protected abstract void reportSuccess(Environment env, M success);
-
+    
     protected abstract ParsingException createParsingException(List<? extends M> min);
 }
