@@ -1,6 +1,8 @@
 package falgout.jrepl.command.execute;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -16,18 +18,25 @@ import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.LocalVariable;
+import falgout.jrepl.command.execute.codegen.CodeExecutor;
+import falgout.jrepl.command.execute.codegen.GeneratedMethod;
+import falgout.jrepl.command.execute.codegen.SourceCode;
+import falgout.jrepl.guice.MethodExecutorFactory;
 import falgout.util.Optionals;
 
 public class StatementExecutor extends AbstractExecutor<Block, List<? extends Optional<?>>> {
     private final Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer;
     private final Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor;
+    private final CodeExecutor<Method, Object> methodExecutor;
     
     @Inject
     public StatementExecutor(
             Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer,
-            Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor) {
+            Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor,
+            MethodExecutorFactory factory) {
         this.variableDeclarer = variableDeclarer;
         this.expressionExecutor = expressionExecutor;
+        methodExecutor = factory.create();
     }
     
     @Override
@@ -69,8 +78,16 @@ public class StatementExecutor extends AbstractExecutor<Block, List<? extends Op
         }
         
         if (current == Statement.class) {
-            env.getError().println("Not yet implemented.");
-            return Optional.empty();
+            GeneratedMethod method = new GeneratedMethod(env);
+            for (Statement st : statements) {
+                method.addChild(SourceCode.from(st));
+            }
+            Object ret = methodExecutor.execute(method);
+            if (ret == null) {
+                return Optional.empty();
+            } else {
+                return Optional.of(Collections.singletonList(ret));
+            }
         }
         
         List<Object> ret = new ArrayList<>();
