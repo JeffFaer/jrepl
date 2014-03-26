@@ -1,16 +1,13 @@
 package falgout.jrepl.command.parse;
 
-import java.util.List;
-
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.Statement;
 
-public enum Statements implements JavaParserRule<Statement> {
+public enum Statements implements JavaParserRule<Block> {
     INSTANCE;
     @Override
-    public List<? extends Statement> parse(ASTParser input) {
+    public Block parse(ASTParser input) {
         input.setKind(ASTParser.K_STATEMENTS);
-        return ((Block) input.createAST(null)).statements();
+        return (Block) input.createAST(null);
     }
 }

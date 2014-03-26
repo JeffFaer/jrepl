@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ImportDeclaration;
-import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import com.google.common.reflect.TypeToken;
@@ -35,16 +35,16 @@ public class ExecutorModule extends AbstractModule {
         TypeToken<NestedClass<?>> r2 = new TypeToken<NestedClass<?>>() {
             private static final long serialVersionUID = -2723154219330053325L;
         };
-        TypeToken<Optional<?>> r3 = new TypeToken<Optional<?>>() {
+        TypeToken<Optional<?>> opt = new TypeToken<Optional<?>>() {
             private static final long serialVersionUID = -5652778594381620786L;
         };
-        TypeToken<List<? extends Optional<?>>> r4 = (TypeToken<List<? extends Optional<?>>>) GoogleTypes.newParameterizedType(
-                null, LIST, GoogleTypes.subtypeOf(r3));
+        TypeToken<List<? extends Optional<?>>> r3 = (TypeToken<List<? extends Optional<?>>>) GoogleTypes.newParameterizedType(
+                null, LIST, GoogleTypes.subtypeOf(opt));
         
         bindAbstractExecutor(LocalVariableDeclarer.class, VariableDeclarationStatement.class, r1);
         bindAbstractExecutor(Providers.of(ClassDefiner.INSTANCE), AbstractTypeDeclaration.class, r2);
-        bindAbstractExecutor(StatementExecutor.class, Statement.class, r3);
-        bindAbstractExecutor(CompilationUnitExecutor.class, CompilationUnit.class, r4);
+        bindAbstractExecutor(StatementExecutor.class, Block.class, r3);
+        bindAbstractExecutor(CompilationUnitExecutor.class, CompilationUnit.class, r3);
         bindAbstractExecutor(Providers.of(Importer.INSTANCE), ImportDeclaration.class, Import.class);
         bindAbstractExecutor(ExpressionExecutor.class, Expression.class, Object.class);
     }

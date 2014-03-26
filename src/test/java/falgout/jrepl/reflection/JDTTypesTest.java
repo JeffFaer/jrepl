@@ -12,7 +12,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.jukito.JukitoRunner;
@@ -40,7 +39,8 @@ public class JDTTypesTest {
     
     @Before
     public void before() {
-        Executor<List<? extends Statement>, Optional<Type>> exec = (env, l) -> Optional.of(((VariableDeclarationStatement) l.get(0)).getType());
+        Executor<org.eclipse.jdt.core.dom.Block, Optional<Type>> exec = (env, input) -> Optional.of(((VariableDeclarationStatement) input.statements()
+                .get(0)).getType());
         typeParser = new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, exec));
     }
     

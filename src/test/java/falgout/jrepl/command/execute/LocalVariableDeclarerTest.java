@@ -47,7 +47,7 @@ public class LocalVariableDeclarerTest {
         LocalVariableDeclarer declarer = new LocalVariableDeclarer(compiler);
         variableParser = new JavaCommandFactory<>(new Pair<>(Statements.INSTANCE, (env, input) -> {
             List<LocalVariable<?>> vars = new ArrayList<>();
-            for (Statement st : input) {
+            for (Statement st : (List<Statement>) input.statements()) {
                 if (st instanceof VariableDeclarationStatement) {
                     vars.addAll(declarer.execute(env, (VariableDeclarationStatement) st));
                 }

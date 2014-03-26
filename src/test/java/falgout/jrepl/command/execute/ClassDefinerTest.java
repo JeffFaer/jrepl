@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Rule;
@@ -32,13 +31,7 @@ public class ClassDefinerTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
     public JavaCommandFactory<List<? extends NestedClass<?>>> typeParser = new JavaCommandFactory<>(new Pair<>(
-            ClassDeclaration.INSTANCE, (env, input) -> {
-                List<NestedClass<?>> classes = new ArrayList<>();
-                for (CompilationUnit u : input) {
-                    classes.addAll(ClassDefiner.INSTANCE.execute(env, u.types()));
-                }
-                return classes;
-            }));
+            ClassDeclaration.INSTANCE, (env, input) -> ClassDefiner.INSTANCE.execute(env, input.types())));
     
     public List<Class<?>> parse(String input, String... names) throws ParsingException, ExecutionException {
         List<? extends NestedClass<?>> nested = typeParser.execute(e, input);

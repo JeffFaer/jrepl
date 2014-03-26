@@ -19,21 +19,15 @@ import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 
 @Singleton
-public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, List<? extends ASTNode>, R> {
-    private static final Function<List<? extends ASTNode>, IProblem[]> CONVERTOR = l -> {
-        if (l.size() == 0) {
-            return null;
-        } else {
-            return ((CompilationUnit) l.get(0).getRoot()).getProblems();
-        }
-    };
-    private static Predicate<List<? extends ASTNode>> ACCEPT = l -> {
-        IProblem[] problems = CONVERTOR.apply(l);
+public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, ASTNode, R> {
+    private static final Function<ASTNode, IProblem[]> CONVERTOR = node -> ((CompilationUnit) node.getRoot()).getProblems();
+    private static Predicate<ASTNode> ACCEPT = node -> {
+        IProblem[] problems = CONVERTOR.apply(node);
         return problems != null && problems.length == 0;
     };
-    private static Comparator<List<? extends ASTNode>> RANKER = (l1, l2) -> {
-        IProblem[] p1 = CONVERTOR.apply(l1);
-        IProblem[] p2 = CONVERTOR.apply(l2);
+    private static Comparator<ASTNode> RANKER = (n1, n2) -> {
+        IProblem[] p1 = CONVERTOR.apply(n1);
+        IProblem[] p2 = CONVERTOR.apply(n2);
         int s1 = p1 == null ? Integer.MAX_VALUE : p1.length;
         int s2 = p2 == null ? Integer.MAX_VALUE : p2.length;
         
@@ -44,7 +38,7 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
     private final ThreadLocal<char[]> source = new ThreadLocal<char[]>();
     
     @SafeVarargs
-    public JavaCommandFactory(Pair<? super ASTParser, ? extends List<? extends ASTNode>, ? extends R>... pairs) {
+    public JavaCommandFactory(Pair<? super ASTParser, ? extends ASTNode, ? extends R>... pairs) {
         super(ACCEPT, RANKER, pairs);
         options = JavaCore.getOptions();
         JavaCore.setComplianceOptions(JavaCore.VERSION_1_7, options);
@@ -69,15 +63,15 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, Lis
     }
     
     @Override
-    protected void reportSuccess(Environment env, List<? extends ASTNode> success) {
+    protected void reportSuccess(Environment env, ASTNode success) {
         source.set(null);
     }
     
     @Override
-    protected ParsingException createParsingException(List<? extends List<? extends ASTNode>> min) {
+    protected ParsingException createParsingException(List<? extends ASTNode> min) {
         StringBuilder message = new StringBuilder();
-        for (List<? extends ASTNode> nodes : min) {
-            IProblem[] ps = CONVERTOR.apply(nodes);
+        for (ASTNode node : min) {
+            IProblem[] ps = CONVERTOR.apply(node);
             for (IProblem p : ps) {
                 message.append(p.getMessage()).append("\n");
                 

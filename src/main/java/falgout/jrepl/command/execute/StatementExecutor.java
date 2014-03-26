@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.Statement;
@@ -17,7 +18,7 @@ import falgout.jrepl.Environment;
 import falgout.jrepl.LocalVariable;
 import falgout.util.Optionals;
 
-public class StatementExecutor extends BatchExecutor<Statement, Optional<?>> {
+public class StatementExecutor extends AbstractExecutor<Block, List<? extends Optional<?>>> {
     private final Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer;
     private final Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor;
     
@@ -30,13 +31,12 @@ public class StatementExecutor extends BatchExecutor<Statement, Optional<?>> {
     }
     
     @Override
-    public List<? extends Optional<?>> execute(Environment env, Iterable<? extends Statement> input)
-            throws ExecutionException {
+    public List<? extends Optional<?>> execute(Environment env, Block input) throws ExecutionException {
         List<Statement> statements = new ArrayList<>();
         Class<?> current = null;
         
         List<Optional<?>> ret = new ArrayList<>();
-        for (Statement st : input) {
+        for (Statement st : (List<Statement>) input.statements()) {
             Class<?> temp;
             if (st instanceof VariableDeclarationStatement) {
                 temp = VariableDeclarationStatement.class;

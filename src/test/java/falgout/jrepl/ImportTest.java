@@ -5,11 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Rule;
@@ -29,23 +27,17 @@ import falgout.jrepl.guice.TestModule;
 @UseModules(TestModule.class)
 public class ImportTest {
     @Inject @Rule public TestEnvironment env;
-    public JavaCommandFactory<List<Import>> importParser = new JavaCommandFactory<>(new Pair<>(
-            ClassDeclaration.INSTANCE, (env, input) -> {
-                List<Import> imports = new ArrayList<>();
-                for (CompilationUnit u : input) {
-                    imports.addAll(Importer.INSTANCE.execute(env, u.imports()));
-                }
-                return imports;
-            }));
+    public JavaCommandFactory<List<? extends Import>> importParser = new JavaCommandFactory<>(new Pair<>(
+            ClassDeclaration.INSTANCE, (env, input) -> Importer.INSTANCE.execute(env, input.imports())));
     
-    public List<Import> create(String... imports) throws ExecutionException {
+    public List<? extends Import> create(String... imports) throws ExecutionException {
         String source = String.join("", imports);
         return importParser.execute(env.getEnvironment(), source);
     }
     
     @Test
     public void containsKeepsMostGeneralImport() throws ExecutionException {
-        List<Import> imports = create("import foo.bar.Class;", "import foo.*;", "import foo.bar.*;",
+        List<? extends Import> imports = create("import foo.bar.Class;", "import foo.*;", "import foo.bar.*;",
                 "import static foo.bar.Class.*;", "import static foo.bar.Class.Member;",
                 "import static foo.bar.Class.Member.*;", "import static foo.bar.Class.Member.field;");
         
