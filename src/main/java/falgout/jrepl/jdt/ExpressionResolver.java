@@ -3,6 +3,7 @@ package falgout.jrepl.jdt;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ArrayAccess;
@@ -36,6 +37,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 import com.google.common.reflect.TypeToken;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.Variable;
 import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.JDTTypes;
 import falgout.utils.reflection.MethodInvoker;
@@ -141,12 +143,17 @@ public class ExpressionResolver extends ValuedThrowingASTVisitor<TypeToken<?>, R
     
     @Override
     public TypeToken<?> visit(MethodInvocation node) throws ReflectiveOperationException {
+        String name = node.getName().toString();
         Method method;
         if (node.getExpression() == null) {
-            method = env.getMethodRepository().getCompiled(node.getName().toString());
+            Optional<? extends Method> opt = env.getMethodRepository().getCompiled(name);
+            if (opt.isPresent()) {
+                method = opt.get();
+            } else {
+                throw new NoSuchMethodException(name + " does not exist in the Environment.");
+            }
         } else {
             TypeToken<?> type = visit(node.getExpression());
-            String name = node.getName().toString();
             
             List<Expression> arguments = node.arguments();
             Class<?>[] args = new Class<?>[arguments.size()];
@@ -162,8 +169,9 @@ public class ExpressionResolver extends ValuedThrowingASTVisitor<TypeToken<?>, R
     @Override
     public TypeToken<?> visit(SimpleName node) throws ReflectiveOperationException {
         String name = node.toString();
-        if (env.containsVariable(name)) {
-            return env.getVariable(name).getType();
+        Optional<? extends Variable<?>> var = env.getVariable(name);
+        if (var.isPresent()) {
+            return var.get().getType();
         } else {
             return JDTTypes.getType(node);
         }

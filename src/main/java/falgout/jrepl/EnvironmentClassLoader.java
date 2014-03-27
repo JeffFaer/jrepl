@@ -5,10 +5,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import falgout.jrepl.command.execute.codegen.GeneratedClass;
+import falgout.jrepl.reflection.NestedClass;
 import falgout.util.Closeables;
 
 public class EnvironmentClassLoader extends URLClassLoader {
@@ -30,8 +32,9 @@ public class EnvironmentClassLoader extends URLClassLoader {
             return super.loadClass(name);
         } catch (ClassNotFoundException e) {}
         
-        if (env.getClassRepository().isCompiled(name)) {
-            return env.getClassRepository().getCompiled(name).getDeclaredClass();
+        Optional<? extends NestedClass<?>> opt = env.getClassRepository().getCompiled(name);
+        if (opt.isPresent()) {
+            return opt.get().getDeclaredClass();
         }
         
         return loadImportedClass(name);

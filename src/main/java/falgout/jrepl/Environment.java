@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.inject.ProvidedBy;
@@ -89,8 +90,8 @@ public class Environment implements Closeable {
         return variables.containsKey(variableName);
     }
     
-    public Variable<?> getVariable(String variableName) {
-        return variables.get(variableName);
+    public Optional<? extends Variable<?>> getVariable(String variableName) {
+        return Optional.ofNullable(variables.get(variableName));
     }
     
     public Collection<? extends Variable<?>> getVariables() {

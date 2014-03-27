@@ -88,8 +88,8 @@ public class CodeRepository<T> {
         return size != this.code.size();
     }
     
-    public SourceCode<? extends T> getCode(String name) {
-        return code.get(name);
+    public Optional<? extends SourceCode<? extends T>> getCode(String name) {
+        return Optional.ofNullable(code.get(name));
     }
     
     public boolean contains(String name) {
@@ -120,7 +120,7 @@ public class CodeRepository<T> {
         Map<SourceCode<? extends T>, Boolean> toCompile = new LinkedHashMap<>();
         for (String name : names) {
             if (contains(name)) {
-                toCompile.put(getCode(name), false);
+                toCompile.put(getCode(name).get(), false);
             } else {
                 toCompile.put(null, null);
             }
@@ -245,8 +245,8 @@ public class CodeRepository<T> {
         return compiled.containsKey(name);
     }
     
-    public T getCompiled(String name) {
-        return compiled.get(name);
+    public Optional<? extends T> getCompiled(String name) {
+        return Optional.ofNullable(compiled.get(name));
     }
     
     public Set<? extends T> getAllCompiled() {
