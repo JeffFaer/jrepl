@@ -63,5 +63,10 @@ public class EnvironmentTest {
         assertEquals(1, e.getMembers().size());
     }
     
-    // TODO add method repo tests
+    @Test
+    public void MethodsAreMembers() throws ExecutionException {
+        assertEquals(0, e.getMembers().size());
+        env.execute("public void foo() {}");
+        assertEquals(1, e.getMembers().size());
+    }
 }
