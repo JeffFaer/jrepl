@@ -193,7 +193,7 @@ public class CodeRepository<T> {
             if (names.contains(name)) {
                 return Optional.empty();
             } else if (contains(name)) {
-                if (getCode(name).equals(c)) {
+                if (getCode(name).get().equals(c)) {
                     add.put(c, false);
                 } else {
                     return Optional.empty();

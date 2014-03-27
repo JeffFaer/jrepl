@@ -53,7 +53,7 @@ public class CodeRepositoryTest {
         assertTrue(repo.add(foo1));
         assertFalse(repo.add(foo2));
         
-        assertSame(foo1, repo.getCode("Foo"));
+        assertSame(foo1, repo.getCode("Foo").get());
     }
     
     @Test
