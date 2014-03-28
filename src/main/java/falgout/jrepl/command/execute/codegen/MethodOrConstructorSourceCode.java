@@ -182,7 +182,7 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         StringBuilder b = new StringBuilder();
         b.append(getModifierString());
         if (returnType != null) {
-            b.append(returnType).append(" ");
+            b.append(GoogleTypes.toCanonicalString(returnType)).append(" ");
         }
         b.append(getName()).append("(");
         b.append(IntStream.range(0, parameters.size())
