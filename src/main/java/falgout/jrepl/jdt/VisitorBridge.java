@@ -101,10 +101,6 @@ class VisitorBridge<R, X extends Throwable> extends ASTVisitor {
         return value;
     }
     
-    public void setValue(R value) {
-        this.value = value;
-    }
-    
     private <A extends ASTNode> boolean invoke(ThrowingFunction<A, R, X> method, A node) {
         try {
             return (value = method.apply(node)) == null;
