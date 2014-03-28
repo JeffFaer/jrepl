@@ -1,10 +1,47 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.util.Objects;
+
 public class DelegateSourceCode<T> implements SourceCode<T> {
+    public static class Builder<T> extends SourceCode.Builder<T, DelegateSourceCode<T>, Builder<T>> {
+        private Object delegate;
+        
+        protected Builder() {}
+        
+        public Object getDelegate() {
+            return delegate;
+        }
+        
+        public Builder<T> setDelegate(Object delegate) {
+            this.delegate = Objects.requireNonNull(delegate);
+            return getBuilder();
+        }
+        
+        @Override
+        public Builder<T> initialize(DelegateSourceCode<T> source) {
+            setDelegate(source.getDelegate());
+            return getBuilder();
+        }
+        
+        @Override
+        protected Builder<T> getBuilder() {
+            return this;
+        }
+        
+        @Override
+        public DelegateSourceCode<T> build() {
+            return new DelegateSourceCode<>(delegate);
+        }
+    }
+    
     private final Object delegate;
     
-    public DelegateSourceCode(Object delegate) {
+    protected DelegateSourceCode(Object delegate) {
         this.delegate = delegate;
+    }
+    
+    public Object getDelegate() {
+        return delegate;
     }
     
     @Override
@@ -40,5 +77,9 @@ public class DelegateSourceCode<T> implements SourceCode<T> {
     @Override
     public String toString() {
         return delegate.toString();
+    }
+    
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
     }
 }

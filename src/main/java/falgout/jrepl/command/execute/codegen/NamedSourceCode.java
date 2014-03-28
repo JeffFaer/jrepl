@@ -23,6 +23,12 @@ public abstract class NamedSourceCode<T> implements SourceCode<T> {
             this.preferredName = preferredName;
         }
         
+        @Override
+        public B initialize(S source) {
+            this.setModifiers(source.getModifiers()).setName(source.getName());
+            return getBuilder();
+        }
+        
         public int getModifiers() {
             return modifiers;
         }

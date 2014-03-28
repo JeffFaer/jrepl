@@ -6,6 +6,17 @@ import java.util.Objects;
 
 public interface SourceCode<T> {
     public static abstract class Builder<T, S extends SourceCode<T>, B extends Builder<T, S, B>> {
+        protected Builder() {}
+        
+        /**
+         * Sets the state of this {@code Builder} to match the state of the
+         * built {@code SourceCode}.
+         * 
+         * @param source The pre-built {@code SourceCode} to mirror.
+         * @return This {@code Builder}.
+         */
+        public abstract B initialize(S source);
+        
         protected abstract B getBuilder();
         
         public abstract S build();

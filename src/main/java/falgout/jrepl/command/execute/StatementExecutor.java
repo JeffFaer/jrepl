@@ -80,10 +80,13 @@ public class StatementExecutor extends AbstractExecutor<Block, List<? extends Op
         }
         
         if (current == Statement.class) {
-            MethodSourceCode.Builder b = MethodSourceCode.builder();
-            b.addChildren(statements.stream().map(st -> new DelegateSourceCode<Statement>(st)).collect(toList()));
+            MethodSourceCode.Builder builder = MethodSourceCode.builder();
+            DelegateSourceCode.Builder<Statement> delegateBuilder = DelegateSourceCode.builder();
+            builder.addChildren(statements.stream()
+                    .map(st -> delegateBuilder.setDelegate(st).build())
+                    .collect(toList()));
             
-            Object ret = methodExecutor.execute(env, b.build());
+            Object ret = methodExecutor.execute(env, builder.build());
             if (ret == null) {
                 return Optional.empty();
             } else {

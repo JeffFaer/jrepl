@@ -44,6 +44,15 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
             super(preferredName);
         }
         
+        @Override
+        public B initialize(S source) {
+            names = new ArrayList<>(source.getParameterNames());
+            return super.initialize(source)
+                    .setParameters(new ArrayList<>(source.getParameters()))
+                    .setReturnType(source.getReturnType())
+                    .setThrows(new ArrayList<>(source.getThrownExceptions()));
+        }
+        
         protected TypeToken<?> getReturnType() {
             return returnType;
         }

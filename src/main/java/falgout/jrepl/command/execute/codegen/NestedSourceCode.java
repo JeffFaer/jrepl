@@ -13,12 +13,15 @@ public abstract class NestedSourceCode<T, C> extends NamedSourceCode<T> {
             NamedSourceCode.Builder<T, S, B> {
         private List<SourceCode<? extends C>> children = new ArrayList<>();
         
-        protected Builder() {
-            super();
-        }
+        protected Builder() {}
         
         protected Builder(String preferredName) {
             super(preferredName);
+        }
+        
+        @Override
+        public B initialize(S source) {
+            return super.initialize(source).setChildren(new ArrayList<>(source.getChildren()));
         }
         
         public List<SourceCode<? extends C>> getChildren() {

@@ -39,6 +39,15 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
             super(preferredName);
         }
         
+        @Override
+        public B initialize(S source) {
+            return super.initialize(source)
+                    .setPackage(source.getPackage())
+                    .setImports(new ArrayList<>(source.getImports()))
+                    .setSuperclass(source.getSuperclass())
+                    .setSuperinterfaces(new ArrayList<>(source.getSuperinterfaces()));
+        }
+        
         public String getPackage() {
             return _package;
         }
