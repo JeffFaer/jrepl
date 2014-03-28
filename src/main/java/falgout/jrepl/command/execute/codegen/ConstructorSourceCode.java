@@ -15,8 +15,8 @@ public class ConstructorSourceCode extends MethodOrConstructorSourceCode<Constru
         
         @Override
         protected ConstructorSourceCode build(int modifiers, String name,
-                List<SourceCode<? extends Statement>> children, TypeToken<?> returnType,
-                List<TypeToken<?>> parameters, List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
+                List<SourceCode<? extends Statement>> children, TypeToken<?> returnType, List<TypeToken<?>> parameters,
+                List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
             return new ConstructorSourceCode(modifiers, name, children, parameters, parameterNames, thro);
         }
         
@@ -36,8 +36,11 @@ public class ConstructorSourceCode extends MethodOrConstructorSourceCode<Constru
         return clazz.getConstructor(getRawTypes());
     }
     
+    public static Builder builder() {
+        return new Builder();
+    }
+    
     public static ConstructorSourceCode get(MethodDeclaration decl) throws ClassNotFoundException {
-        ConstructorSourceCode.Builder b = new ConstructorSourceCode.Builder();
-        return initializeFrom(b, decl).build();
+        return initializeFrom(builder(), decl);
     }
 }

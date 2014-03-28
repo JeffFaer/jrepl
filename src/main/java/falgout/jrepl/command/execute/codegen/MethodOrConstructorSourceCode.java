@@ -1,6 +1,7 @@
 package falgout.jrepl.command.execute.codegen;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -195,13 +196,14 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         }
         b.append(getName()).append("(");
         b.append(IntStream.range(0, parameters.size())
-                .mapToObj(i -> Arrays.asList(parameters.get(i).toString(), " ", parameterNames.get(i)))
+                .mapToObj(
+                        i -> Arrays.asList(GoogleTypes.toCanonicalString(parameters.get(i)), " ", parameterNames.get(i)))
                 .map(l -> String.join(" ", l))
                 .collect(joining(", ")));
         b.append(") ");
         if (thro.size() > 0) {
             b.append("throws ");
-            b.append(thro.stream().map(TypeToken::toString).collect(joining(", ")));
+            b.append(thro.stream().map(GoogleTypes::toCanonicalString).collect(joining(", ")));
         }
         
         return b;
@@ -220,14 +222,18 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         return b.toString();
     }
     
-    protected static <T, S extends MethodOrConstructorSourceCode<T>, B extends Builder<T, S, B>> B initializeFrom(
+    protected static <T, S extends MethodOrConstructorSourceCode<T>, B extends Builder<T, S, B>> S initializeFrom(
             B builder, MethodDeclaration decl) throws ClassNotFoundException {
         builder.setModifiers(decl.getModifiers());
         builder.setName(decl.getName().toString());
         builder.setParameters(getParameterTypes(decl.parameters()));
         builder.setThrows(getExceptionTypes(decl.thrownExceptions()));
         
-        return builder;
+        List<Statement> l = decl.getBody().statements();
+        DelegateSourceCode.Builder<Statement> b = DelegateSourceCode.builder();
+        builder.addChildren(l.stream().map(st -> b.setDelegate(st).build()).collect(toList()));
+        
+        return builder.build();
     }
     
     private static List<TypeToken<?>> getParameterTypes(List<SingleVariableDeclaration> parameters)

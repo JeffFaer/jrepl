@@ -70,7 +70,7 @@ public class MethodSourceCode extends MethodOrConstructorSourceCode<Method> {
     
     public static MethodSourceCode get(MethodDeclaration decl) throws ClassNotFoundException {
         MethodSourceCode.Builder b = builder();
-        initializeFrom(b, decl).setReturnType(JDTTypes.getType(decl.getReturnType2()));
-        return b.build();
+        b.setReturnType(JDTTypes.getType(decl.getReturnType2()));
+        return initializeFrom(b, decl);
     }
 }

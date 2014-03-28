@@ -33,6 +33,8 @@ public class CodeRepositoryTest {
     
     public NamedSourceCode<Class<?>> foo1 = getCode("Foo", "public class Foo {}");
     public NamedSourceCode<Class<?>> foo2 = getCode("Foo", "public class Foo { static int foo; }");
+    public NamedSourceCode<Class<?>> foo3 = getCode("Foo3", "public class Foo3 {}");
+    public NamedSourceCode<Class<?>> foo4 = getCode("Foo4", "public class Foo4 { static Foo3 foo; }");
     public NamedSourceCode<Class<?>> bar = getCode("Bar", "public class Bar {}");
     public NamedSourceCode<Class<?>> err = getCode("Err", "public class Err { ERROR }");
     
@@ -101,5 +103,12 @@ public class CodeRepositoryTest {
         Optional<? extends List<? extends Class<?>>> opt = repo.compile(e, foo1, foo2);
         assertFalse(opt.isPresent());
         assertEquals(0, repo.getAllCode().size());
+    }
+    
+    @Test
+    public void CanDefineSelfReferencingClassesAtSameTime() throws ExecutionException {
+        Optional<? extends List<? extends Class<?>>> opt = repo.compile(e, foo3, foo4);
+        assertTrue(opt.isPresent());
+        assertEquals(2, repo.getAllCode().size());
     }
 }
