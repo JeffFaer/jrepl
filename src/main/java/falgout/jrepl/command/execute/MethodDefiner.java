@@ -1,6 +1,7 @@
 package falgout.jrepl.command.execute;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
@@ -14,7 +15,8 @@ public class MethodDefiner extends RepositoryDefiner<MethodDeclaration, Method> 
     
     @Override
     protected NamedSourceCode<? extends Method> getSourceCode(MethodDeclaration node) throws ClassNotFoundException {
-        return MethodSourceCode.get(node);
+        MethodSourceCode.Builder b = MethodSourceCode.builder().initialize(MethodSourceCode.get(node));
+        return b.addModifier(Modifier.STATIC).build();
     }
     
     @Override

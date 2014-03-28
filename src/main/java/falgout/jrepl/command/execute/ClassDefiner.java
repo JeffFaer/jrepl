@@ -14,7 +14,8 @@ public class ClassDefiner extends RepositoryDefiner<AbstractTypeDeclaration, Nes
     @Override
     protected NamedSourceCode<? extends NestedClass<?>> getSourceCode(AbstractTypeDeclaration node)
         throws ClassNotFoundException {
-        return TypeSourceCode.get(node).asNestedClass();
+        
+        return TypeSourceCode.get(node).asNestedClass(true);
     }
     
     @Override

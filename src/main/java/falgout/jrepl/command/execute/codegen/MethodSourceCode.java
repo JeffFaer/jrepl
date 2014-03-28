@@ -1,7 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -72,7 +71,6 @@ public class MethodSourceCode extends MethodOrConstructorSourceCode<Method> {
     public static MethodSourceCode get(MethodDeclaration decl) throws ClassNotFoundException {
         MethodSourceCode.Builder b = builder();
         initializeFrom(b, decl).setReturnType(JDTTypes.getType(decl.getReturnType2()));
-        b.addModifier(Modifier.STATIC);
         return b.build();
     }
 }

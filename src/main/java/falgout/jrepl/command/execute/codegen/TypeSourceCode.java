@@ -145,8 +145,12 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
         return clazz;
     }
     
-    public NamedSourceCode<NestedClass<?>> asNestedClass() {
-        return new NamedSourceCode<NestedClass<?>>(getModifiers() | Modifier.STATIC, getName()) {
+    public NamedSourceCode<NestedClass<?>> asNestedClass(boolean _static) {
+        int mods = getModifiers();
+        if (_static) {
+            mods |= Modifier.STATIC;
+        }
+        return new NamedSourceCode<NestedClass<?>>(mods, getName()) {
             @Override
             public NestedClass<?> getTarget(Class<?> clazz) throws ReflectiveOperationException {
                 for (Class<?> c : clazz.getClasses()) {
