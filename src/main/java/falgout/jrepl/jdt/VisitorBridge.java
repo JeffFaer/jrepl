@@ -88,11 +88,11 @@ import org.eclipse.jdt.core.dom.WildcardType;
 
 import falgout.jrepl.util.ThrowingFunction;
 
-class VisitorBridge<R, X extends Throwable> extends ASTVisitor {    
-    private final ValuedThrowingASTVisitor<R, X> visitor;
+class VisitorBridge<R> extends ASTVisitor {    
+    private final ValuedThrowingASTVisitor<R,?> visitor;
     private R value;
     
-    public VisitorBridge(ValuedThrowingASTVisitor<R, X> visitor) {
+    public VisitorBridge(ValuedThrowingASTVisitor<R, ?> visitor) {
         super(false);
         this.visitor = visitor;
     }
@@ -101,7 +101,7 @@ class VisitorBridge<R, X extends Throwable> extends ASTVisitor {
         return value;
     }
     
-    private <A extends ASTNode> boolean invoke(ThrowingFunction<A, R, X> method, A node) {
+    private <A extends ASTNode> boolean invoke(ThrowingFunction<A, R, ?> method, A node) {
         try {
             return (value = method.apply(node)) == null;
         } catch (Throwable e) {

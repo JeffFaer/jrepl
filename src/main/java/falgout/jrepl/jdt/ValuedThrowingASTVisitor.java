@@ -98,7 +98,7 @@ public abstract class ValuedThrowingASTVisitor<R, X extends Throwable> {
     
     public R visit(ASTNode node) throws X {
         try {
-            VisitorBridge<R, X> bridge = new VisitorBridge<>(this);
+            VisitorBridge<R> bridge = new VisitorBridge<>(this);
             node.accept(bridge);
             return bridge.getValue();
         } catch (BridgeException e) {
