@@ -1,11 +1,10 @@
 package falgout.jrepl;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import com.google.common.reflect.TypeToken;
 
-import falgout.jrepl.command.execute.codegen.SourceCode;
+import falgout.jrepl.command.execute.codegen.FieldSourceCode;
 
 public class LocalVariable<T> extends AbstractVariable<T> {
     private final boolean _final;
@@ -70,19 +69,12 @@ public class LocalVariable<T> extends AbstractVariable<T> {
         return 0;
     }
     
-    public SourceCode<Field> asField() {
-        return new SourceCode<Field>(name) {
-            @Override
-            public Field getTarget(Class<?> clazz) throws NoSuchFieldException {
-                return clazz.getField(getName());
-            }
-            
-            @Override
-            public String toString() {
-                StringBuilder b = new StringBuilder();
-                b.append(getHeader(Modifier.PUBLIC | Modifier.STATIC)).append(";\n");
-                return b.toString();
-            }
-        };
+    public FieldSourceCode asField() {
+        FieldSourceCode.Builder b = new FieldSourceCode.Builder();
+        b.addModifier(Modifier.STATIC).setType(type).setName(name);
+        if (_final) {
+            b.addModifier(Modifier.FINAL);
+        }
+        return b.build();
     }
 }

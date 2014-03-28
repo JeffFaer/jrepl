@@ -2,7 +2,6 @@ package falgout.jrepl.ui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
@@ -20,8 +19,6 @@ import falgout.jrepl.command.CommandModule;
 import falgout.jrepl.command.ParsingException;
 import falgout.jrepl.command.execute.ExecutorModule;
 import falgout.jrepl.command.execute.codegen.CodeGenModule;
-import falgout.jrepl.command.execute.codegen.GeneratedClass;
-import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 
 public class TerminalRunner {
     public static void main(String[] args) throws IOException {
@@ -76,19 +73,20 @@ public class TerminalRunner {
     public static void printStackTrace(Environment env, Throwable t) {
         t.printStackTrace();
         /*
-        if (t instanceof InvocationTargetException) {
-            t = t.getCause();
-            filterStackTrace(t);
-            t.printStackTrace(env.getError());
-        } else {
-            while (t != null) {
-                String message = t.getLocalizedMessage();
-                if (!message.isEmpty()) {
-                    env.getError().println(message);
-                }
-                t = t.getCause();
-            }
-        }*/
+         * if (t instanceof InvocationTargetException) {
+         * t = t.getCause();
+         * filterStackTrace(t);
+         * t.printStackTrace(env.getError());
+         * } else {
+         * while (t != null) {
+         * String message = t.getLocalizedMessage();
+         * if (!message.isEmpty()) {
+         * env.getError().println(message);
+         * }
+         * t = t.getCause();
+         * }
+         * }
+         */
     }
     
     private static void filterStackTrace(Throwable t) {
@@ -96,12 +94,12 @@ public class TerminalRunner {
             return;
         }
         
-        String pattern = GeneratedClass.PACKAGE + "." + GeneratedSourceCode.TEMPLATE;
+        String pattern = "jrepl.$";
         StackTraceElement[] st = t.getStackTrace();
         int i;
         for (i = 0; i < st.length; i++) {
             StackTraceElement ste = st[i];
-            Pattern p = Pattern.compile(Pattern.quote(pattern) + "\\d+(.*)");
+            Pattern p = Pattern.compile(Pattern.quote(pattern) + ".*?\\d+(.*)");
             Matcher m = p.matcher(ste.getClassName());
             if (m.matches()) {
                 st[i] = new StackTraceElement(m.group(1), ste.getMethodName(), ste.getFileName(), ste.getLineNumber());

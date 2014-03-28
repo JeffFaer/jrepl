@@ -1,4 +1,4 @@
-package falgout.util;
+package falgout.jrepl.util;
 
 import java.io.Closeable;
 import java.io.IOException;

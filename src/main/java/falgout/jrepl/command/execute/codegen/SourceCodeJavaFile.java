@@ -7,9 +7,9 @@ import javax.lang.model.element.NestingKind;
 import javax.tools.SimpleJavaFileObject;
 
 public class SourceCodeJavaFile extends SimpleJavaFileObject {
-    private final SourceCode<? extends Class<?>> code;
+    private final NamedSourceCode<? extends Class<?>> code;
     
-    public SourceCodeJavaFile(SourceCode<? extends Class<?>> code) {
+    public SourceCodeJavaFile(NamedSourceCode<? extends Class<?>> code) {
         super(URI.create("string:///" + code.getName().replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
         this.code = code;
     }

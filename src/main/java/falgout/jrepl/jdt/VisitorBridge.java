@@ -86,12 +86,9 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 import org.eclipse.jdt.core.dom.WildcardType;
 
-class VisitorBridge<R, X extends Throwable> extends ASTVisitor {
-    @FunctionalInterface
-    private static interface VisitorMethod<A extends ASTNode, R, X extends Throwable> {
-        public R visit(A node) throws X;
-    }
-    
+import falgout.jrepl.util.ThrowingFunction;
+
+class VisitorBridge<R, X extends Throwable> extends ASTVisitor {    
     private final ValuedThrowingASTVisitor<R, X> visitor;
     private R value;
     
@@ -108,9 +105,9 @@ class VisitorBridge<R, X extends Throwable> extends ASTVisitor {
         this.value = value;
     }
     
-    private <A extends ASTNode> boolean invoke(VisitorMethod<A, R, X> method, A node) {
+    private <A extends ASTNode> boolean invoke(ThrowingFunction<A, R, X> method, A node) {
         try {
-            return (value = method.visit(node)) == null;
+            return (value = method.apply(node)) == null;
         } catch (Throwable e) {
             if (visitor.getExceptionClass().isInstance(e)) {
                 throw new BridgeException(e);

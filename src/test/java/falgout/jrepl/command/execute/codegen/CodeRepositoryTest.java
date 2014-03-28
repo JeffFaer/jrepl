@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,23 +31,16 @@ public class CodeRepositoryTest {
     @Inject public Environment e;
     public CodeRepository<Class<?>> repo = new CodeRepository<>(ClassCompiler.INSTANCE);
     
-    public SourceCode<Class<?>> foo1 = getCode("Foo", "public class Foo {}");
-    public SourceCode<Class<?>> foo2 = getCode("Foo", "public class Foo { static int foo; }");
-    public SourceCode<Class<?>> bar = getCode("Bar", "public class Bar {}");
-    public SourceCode<Class<?>> err = getCode("Err", "public class Err { ERROR }");
+    public NamedSourceCode<Class<?>> foo1 = getCode("Foo", "public class Foo {}");
+    public NamedSourceCode<Class<?>> foo2 = getCode("Foo", "public class Foo { static int foo; }");
+    public NamedSourceCode<Class<?>> bar = getCode("Bar", "public class Bar {}");
+    public NamedSourceCode<Class<?>> err = getCode("Err", "public class Err { ERROR }");
     
-    public SourceCode<Class<?>> getCode(String name, String code) {
-        return new SourceCode<Class<?>>(name) {
-            @Override
-            public Class<?> getTarget(Class<?> clazz) throws ReflectiveOperationException {
-                return null;
-            }
-            
-            @Override
-            public String toString() {
-                return code;
-            }
-        };
+    public NamedSourceCode<Class<?>> getCode(String name, String code) {
+        NamedSourceCode<Class<?>> clazz = mock(NamedSourceCode.class);
+        when(clazz.getName()).thenReturn(name);
+        when(clazz.toString()).thenReturn(code);
+        return clazz;
     }
     
     @Test

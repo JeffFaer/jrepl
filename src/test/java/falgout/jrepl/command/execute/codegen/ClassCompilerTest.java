@@ -47,8 +47,8 @@ public class ClassCompilerTest {
         assertEquals(2, classes.size());
     }
     
-    private SourceCode<? extends Class<?>> getCode(String name, String code) throws ReflectiveOperationException {
-        SourceCode<Class<?>> clazz = mock(SourceCode.class);
+    private NamedSourceCode<? extends Class<?>> getCode(String name, String code) throws ReflectiveOperationException {
+        NamedSourceCode<Class<?>> clazz = mock(NamedSourceCode.class);
         when(clazz.getName()).thenReturn(name);
         when(clazz.toString()).thenReturn(code);
         when(clazz.getTarget(Matchers.any())).then(returnParameter());

@@ -39,8 +39,8 @@ public class MemberCompilerTest {
         compiler.execute(e, getCode("foo", "public void foo() { ERROR }"));
     }
     
-    private SourceCode<? extends Method> getCode(String name, String code) throws ReflectiveOperationException {
-        SourceCode<Method> method = mock(SourceCode.class);
+    private NamedSourceCode<? extends Method> getCode(String name, String code) throws ReflectiveOperationException {
+        NamedSourceCode<Method> method = mock(NamedSourceCode.class);
         when(method.getName()).thenReturn(name);
         when(method.toString()).thenReturn(code);
         when(method.getTarget(Matchers.any())).then(returnMethod(name));

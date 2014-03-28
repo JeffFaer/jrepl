@@ -27,11 +27,11 @@ public class ClassCompiler extends CodeCompiler<Class<?>> {
     public static final ClassCompiler INSTANCE = new ClassCompiler();
     
     @Override
-    public List<? extends Class<?>> execute(Environment env, Iterable<? extends SourceCode<? extends Class<?>>> input)
-            throws ExecutionException {
+    public List<? extends Class<?>> execute(Environment env,
+            Iterable<? extends NamedSourceCode<? extends Class<?>>> input) throws ExecutionException {
         List<JavaFileObject> sources = new ArrayList<>();
         Set<String> names = new LinkedHashSet<>();
-        for (SourceCode<? extends Class<?>> code : input) {
+        for (NamedSourceCode<? extends Class<?>> code : input) {
             sources.add(new SourceCodeJavaFile(code));
             names.add(code.getName());
         }

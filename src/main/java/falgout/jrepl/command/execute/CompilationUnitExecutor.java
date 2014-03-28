@@ -15,7 +15,7 @@ import com.google.inject.Singleton;
 import falgout.jrepl.Environment;
 import falgout.jrepl.Import;
 import falgout.jrepl.reflection.NestedClass;
-import falgout.util.Optionals;
+import falgout.jrepl.util.Optionals;
 
 @Singleton
 public class CompilationUnitExecutor extends AbstractExecutor<CompilationUnit, List<? extends Optional<?>>> {

@@ -11,9 +11,7 @@ import com.google.common.escape.ArrayBasedCharEscaper;
 import com.google.common.escape.Escaper;
 import com.google.common.reflect.TypeToken;
 
-import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 import falgout.jrepl.reflection.GoogleTypes;
-import falgout.jrepl.reflection.TypeSeparator;
 
 public abstract class AbstractVariable<T> implements Variable<T> {
     protected AbstractVariable() {}
@@ -127,8 +125,7 @@ public abstract class AbstractVariable<T> implements Variable<T> {
         } else if (o instanceof String) {
             return "\"" + escape((String) o) + "\"";
         } else if (o instanceof TypeToken) {
-            return GoogleTypes.toString((TypeToken<?>) o, TypeSeparator.DOT,
-                    clazz -> isGenerated(clazz) ? clazz.getSimpleName() : clazz.getCanonicalName());
+            return GoogleTypes.toCanonicalString((TypeToken<?>) o);
         } else if (o instanceof Type) {
             return toString(TypeToken.of((Type) o));
         } else {
@@ -162,10 +159,5 @@ public abstract class AbstractVariable<T> implements Variable<T> {
     
     private static String escape(String str) {
         return JAVA_ESCAPER.escape(str);
-    }
-    
-    private static boolean isGenerated(Class<?> clazz) {
-        Package p = clazz.getPackage();
-        return p != null && p.getName().equals("jrepl") && clazz.getName().contains(GeneratedSourceCode.TEMPLATE);
     }
 }

@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
 import com.google.inject.Inject;
 
 import falgout.jrepl.command.execute.codegen.ClassCompiler;
-import falgout.jrepl.command.execute.codegen.GeneratedClass;
+import falgout.jrepl.command.execute.codegen.ClassSourceCode;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 
@@ -49,7 +49,7 @@ public class EnvironmentClassLoaderTest {
     
     @Test
     public void CanLoadGeneratedClasses() throws ExecutionException, ClassNotFoundException, ExecutionException {
-        GeneratedClass c = new GeneratedClass(env.getEnvironment());
+        ClassSourceCode c = ClassSourceCode.builder().build();
         Class<?> clazz = ClassCompiler.INSTANCE.execute(env.getEnvironment(), c);
         
         assertSame(clazz, cl.loadClass(c.getName()));

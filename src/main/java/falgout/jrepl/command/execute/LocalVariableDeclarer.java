@@ -1,7 +1,10 @@
 package falgout.jrepl.command.execute;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,9 +22,11 @@ import com.google.inject.Inject;
 import falgout.jrepl.Environment;
 import falgout.jrepl.FieldVariable;
 import falgout.jrepl.LocalVariable;
+import falgout.jrepl.command.execute.codegen.ClassSourceCode;
 import falgout.jrepl.command.execute.codegen.CodeCompiler;
-import falgout.jrepl.command.execute.codegen.GeneratedBlock;
-import falgout.jrepl.command.execute.codegen.GeneratedClass;
+import falgout.jrepl.command.execute.codegen.DelegateSourceCode;
+import falgout.jrepl.command.execute.codegen.NamedSourceCode;
+import falgout.jrepl.command.execute.codegen.NestedSourceCode;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.JDTTypes;
@@ -36,7 +41,7 @@ public class LocalVariableDeclarer extends AbstractExecutor<VariableDeclarationS
     
     @Override
     public List<LocalVariable<?>> execute(Environment env, VariableDeclarationStatement input)
-            throws ExecutionException {
+        throws ExecutionException {
         TypeToken<?> baseType;
         try {
             baseType = JDTTypes.getType(input.getType());
@@ -84,24 +89,40 @@ public class LocalVariableDeclarer extends AbstractExecutor<VariableDeclarationS
     
     private void createFieldVariables(Environment env, List<LocalVariable<?>> variables,
             Map<LocalVariable<?>, Expression> initialize) throws ExecutionException {
-        List<SourceCode<Field>> source = new ArrayList<>();
-        GeneratedClass clazz = new GeneratedClass(env);
-        for (LocalVariable<?> var : variables) {
-            SourceCode<Field> code = var.asField();
-            source.add(code);
-            clazz.addChild(code);
-        }
+        List<NamedSourceCode<Field>> source = new ArrayList<>();
+        variables.forEach(var -> source.add(var.asField()));
+        
+        ClassSourceCode.Builder b = ClassSourceCode.builder(env);
+        b.addChildren(source);
         
         if (initialize.size() > 0) {
-            GeneratedBlock block = new GeneratedBlock(env, true);
-            block.addChild(SourceCode.createInitializer(initialize));
-            clazz.addChild(block);
+            NestedSourceCode<Member, Member> block = new NestedSourceCode<Member, Member>(Modifier.STATIC, null,
+                    Collections.singletonList(createInitializer(initialize))) {
+                @Override
+                public Member getTarget(Class<?> clazz) throws ReflectiveOperationException {
+                    return null;
+                }
+                
+                @Override
+                public String toString() {
+                    StringBuilder b = new StringBuilder();
+                    b.append("static {\n");
+                    b.append("try {\n");
+                    b.append(createChildrenString("\n"));
+                    b.append("} catch (Throwable $e) {\n");
+                    b.append(TAB).append("throw new ExceptionInInitializerError($e);\n");
+                    b.append("}\n");
+                    b.append("}");
+                    return b.toString();
+                }
+            };
+            b.addChildren(block);
         }
         
-        Class<?> c = classCompiler.execute(clazz);
+        Class<?> c = classCompiler.execute(env, b.build());
         
         for (int i = 0; i < source.size(); i++) {
-            SourceCode<Field> s = source.get(i);
+            NamedSourceCode<Field> s = source.get(i);
             
             try {
                 Field f = s.getTarget(c);
@@ -115,5 +136,16 @@ public class LocalVariableDeclarer extends AbstractExecutor<VariableDeclarationS
                 throw new ExecutionException(e);
             }
         }
+    }
+    
+    private static SourceCode<Member> createInitializer(Map<LocalVariable<?>, Expression> initialize) {
+        return new DelegateSourceCode<Member>(initialize) {
+            @Override
+            public String toString() {
+                StringBuilder b = new StringBuilder();
+                initialize.forEach((var, exp) -> b.append(var.getName()).append(" = ").append(exp).append(";\n"));
+                return b.toString();
+            }
+        };
     }
 }

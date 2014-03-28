@@ -9,9 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import falgout.jrepl.command.execute.codegen.GeneratedClass;
 import falgout.jrepl.reflection.NestedClass;
-import falgout.util.Closeables;
+import falgout.jrepl.util.Closeables;
 
 public class EnvironmentClassLoader extends URLClassLoader {
     private final Environment env;
@@ -44,7 +43,7 @@ public class EnvironmentClassLoader extends URLClassLoader {
         Class<?> clazz = null;
         try {
             // check to see if we generated it
-            clazz = super.loadClass(GeneratedClass.PACKAGE + "." + simpleName);
+            clazz = super.loadClass(env.getGeneratedCodePackage() + "." + simpleName);
         } catch (ClassNotFoundException e) {}
         
         Set<String> names = env.getImports().stream().map(i -> i.resolveClass(simpleName)).collect(Collectors.toSet());

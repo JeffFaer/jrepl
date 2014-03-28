@@ -4,15 +4,17 @@ import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.codegen.CodeRepository;
-import falgout.jrepl.command.execute.codegen.SourceCode;
+import falgout.jrepl.command.execute.codegen.NamedSourceCode;
+import falgout.jrepl.command.execute.codegen.TypeSourceCode;
 import falgout.jrepl.reflection.NestedClass;
 
 public class ClassDefiner extends RepositoryDefiner<AbstractTypeDeclaration, NestedClass<?>> {
     public static final ClassDefiner INSTANCE = new ClassDefiner();
     
     @Override
-    protected SourceCode<? extends NestedClass<?>> getSourceCode(AbstractTypeDeclaration node) {
-        return SourceCode.from(node);
+    protected NamedSourceCode<? extends NestedClass<?>> getSourceCode(AbstractTypeDeclaration node)
+        throws ClassNotFoundException {
+        return TypeSourceCode.get(node).asNestedClass();
     }
     
     @Override

@@ -16,7 +16,6 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import com.google.inject.Singleton;
 
 import falgout.jrepl.Environment;
-import falgout.jrepl.command.execute.codegen.GeneratedSourceCode;
 
 @Singleton
 public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, ASTNode, R> {
@@ -80,7 +79,7 @@ public class JavaCommandFactory<R> extends AbstractCommandFactory<ASTParser, AST
                     int count = p.getSourceEnd() - start + 1;
                     if (count > 0) {
                         String problem = new String(source.get(), start, count);
-                        message.append(GeneratedSourceCode.TAB).append(problem).append("\n");
+                        message.append("    ").append(problem).append("\n");
                     }
                 }
             }

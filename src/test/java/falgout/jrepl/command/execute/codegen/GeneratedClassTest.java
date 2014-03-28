@@ -25,11 +25,11 @@ public class GeneratedClassTest {
     
     @Test
     public void blankClassCanCompile() throws ExecutionException {
-        GeneratedClass g = new GeneratedClass(e);
-        compile(g);
+        ClassSourceCode c = new ClassSourceCode.Builder().build();
+        compile(c);
     }
     
-    private Class<?> compile(GeneratedClass clazz) throws ExecutionException {
+    private Class<?> compile(ClassSourceCode clazz) throws ExecutionException {
         Class<?> c = INSTANCE.execute(e, clazz);
         assertEquals(clazz.getName(), c.getSimpleName());
         return c;

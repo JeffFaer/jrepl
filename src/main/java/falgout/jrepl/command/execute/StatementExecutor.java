@@ -1,5 +1,7 @@
 package falgout.jrepl.command.execute;
 
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,10 +21,10 @@ import com.google.inject.Inject;
 import falgout.jrepl.Environment;
 import falgout.jrepl.LocalVariable;
 import falgout.jrepl.command.execute.codegen.CodeExecutor;
-import falgout.jrepl.command.execute.codegen.GeneratedMethod;
-import falgout.jrepl.command.execute.codegen.SourceCode;
+import falgout.jrepl.command.execute.codegen.DelegateSourceCode;
+import falgout.jrepl.command.execute.codegen.MethodSourceCode;
 import falgout.jrepl.guice.MethodExecutorFactory;
-import falgout.util.Optionals;
+import falgout.jrepl.util.Optionals;
 
 public class StatementExecutor extends AbstractExecutor<Block, List<? extends Optional<?>>> {
     private final Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer;
@@ -72,17 +74,16 @@ public class StatementExecutor extends AbstractExecutor<Block, List<? extends Op
     
     @SuppressWarnings("unchecked")
     private Optional<List<Object>> execute(Environment env, Class<?> current, List<Statement> statements)
-            throws ExecutionException {
+        throws ExecutionException {
         if (current == null || statements.isEmpty()) {
             return Optional.empty();
         }
         
         if (current == Statement.class) {
-            GeneratedMethod method = new GeneratedMethod(env);
-            for (Statement st : statements) {
-                method.addChild(SourceCode.from(st));
-            }
-            Object ret = methodExecutor.execute(method);
+            MethodSourceCode.Builder b = MethodSourceCode.builder();
+            b.addChildren(statements.stream().map(st -> new DelegateSourceCode<Statement>(st)).collect(toList()));
+            
+            Object ret = methodExecutor.execute(env, b.build());
             if (ret == null) {
                 return Optional.empty();
             } else {

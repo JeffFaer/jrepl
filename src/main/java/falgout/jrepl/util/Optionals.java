@@ -1,4 +1,4 @@
-package falgout.util;
+package falgout.jrepl.util;
 
 import static java.util.stream.Collectors.toList;
 

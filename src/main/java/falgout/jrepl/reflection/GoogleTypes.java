@@ -34,6 +34,7 @@ public class GoogleTypes {
     
     public static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
     public static final TypeToken<String> STRING = TypeToken.of(String.class);
+    public static final TypeToken<Throwable> THROWABLE = TypeToken.of(Throwable.class);
     @SuppressWarnings("unchecked") public static final TypeToken<Void> VOID = (TypeToken<Void>) PRIMITIVES.get("void");
     @SuppressWarnings("unchecked") public static final TypeToken<Boolean> BOOLEAN = (TypeToken<Boolean>) PRIMITIVES.get("boolean");
     @SuppressWarnings("unchecked") public static final TypeToken<Character> CHAR = (TypeToken<Character>) PRIMITIVES.get("char");
@@ -133,5 +134,9 @@ public class GoogleTypes {
         }
         
         return b.toString();
+    }
+    
+    public static String toCanonicalString(TypeToken<?> type) {
+        return toString(type, TypeSeparator.DOT, Class::getCanonicalName);
     }
 }

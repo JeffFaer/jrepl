@@ -1,196 +1,33 @@
 package falgout.jrepl.command.execute.codegen;
 
-import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
-import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
-import org.eclipse.jdt.core.dom.ReturnStatement;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
-import org.eclipse.jdt.core.dom.Statement;
-
-import com.google.common.reflect.TypeToken;
-
-import falgout.jrepl.LocalVariable;
-import falgout.jrepl.reflection.GoogleTypes;
-import falgout.jrepl.reflection.JDTTypes;
-import falgout.jrepl.reflection.NestedClass;
-import falgout.utils.reflection.MethodInvoker;
+import java.util.Objects;
 
 public abstract class SourceCode<T> {
-    private final String name;
-    
-    protected SourceCode(String name) {
-        this.name = name;
-    }
-    
-    public abstract T getTarget(Class<?> clazz) throws ReflectiveOperationException;
-    
-    public String getName() {
-        return name;
-    }
-    
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((toString() == null) ? 0 : toString().hashCode());
-        return result;
+    public static abstract class Builder<T, S extends SourceCode<T>, B extends Builder<T, S, B>> {
+        protected abstract B getBuilder();
+        
+        public abstract S build();
+        
+        @SafeVarargs
+        protected final <E> List<E> requireNonNull(E... es) {
+            return requireNonNull(Arrays.asList(es));
+        }
+        
+        protected <E, I extends Iterable<E>> I requireNonNull(I i) {
+            i.forEach(e -> Objects.requireNonNull(e));
+            
+            return i;
+        }
     }
     
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof SourceCode)) {
-            return false;
-        }
-        SourceCode<?> other = (SourceCode<?>) obj;
-        if (toString() == null) {
-            if (other.toString() != null) {
-                return false;
-            }
-        } else if (!toString().equals(other.toString())) {
-            return false;
-        }
-        return true;
-    }
+    public abstract int hashCode();
+    
+    @Override
+    public abstract boolean equals(Object o);
     
     @Override
     public abstract String toString();
-    
-    public static SourceCode<Statement> from(Statement statement) {
-        return new SourceCode<Statement>(null) {
-            @Override
-            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
-                return statement;
-            }
-            
-            @Override
-            public String toString() {
-                return statement.toString();
-            }
-        };
-    }
-    
-    public static SourceCode<Method> from(MethodDeclaration decl) {
-        List<Modifier> modifiers = decl.modifiers();
-        addStatic(decl.getAST(), modifiers);
-        
-        String name = decl.getName().toString();
-        return new SourceCode<Method>(name) {
-            @Override
-            public Method getTarget(Class<?> clazz) throws ReflectiveOperationException {
-                List<SingleVariableDeclaration> parameters = decl.parameters();
-                Class<?>[] params = new Class<?>[parameters.size()];
-                for (int i = 0; i < params.length; i++) {
-                    SingleVariableDeclaration param = parameters.get(i);
-                    TypeToken<?> type = JDTTypes.getType(param.getType());
-                    type = GoogleTypes.addArrays(type, param.getExtraDimensions());
-                    params[i] = type.getRawType();
-                }
-                
-                return MethodInvoker.getDefault().getMethodLocator().getMethod(clazz, name, params);
-            }
-            
-            @Override
-            public String toString() {
-                return decl.toString();
-            }
-        };
-    }
-    
-    private static void addStatic(AST ast, List<Modifier> modifiers) {
-        if (!JDTTypes.isStatic(modifiers)) {
-            Modifier mod = ast.newModifier(ModifierKeyword.STATIC_KEYWORD);
-            modifiers.add(mod);
-        }
-    }
-    
-    public static SourceCode<NestedClass<?>> from(AbstractTypeDeclaration decl) {
-        List<Modifier> modifiers = decl.modifiers();
-        addStatic(decl.getAST(), modifiers);
-        
-        String name = decl.getName().toString();
-        return new SourceCode<NestedClass<?>>(name) {
-            @Override
-            public NestedClass<?> getTarget(Class<?> clazz) {
-                for (Class<?> nested : clazz.getDeclaredClasses()) {
-                    if (nested.getSimpleName().equals(name)) {
-                        return new NestedClass<>(nested);
-                    }
-                }
-                
-                throw new AssertionError();
-            }
-            
-            @Override
-            public String toString() {
-                return decl.toString();
-            }
-        };
-    }
-    
-    public static GeneratedSourceCode<Statement, Void> createInitializer(Map<LocalVariable<?>, Expression> initialize) {
-        return new GeneratedSourceCode<Statement, Void>(null) {
-            @Override
-            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
-                return null;
-            }
-            
-            @Override
-            public String toString() {
-                StringBuilder b = new StringBuilder();
-                b.append("try {\n");
-                for (Entry<LocalVariable<?>, Expression> e : initialize.entrySet()) {
-                    String name = e.getKey().getName();
-                    Expression init = e.getValue();
-                    b.append(TAB).append(name).append(" = ").append(init).append(";\n");
-                }
-                b.append("} catch (Throwable $e) {\n");
-                b.append(TAB).append("throw new ExceptionInInitializerError($e);\n");
-                b.append("}");
-                return b.toString();
-            }
-        };
-    }
-    
-    public static SourceCode<Statement> createStatement(Expression e) {
-        return new SourceCode<Statement>(null) {
-            @Override
-            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
-                return null;
-            }
-            
-            @Override
-            public String toString() {
-                return e + ";";
-            }
-        };
-    }
-    
-    public static SourceCode<Statement> createReturnStatement(Expression e) {
-        ReturnStatement st = e.getAST().newReturnStatement();
-        return new SourceCode<Statement>(null) {
-            @Override
-            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
-                return st;
-            }
-            
-            @Override
-            public String toString() {
-                return "return " + e + ";";
-            }
-        };
-    }
 }

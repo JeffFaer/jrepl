@@ -6,14 +6,15 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.codegen.CodeRepository;
-import falgout.jrepl.command.execute.codegen.SourceCode;
+import falgout.jrepl.command.execute.codegen.MethodSourceCode;
+import falgout.jrepl.command.execute.codegen.NamedSourceCode;
 
 public class MethodDefiner extends RepositoryDefiner<MethodDeclaration, Method> {
     public static final MethodDefiner INSTANCE = new MethodDefiner();
     
     @Override
-    protected SourceCode<? extends Method> getSourceCode(MethodDeclaration node) {
-        return SourceCode.from(node);
+    protected NamedSourceCode<? extends Method> getSourceCode(MethodDeclaration node) throws ClassNotFoundException {
+        return MethodSourceCode.get(node);
     }
     
     @Override

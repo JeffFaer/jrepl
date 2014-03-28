@@ -1,6 +1,7 @@
 package falgout.jrepl.command.execute;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -14,7 +15,8 @@ import com.google.inject.Singleton;
 
 import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.codegen.CodeExecutor;
-import falgout.jrepl.command.execute.codegen.GeneratedMethod;
+import falgout.jrepl.command.execute.codegen.DelegateSourceCode;
+import falgout.jrepl.command.execute.codegen.MethodSourceCode;
 import falgout.jrepl.command.execute.codegen.SourceCode;
 import falgout.jrepl.guice.MethodExecutorFactory;
 import falgout.jrepl.reflection.GoogleTypes;
@@ -31,8 +33,8 @@ public class ExpressionExecutor extends BatchExecutor<Expression, Object> {
     
     @Override
     public List<? extends Object> execute(Environment env, Iterable<? extends Expression> input)
-            throws ExecutionException {
-        List<GeneratedMethod> methods = new ArrayList<>();
+        throws ExecutionException {
+        List<MethodSourceCode> methods = new ArrayList<>();
         
         input.forEach(e -> {
             SourceCode<Statement> st;
@@ -45,14 +47,27 @@ public class ExpressionExecutor extends BatchExecutor<Expression, Object> {
                 // let the compiler have its say
             }
             if (returnType.equals(GoogleTypes.VOID)) {
-                st = SourceCode.createStatement(e);
+                st = new DelegateSourceCode<Statement>(e) {
+                    @Override
+                    public String toString() {
+                        return e.toString() + ";";
+                    }
+                };
             } else {
-                st = SourceCode.createReturnStatement(e);
+                st = new DelegateSourceCode<Statement>(e) {
+                    @Override
+                    public String toString() {
+                        return "return " + e.toString() + ";";
+                    }
+                };
             }
             
-            GeneratedMethod method = new GeneratedMethod(env);
-            method.addChild(st);
-            methods.add(method);
+            MethodSourceCode.Builder b = MethodSourceCode.builder();
+            b.addModifier(Modifier.STATIC);
+            b.setReturnType(returnType);
+            b.addThrows(GoogleTypes.THROWABLE);
+            b.addChildren(st);
+            methods.add(b.build());
         });
         
         return executor.execute(env, methods);

@@ -23,11 +23,11 @@ import com.google.common.collect.Lists;
 import falgout.jrepl.Environment;
 
 /**
- * Stores {@code SourceCode} and its compiled equivalent by name.
+ * Stores {@code NamedSourceCode} and its compiled equivalent by name.
  * 
  * @author jeffrey
  *
- * @param <T> The kind of {@code SourceCode}.
+ * @param <T> The kind of {@code NamedSourceCode}.
  */
 public class CodeRepository<T> {
     private static class SetView<E> extends AbstractSet<E> {
@@ -48,11 +48,11 @@ public class CodeRepository<T> {
         }
     }
     
-    private final Map<String, SourceCode<? extends T>> code = new LinkedHashMap<>();
+    private final Map<String, NamedSourceCode<? extends T>> code = new LinkedHashMap<>();
     private final Map<String, T> compiled = new LinkedHashMap<>();
     private final CodeCompiler<T> compiler;
     
-    private final Set<SourceCode<? extends T>> allCode = Collections.unmodifiableSet(new SetView<>(code.values()));
+    private final Set<NamedSourceCode<? extends T>> allCode = Collections.unmodifiableSet(new SetView<>(code.values()));
     private final Set<T> allCompiled = Collections.unmodifiableSet(new SetView<>(compiled.values()));
     
     public CodeRepository(CodeCompiler<T> compiler) {
@@ -64,7 +64,7 @@ public class CodeRepository<T> {
     }
     
     @SafeVarargs
-    public final boolean add(SourceCode<? extends T> first, SourceCode<? extends T>... rest) {
+    public final boolean add(NamedSourceCode<? extends T> first, NamedSourceCode<? extends T>... rest) {
         return add(Lists.asList(first, rest));
     }
     
@@ -76,7 +76,7 @@ public class CodeRepository<T> {
      * @return {@code true} if at least one of the elements in {@code code} was
      *         added.
      */
-    public boolean add(Iterable<? extends SourceCode<? extends T>> code) {
+    public boolean add(Iterable<? extends NamedSourceCode<? extends T>> code) {
         int size = this.code.size();
         code.forEach(c -> {
             String name = c.getName();
@@ -88,7 +88,7 @@ public class CodeRepository<T> {
         return size != this.code.size();
     }
     
-    public Optional<? extends SourceCode<? extends T>> getCode(String name) {
+    public Optional<? extends NamedSourceCode<? extends T>> getCode(String name) {
         return Optional.ofNullable(code.get(name));
     }
     
@@ -96,7 +96,7 @@ public class CodeRepository<T> {
         return code.containsKey(name);
     }
     
-    public Set<? extends SourceCode<? extends T>> getAllCode() {
+    public Set<? extends NamedSourceCode<? extends T>> getAllCode() {
         return allCode;
     }
     
@@ -105,19 +105,19 @@ public class CodeRepository<T> {
     }
     
     /**
-     * Compiles the {@code SourceCode} from this repository with the given
+     * Compiles the {@code NamedSourceCode} from this repository with the given
      * names.
      * 
      * @param env The {@code Environment} to compile in.
-     * @param names The names of the {@code SourceCode}.
+     * @param names The names of the {@code NamedSourceCode}.
      * @return A {@code List} in the same order as the given names where each
      *         element is an empty {@code Optional} if there is no
-     *         {@code SourceCode} with the given name or an {@code Optional}
-     *         containing the compiled version.
+     *         {@code NamedSourceCode} with the given name or an
+     *         {@code Optional} containing the compiled version.
      * @throws ExecutionException If there is an exception during compilation.
      */
     public List<Optional<? extends T>> compile(Environment env, String... names) throws ExecutionException {
-        Map<SourceCode<? extends T>, Boolean> toCompile = new LinkedHashMap<>();
+        Map<NamedSourceCode<? extends T>, Boolean> toCompile = new LinkedHashMap<>();
         for (String name : names) {
             if (contains(name)) {
                 toCompile.put(getCode(name).get(), false);
@@ -129,71 +129,55 @@ public class CodeRepository<T> {
         return doCompile(env, toCompile);
     }
     
-    public Optional<? extends T> compile(GeneratedSourceCode<? extends T, ?> code) throws ExecutionException {
-        return getFirst(compile(code, Collections.EMPTY_LIST));
-    }
-    
-    private Optional<? extends T> getFirst(Optional<? extends List<? extends T>> opt) {
-        return opt.isPresent() ? Optional.of(opt.get().get(0)) : Optional.empty();
+    public Optional<? extends T> compile(Environment env, NamedSourceCode<? extends T> code) throws ExecutionException {
+        return compile(env, Collections.singleton(code)).map(l -> l.get(0));
     }
     
     @SafeVarargs
-    public final Optional<? extends List<? extends T>> compile(GeneratedSourceCode<? extends T, ?> first,
-            GeneratedSourceCode<? extends T, ?>... rest) throws ExecutionException {
-        return compile(first, Arrays.asList(rest));
-    }
-    
-    public Optional<? extends List<? extends T>> compile(GeneratedSourceCode<? extends T, ?> first,
-            Iterable<? extends GeneratedSourceCode<? extends T, ?>> rest) throws ExecutionException {
-        List<SourceCode<? extends T>> code = new ArrayList<>();
-        code.add(first);
-        rest.forEach(code::add);
-        return compile(first.getEnvironment(), code);
-    }
-    
-    public Optional<? extends T> compile(Environment env, SourceCode<? extends T> code) throws ExecutionException {
-        return getFirst(compile(env, Collections.singleton(code)));
-    }
-    
-    @SafeVarargs
-    public final Optional<? extends List<? extends T>> compile(Environment env, SourceCode<? extends T>... code)
-            throws ExecutionException {
+    public final Optional<? extends List<? extends T>> compile(Environment env, NamedSourceCode<? extends T>... code)
+        throws ExecutionException {
         return compile(env, Arrays.asList(code));
     }
     
     /**
-     * Attempts to add each {@code SourceCode} into this repository. If any one
-     * piece of {@code SourceCode} cannot be added (because there is another
-     * non-{@code equal} {@code SourceCode} with the same name), this method
+     * Attempts to add each {@code NamedSourceCode} into this repository. If any
+     * one
+     * piece of {@code NamedSourceCode} cannot be added (because there is
+     * another
+     * non-{@code ==} {@code NamedSourceCode} with the same name), this
+     * method
      * will return an empty {@code Optional} and this repository will not have
      * been modified.
      * 
-     * If all of the {@code SourceCode} can be added, this method will return an
-     * {@code Optional} containing a list of compiled versions in the same order
-     * as the {@code SourceCode}. The {@code SourceCode} and the compiled
+     * If all of the {@code NamedSourceCode} can be added, this method will
+     * return an {@code Optional} containing a list of compiled versions in the
+     * same order
+     * as the {@code NamedSourceCode}. The {@code NamedSourceCode} and the
+     * compiled
      * versions will have been added to this repository. If an
      * {@code ExecutionException} is thrown during compilation, any piece of
-     * {@code SourceCode} that was not already in this repository before this
+     * {@code NamedSourceCode} that was not already in this repository before
+     * this
      * method was called will be removed.
      * 
      * @param env The {@code Environment} to compile in
-     * @param code The {@code SourceCode} to compile
+     * @param code The {@code NamedSourceCode} to compile
      * @return An empty {@code Optional} if this repository has not been
      *         modified or an {@code Optional} with a list of all of the
      *         compiled members.
      * @throws ExecutionException If there's an exception during compilation
      */
     public Optional<? extends List<? extends T>> compile(Environment env,
-            Iterable<? extends SourceCode<? extends T>> code) throws ExecutionException {
-        Map<SourceCode<? extends T>, Boolean> add = new LinkedHashMap<>();
+            Iterable<? extends NamedSourceCode<? extends T>> code) throws ExecutionException {
+        Map<NamedSourceCode<? extends T>, Boolean> add = new LinkedHashMap<>();
         Set<String> names = new LinkedHashSet<>();
-        for (SourceCode<? extends T> c : code) {
+        for (NamedSourceCode<? extends T> c : code) {
             String name = c.getName();
             
             if (names.contains(name)) {
                 return Optional.empty();
             } else if (contains(name)) {
-                if (getCode(name).get().equals(c)) {
+                if (getCode(name).get() == c) {
                     add.put(c, false);
                 } else {
                     return Optional.empty();
@@ -207,10 +191,10 @@ public class CodeRepository<T> {
         return Optional.of(doCompile(env, add).stream().map(opt -> opt.get()).collect(toList()));
     }
     
-    private List<Optional<? extends T>> doCompile(Environment env, Map<SourceCode<? extends T>, Boolean> shouldAdd)
-            throws ExecutionException {
+    private List<Optional<? extends T>> doCompile(Environment env, Map<NamedSourceCode<? extends T>, Boolean> shouldAdd)
+        throws ExecutionException {
         List<Optional<? extends T>> ret = new ArrayList<>(shouldAdd.size());
-        Map<SourceCode<? extends T>, Integer> toCompile = new LinkedHashMap<>();
+        Map<NamedSourceCode<? extends T>, Integer> toCompile = new LinkedHashMap<>();
         shouldAdd.forEach((code, add) -> {
             if (add == null) {
                 ret.add(Optional.empty());

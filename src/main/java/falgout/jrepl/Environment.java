@@ -28,7 +28,7 @@ import falgout.jrepl.command.execute.codegen.CodeCompiler;
 import falgout.jrepl.command.execute.codegen.CodeRepository;
 import falgout.jrepl.guice.EnvironmentProvider;
 import falgout.jrepl.reflection.NestedClass;
-import falgout.util.Closeables;
+import falgout.jrepl.util.Closeables;
 
 @ProvidedBy(EnvironmentProvider.class)
 public class Environment implements Closeable {
@@ -76,6 +76,10 @@ public class Environment implements Closeable {
     
     public Path getGeneratedCodeLocation() {
         return generatedCodeLocation;
+    }
+    
+    public String getGeneratedCodePackage() {
+        return "jrepl";
     }
     
     public boolean addVariable(FieldVariable<?> variable) {

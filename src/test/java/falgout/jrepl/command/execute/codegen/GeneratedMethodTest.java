@@ -1,13 +1,11 @@
 package falgout.jrepl.command.execute.codegen;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ExecutionException;
 
-import org.eclipse.jdt.core.dom.ReturnStatement;
-import org.eclipse.jdt.core.dom.Statement;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Rule;
@@ -19,6 +17,7 @@ import com.google.inject.Inject;
 import falgout.jrepl.Environment;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
+import falgout.jrepl.reflection.GoogleTypes;
 
 @RunWith(JukitoRunner.class)
 @UseModules(TestModule.class)
@@ -29,11 +28,11 @@ public class GeneratedMethodTest {
     
     @Test
     public void blankMethodCanCompile() throws ExecutionException {
-        GeneratedMethod g = new GeneratedMethod(e);
-        compile(g);
+        MethodSourceCode.Builder b = MethodSourceCode.builder();
+        compile(b.build());
     }
     
-    private Method compile(GeneratedMethod g) throws ExecutionException {
+    private Method compile(MethodSourceCode g) throws ExecutionException {
         Method method = compiler.execute(e, g);
         assertEquals(g.getName(), method.getName());
         return method;
@@ -43,18 +42,10 @@ public class GeneratedMethodTest {
     public void canAccessEnvironmentVariables() throws ExecutionException, ReflectiveOperationException {
         env.execute("final Object foo = 5;");
         
-        GeneratedMethod g = new GeneratedMethod(e);
-        g.addChild(new SourceCode<Statement>(null) {
-            @Override
-            public Statement getTarget(Class<?> clazz) throws ReflectiveOperationException {
-                return mock(ReturnStatement.class);
-            }
-            
-            @Override
-            public String toString() {
-                return "return foo;";
-            }
-        });
-        compile(g);
+        MethodSourceCode.Builder b = MethodSourceCode.builder();
+        b.addModifier(Modifier.STATIC);
+        b.setReturnType(GoogleTypes.OBJECT);
+        b.addChildren(new DelegateSourceCode<>("return foo;"));
+        assertEquals(5, compile(b.build()).invoke(null));
     }
 }

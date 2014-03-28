@@ -12,8 +12,8 @@ import com.google.inject.Singleton;
 import falgout.jrepl.Environment;
 
 /**
- * Compiles an arbitrary {@code Member} by creating a {@link GeneratedClass} for
- * it.
+ * Compiles an arbitrary {@code Member} by wrapping it in
+ * {@code ClassSourceCode}.
  *
  * @author jeffrey
  *
@@ -29,19 +29,21 @@ public class MemberCompiler<M extends Member> extends CodeCompiler<M> {
     }
     
     @Override
-    public List<? extends M> execute(Environment env, Iterable<? extends SourceCode<? extends M>> input)
-            throws ExecutionException {
-        GeneratedClass generated = new GeneratedClass(env);
-        input.forEach(generated::addChild);
+    public List<? extends M> execute(Environment env, Iterable<? extends NamedSourceCode<? extends M>> input)
+        throws ExecutionException {
+        ClassSourceCode.Builder b = ClassSourceCode.builder(env);
+        b.addChildren(input);
+        
+        ClassSourceCode generated = b.build();
         
         if (generated.getChildren().size() == 0) {
             return Collections.EMPTY_LIST;
         }
         
-        Class<?> clazz = compiler.execute(generated);
+        Class<?> clazz = compiler.execute(env, generated);
         
         List<M> members = new ArrayList<>(generated.getChildren().size());
-        for (SourceCode<? extends M> code : input) {
+        for (NamedSourceCode<? extends M> code : input) {
             try {
                 members.add(code.getTarget(clazz));
             } catch (ReflectiveOperationException e) {
