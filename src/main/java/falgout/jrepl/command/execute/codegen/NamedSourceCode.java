@@ -3,7 +3,7 @@ package falgout.jrepl.command.execute.codegen;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class NamedSourceCode<T> extends SourceCode<T> {
+public abstract class NamedSourceCode<T> implements SourceCode<T> {
     public static abstract class Builder<T, S extends NamedSourceCode<T>, B extends Builder<T, S, B>> extends
             SourceCode.Builder<T, S, B> {
         private static final String GENERATED_NAME_TEMPLATE = "$%s%d";

@@ -1,6 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
-public class DelegateSourceCode<T> extends SourceCode<T> {
+public class DelegateSourceCode<T> implements SourceCode<T> {
     private final Object delegate;
     
     public DelegateSourceCode(Object delegate) {

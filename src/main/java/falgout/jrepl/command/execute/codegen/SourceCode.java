@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class SourceCode<T> {
+public interface SourceCode<T> {
     public static abstract class Builder<T, S extends SourceCode<T>, B extends Builder<T, S, B>> {
         protected abstract B getBuilder();
         
@@ -23,11 +23,11 @@ public abstract class SourceCode<T> {
     }
     
     @Override
-    public abstract int hashCode();
+    public int hashCode();
     
     @Override
-    public abstract boolean equals(Object o);
+    public boolean equals(Object o);
     
     @Override
-    public abstract String toString();
+    public String toString();
 }
