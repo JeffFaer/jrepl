@@ -92,4 +92,21 @@ public class MethodDefinerTest {
         parse("public ReturnType foo(ParamType1 x, ParamType2 y, int primitive) throws CustomException { return null; }",
                 "foo");
     }
+    
+    @Test
+    public void canDefineMultipleMethodsAtOnce() throws ParsingException, ExecutionException {
+        parse("public void foo(){} public void bar(){}", "foo", "bar");
+    }
+    
+    @Test
+    public void canOverloadMethods() throws ParsingException, ExecutionException {
+        parse("public void foo() {} public void foo(String s) {}", "foo", "foo");
+        parse("public void foo(String s1, String s2) {}", "foo");
+    }
+    
+    @Test(expected = ExecutionException.class)
+    public void cannotRedefineMethods() throws ParsingException, ExecutionException {
+        parse("public void foo() {}", "foo");
+        parse("public int foo() { return 1; }", "foo");
+    }
 }

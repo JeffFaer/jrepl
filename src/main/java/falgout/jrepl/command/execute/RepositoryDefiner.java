@@ -32,7 +32,7 @@ public abstract class RepositoryDefiner<D extends ASTNode, M extends Member> ext
         
         for (NamedSourceCode<? extends M> c : code) {
             String name = c.getName();
-            if (env.getClassRepository().contains(c.getName())) {
+            if (getRepository(env).contains(c.getName())) {
                 String message = String.format("%s already exists.", name);
                 throw new ExecutionException(new IllegalArgumentException(message));
             }

@@ -232,8 +232,9 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
                 }
                 
                 List<SourceCode<? extends Member>> body = new ArrayList<>();
+                DelegateSourceCode.Builder<Member> delegate = DelegateSourceCode.builder();
                 for (BodyDeclaration decl : (List<BodyDeclaration>) node.bodyDeclarations()) {
-                    body.add(new DelegateSourceCode<>(decl));
+                    body.add(delegate.setDelegate(decl).build());
                 }
                 b.setChildren(body);
                 
