@@ -16,40 +16,40 @@ public abstract class MethodInvoker {
     }
     
     public Object invoke(Object instance, String name, Object... args) throws AmbiguousDeclarationException,
-    NoSuchMethodException, InvocationTargetException, IllegalAccessException, IllegalArgumentException {
+        NoSuchMethodException, InvocationTargetException, IllegalAccessException, IllegalArgumentException {
         return invoke(instance, l.getMethod(instance.getClass(), name, args), args);
     }
     
     public Object invokeDeclared(Object instance, String name, Object... args) throws AmbiguousDeclarationException,
-    NoSuchMethodException, InvocationTargetException, IllegalAccessException, IllegalArgumentException {
+        NoSuchMethodException, InvocationTargetException, IllegalAccessException, IllegalArgumentException {
         return invoke(instance, l.getDeclaredMethod(instance.getClass(), name, args), args);
     }
     
     public Object invokeStatic(Class<?> clazz, String name, Object... args) throws InvocationTargetException,
-    IllegalAccessException, IllegalArgumentException, AmbiguousDeclarationException, NoSuchMethodException {
+        IllegalAccessException, IllegalArgumentException, AmbiguousDeclarationException, NoSuchMethodException {
         return invoke(null, l.getMethod(clazz, name, args), args);
     }
     
     public Object invokeDeclaredStatic(Class<?> clazz, String name, Object... args) throws InvocationTargetException,
-    IllegalAccessException, IllegalArgumentException, AmbiguousDeclarationException, NoSuchMethodException {
+        IllegalAccessException, IllegalArgumentException, AmbiguousDeclarationException, NoSuchMethodException {
         return invoke(null, l.getMethod(clazz, name, args), args);
     }
     
     protected abstract Object invoke(Object instance, Method m, Object... args) throws InvocationTargetException,
-    IllegalAccessException, IllegalArgumentException;
+        IllegalAccessException, IllegalArgumentException;
     
     public <T> T invoke(Class<T> clazz, Object... args) throws InstantiationException, IllegalAccessException,
-    IllegalArgumentException, InvocationTargetException, AmbiguousDeclarationException, NoSuchMethodException {
+        IllegalArgumentException, InvocationTargetException, AmbiguousDeclarationException, NoSuchMethodException {
         return invoke(l.getConstructor(clazz, args), args);
     }
     
     public <T> T invokeDeclared(Class<T> clazz, Object... args) throws InstantiationException, IllegalAccessException,
-    IllegalArgumentException, InvocationTargetException, AmbiguousDeclarationException, NoSuchMethodException {
+        IllegalArgumentException, InvocationTargetException, AmbiguousDeclarationException, NoSuchMethodException {
         return invoke(l.getDeclaredConstructor(clazz, args), args);
     }
     
     protected abstract <T> T invoke(Constructor<T> cons, Object... args) throws InstantiationException,
-    IllegalAccessException, IllegalArgumentException, InvocationTargetException;
+        IllegalAccessException, IllegalArgumentException, InvocationTargetException;
     
     private static final MethodInvoker DEFAULT = new VarArgsMethodInvoker(new JLSMethodLocator());
     

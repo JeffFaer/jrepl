@@ -12,10 +12,10 @@ public class CompilationException extends IllegalArgumentException {
     private final Iterable<? extends SourceCode<? extends Class<?>>> source;
     private final List<Diagnostic<? extends JavaFileObject>> diagnostics;
     
-    public CompilationException(Iterable<? extends SourceCode<? extends Class<?>>> input,
+    public CompilationException(Iterable<? extends SourceCode<? extends Class<?>>> source,
             List<Diagnostic<? extends JavaFileObject>> diagnostics) {
         super(createMessage(diagnostics));
-        this.source = input;
+        this.source = source;
         this.diagnostics = diagnostics;
     }
     

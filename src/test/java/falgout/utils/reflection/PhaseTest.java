@@ -29,17 +29,17 @@ public class PhaseTest {
     }
     
     private static final Class<?>[] varArgsParams = new Class<?>[] { String.class, Object.class, int.class, long.class,
-        Integer.class, Long.class, String.class };
+            Integer.class, Long.class, String.class };
     
     private static final Class<?>[] SUBTYPING = new Class<?>[] { String.class, String.class, byte.class, byte.class,
-        Integer.class, Long.class };
+            Integer.class, Long.class };
     private static final Class<?>[] BOXING = new Class<?>[] { String.class, Object.class, int.class, long.class,
-        int.class, Long.class };
+            int.class, Long.class };
     private static final Class<?>[] UNBOXING = new Class<?>[] { String.class, Object.class, int.class, Long.class,
-        Integer.class, Long.class };
+            Integer.class, Long.class };
     
     private static final Class<?>[] CAST_REQUIRED = new Class<?>[] { Object.class, Object.class, int.class, long.class,
-        Integer.class, Long.class };
+            Integer.class, Long.class };
     
     @Test
     public void PhaseOneTest() {

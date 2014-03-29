@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 class JLSMethodLocator extends MethodLocator {
     @Override
     protected Method getMethod(Collection<? extends Method> methods, Class<?> clazz, String name, Class<?>... args)
-            throws AmbiguousDeclarationException, NoSuchMethodException {
+        throws AmbiguousDeclarationException, NoSuchMethodException {
         return findParameterized(convertMethods(methods), clazz, name, args);
     }
     
@@ -56,7 +56,7 @@ class JLSMethodLocator extends MethodLocator {
     
     private <M extends AccessibleObject & GenericDeclaration & Member> M findParameterized(
             Collection<? extends Parameterized<M>> parameterizeds, Class<?> clazz, String name, Class<?>... args)
-            throws AmbiguousDeclarationException, NoSuchMethodException {
+        throws AmbiguousDeclarationException, NoSuchMethodException {
         Set<M> found = findParameterizeds(parameterizeds, clazz, name, args);
         if (found.size() > 1) {
             throw new AmbiguousDeclarationException(found.toString());
@@ -66,7 +66,7 @@ class JLSMethodLocator extends MethodLocator {
     
     private <M extends AccessibleObject & GenericDeclaration & Member> Set<M> findParameterizeds(
             Collection<? extends Parameterized<M>> parameterizeds, Class<?> clazz, String name, Class<?>... args)
-            throws NoSuchMethodException {
+        throws NoSuchMethodException {
         Set<Parameterized<M>> potentiallyApplicable = new LinkedHashSet<>();
         Predicate<Parameterized<?>> filter = new PotentiallyApplicable(name, args);
         for (Parameterized<M> p : parameterizeds) {

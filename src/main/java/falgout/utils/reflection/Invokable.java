@@ -16,7 +16,7 @@ abstract class Invokable<M extends AccessibleObject & GenericDeclaration & Membe
         
         @Override
         public Object invoke(Object... args) throws IllegalAccessException, IllegalArgumentException,
-        InvocationTargetException {
+            InvocationTargetException {
             return member.invoke(receiver, args);
         }
         
@@ -38,7 +38,7 @@ abstract class Invokable<M extends AccessibleObject & GenericDeclaration & Membe
         
         @Override
         public T invoke(Object... args) throws InstantiationException, IllegalAccessException,
-        IllegalArgumentException, InvocationTargetException {
+            IllegalArgumentException, InvocationTargetException {
             return member.newInstance(args);
         }
         
@@ -58,5 +58,5 @@ abstract class Invokable<M extends AccessibleObject & GenericDeclaration & Membe
     }
     
     public abstract R invoke(Object... args) throws InstantiationException, IllegalAccessException,
-    IllegalArgumentException, InvocationTargetException;
+        IllegalArgumentException, InvocationTargetException;
 }

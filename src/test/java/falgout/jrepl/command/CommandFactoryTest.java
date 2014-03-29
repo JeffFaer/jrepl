@@ -28,7 +28,7 @@ public class CommandFactoryTest {
     private void assertCommandExists(String input) {
         factory.getCommand(e, input);
     }
-
+    
     @Test
     public void canParseImports() {
         assertCommandExists("import foo; import foo2.*; import static foo3; import static foo4.*;");

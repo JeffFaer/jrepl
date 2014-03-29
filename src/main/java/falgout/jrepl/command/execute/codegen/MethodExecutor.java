@@ -29,7 +29,7 @@ public class MethodExecutor extends CodeExecutor<Method, Object> {
     
     @Override
     public List<? extends Object> execute(Environment env, Iterable<? extends NamedSourceCode<? extends Method>> input)
-            throws ExecutionException {
+        throws ExecutionException {
         List<? extends Method> methods = compiler.execute(env, input);
         List<Object> ret = new ArrayList<>(methods.size());
         for (Method m : methods) {

@@ -12,7 +12,7 @@ class VarArgsMethodInvoker extends MethodInvoker {
     
     @Override
     protected Object invoke(Object instance, Method m, Object... args) throws InvocationTargetException,
-    IllegalAccessException, IllegalArgumentException {
+        IllegalAccessException, IllegalArgumentException {
         try {
             return invoke(new Invokable.Method(m, instance), args);
         } catch (InstantiationException e) {
@@ -24,12 +24,12 @@ class VarArgsMethodInvoker extends MethodInvoker {
     
     @Override
     protected <T> T invoke(Constructor<T> cons, Object... args) throws InstantiationException, IllegalAccessException,
-    IllegalArgumentException, InvocationTargetException {
+        IllegalArgumentException, InvocationTargetException {
         return invoke(new Invokable.Constructor<>(cons), args);
     }
     
     private <T> T invoke(Invokable<?, T> i, Object... args) throws InstantiationException, IllegalAccessException,
-    IllegalArgumentException, InvocationTargetException {
+        IllegalArgumentException, InvocationTargetException {
         if (i.isVarArgs()) {
             args = repackageArguments(i.getParameterTypes(), args);
         }
@@ -50,7 +50,7 @@ class VarArgsMethodInvoker extends MethodInvoker {
         Object varArgsArray;
         if (varArgsLength == 1
                 && (args[n] == null || (arr = args[n].getClass()).isArray()
-                && componentType.isAssignableFrom(arr.getComponentType()))) {
+                        && componentType.isAssignableFrom(arr.getComponentType()))) {
             // reuse array if it's of an appropriate type
             varArgsArray = args[n];
         } else if (componentType.isPrimitive()) {

@@ -35,12 +35,12 @@ import java.util.Set;
  */
 public abstract class MethodLocator {
     public Method getMethod(Class<?> clazz, String name, Object... args) throws AmbiguousDeclarationException,
-            NoSuchMethodException {
+        NoSuchMethodException {
         return getMethod(clazz, name, ReflectionUtilities.getClasses(args));
     }
     
     public Method getMethod(Class<?> clazz, String name, Class<?>... args) throws AmbiguousDeclarationException,
-            NoSuchMethodException {
+        NoSuchMethodException {
         return getMethod(Arrays.asList(clazz.getMethods()), clazz, name, args);
     }
     
@@ -53,12 +53,12 @@ public abstract class MethodLocator {
     }
     
     public Method getDeclaredMethod(Class<?> clazz, String name, Object... args) throws AmbiguousDeclarationException,
-            NoSuchMethodException {
+        NoSuchMethodException {
         return getDeclaredMethod(clazz, name, ReflectionUtilities.getClasses(args));
     }
     
     public Method getDeclaredMethod(Class<?> clazz, String name, Class<?>... args)
-            throws AmbiguousDeclarationException, NoSuchMethodException {
+        throws AmbiguousDeclarationException, NoSuchMethodException {
         return getMethod(Arrays.asList(clazz.getDeclaredMethods()), clazz, name, args);
     }
     
@@ -77,12 +77,12 @@ public abstract class MethodLocator {
             Class<?>... args) throws NoSuchMethodException;
     
     public <T> Constructor<T> getConstructor(Class<T> clazz, Object... args) throws AmbiguousDeclarationException,
-            NoSuchMethodException {
+        NoSuchMethodException {
         return getConstructor(clazz, ReflectionUtilities.getClasses(args));
     }
     
     public <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... args) throws AmbiguousDeclarationException,
-            NoSuchMethodException {
+        NoSuchMethodException {
         return getConstructor(ReflectionUtilities.getConstructors(clazz), clazz, args);
     }
     
@@ -95,12 +95,12 @@ public abstract class MethodLocator {
     }
     
     public <T> Constructor<T> getDeclaredConstructor(Class<T> clazz, Object... args)
-            throws AmbiguousDeclarationException, NoSuchMethodException {
+        throws AmbiguousDeclarationException, NoSuchMethodException {
         return getDeclaredConstructor(clazz, ReflectionUtilities.getClasses(args));
     }
     
     public <T> Constructor<T> getDeclaredConstructor(Class<T> clazz, Class<?>... args)
-            throws AmbiguousDeclarationException, NoSuchMethodException {
+        throws AmbiguousDeclarationException, NoSuchMethodException {
         return getConstructor(ReflectionUtilities.getDeclaredConstructors(clazz), clazz, args);
     }
     
@@ -109,7 +109,7 @@ public abstract class MethodLocator {
     }
     
     public <T> Set<Constructor<T>> getDeclaredConstructors(Class<T> clazz, Class<?>... args)
-            throws NoSuchMethodException {
+        throws NoSuchMethodException {
         return getConstructors(ReflectionUtilities.getDeclaredConstructors(clazz), clazz, args);
     }
     
