@@ -159,7 +159,6 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + Arrays.hashCode(getRawTypes());
-        result = prime * result + (returnType == null ? 0 : returnType.hashCode());
         return result;
     }
     
@@ -175,14 +174,7 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
             return false;
         }
         MethodOrConstructorSourceCode<?> other = (MethodOrConstructorSourceCode<?>) obj;
-        if (Arrays.equals(getRawTypes(), other.getRawTypes())) {
-            return false;
-        }
-        if (returnType == null) {
-            if (other.returnType != null) {
-                return false;
-            }
-        } else if (!returnType.equals(other.returnType)) {
+        if (!Arrays.equals(getRawTypes(), other.getRawTypes())) {
             return false;
         }
         return true;

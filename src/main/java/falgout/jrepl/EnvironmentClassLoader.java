@@ -31,9 +31,10 @@ public class EnvironmentClassLoader extends URLClassLoader {
             return super.loadClass(name);
         } catch (ClassNotFoundException e) {}
         
-        Optional<? extends NestedClass<?>> opt = env.getClassRepository().getCompiled(name);
-        if (opt.isPresent()) {
-            return opt.get().getDeclaredClass();
+        for (Optional<? extends NestedClass<?>> opt : env.getClassRepository().getCompiled(name)) {
+            if (opt.isPresent()) {
+                return opt.get().getDeclaredClass();
+            }
         }
         
         return loadImportedClass(name);

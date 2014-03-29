@@ -70,10 +70,10 @@ public abstract class MethodLocator {
         return getMethods(Arrays.asList(clazz.getDeclaredMethods()), clazz, name, args);
     }
     
-    protected abstract Method getMethod(Collection<? extends Method> methods, Class<?> clazz, String name,
+    public abstract Method getMethod(Collection<? extends Method> methods, Class<?> clazz, String name,
             Class<?>... args) throws AmbiguousDeclarationException, NoSuchMethodException;
     
-    protected abstract Set<Method> getMethods(Collection<? extends Method> methods, Class<?> clazz, String name,
+    public abstract Set<Method> getMethods(Collection<? extends Method> methods, Class<?> clazz, String name,
             Class<?>... args) throws NoSuchMethodException;
     
     public <T> Constructor<T> getConstructor(Class<T> clazz, Object... args) throws AmbiguousDeclarationException,
@@ -113,9 +113,9 @@ public abstract class MethodLocator {
         return getConstructors(ReflectionUtilities.getDeclaredConstructors(clazz), clazz, args);
     }
     
-    protected abstract <T> Constructor<T> getConstructor(Collection<? extends Constructor<T>> constructors,
+    public abstract <T> Constructor<T> getConstructor(Collection<? extends Constructor<T>> constructors,
             Class<T> clazz, Class<?>... args) throws AmbiguousDeclarationException, NoSuchMethodException;
     
-    protected abstract <T> Set<Constructor<T>> getConstructors(Collection<? extends Constructor<T>> constructors,
+    public abstract <T> Set<Constructor<T>> getConstructors(Collection<? extends Constructor<T>> constructors,
             Class<T> clazz, Class<?>... args) throws NoSuchMethodException;
 }

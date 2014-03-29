@@ -12,15 +12,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 
 import falgout.jrepl.Environment;
+import falgout.jrepl.command.AbstractCommandFactory.Pair;
+import falgout.jrepl.command.JavaCommandFactory;
+import falgout.jrepl.command.ParsingException;
+import falgout.jrepl.command.parse.ClassDeclaration;
 import falgout.jrepl.guice.TestEnvironment;
 import falgout.jrepl.guice.TestModule;
 
@@ -30,19 +36,29 @@ public class CodeRepositoryTest {
     @Inject @Rule public TestEnvironment env;
     @Inject public Environment e;
     public CodeRepository<Class<?>> repo = new CodeRepository<>(ClassCompiler.INSTANCE);
+    public JavaCommandFactory<AbstractTypeDeclaration> classParser = new JavaCommandFactory<>(new Pair<>(
+            ClassDeclaration.INSTANCE, (env, input) -> (AbstractTypeDeclaration) input.types().get(0)));
     
-    public NamedSourceCode<Class<?>> foo1 = getCode("Foo", "public class Foo {}");
-    public NamedSourceCode<Class<?>> foo2 = getCode("Foo", "public class Foo { static int foo; }");
-    public NamedSourceCode<Class<?>> foo3 = getCode("Foo3", "public class Foo3 {}");
-    public NamedSourceCode<Class<?>> foo4 = getCode("Foo4", "public class Foo4 { static Foo3 foo; }");
-    public NamedSourceCode<Class<?>> bar = getCode("Bar", "public class Bar {}");
-    public NamedSourceCode<Class<?>> err = getCode("Err", "public class Err { ERROR }");
+    public NamedSourceCode<Class<?>> foo1 = getCode("public class Foo {}");
+    public NamedSourceCode<Class<?>> foo2 = getCode("public class Foo { static int foo; }");
+    public NamedSourceCode<Class<?>> foo3 = getCode("public class Foo3 {}");
+    public NamedSourceCode<Class<?>> foo4 = getCode("public class Foo4 { static Foo3 foo; }");
+    public NamedSourceCode<Class<?>> bar = getCode("public class Bar {}");
+    public NamedSourceCode<Class<?>> err = getMock("Err", "public class Err { ERROR }");
     
-    public NamedSourceCode<Class<?>> getCode(String name, String code) {
-        NamedSourceCode<Class<?>> clazz = mock(NamedSourceCode.class);
-        when(clazz.getName()).thenReturn(name);
-        when(clazz.toString()).thenReturn(code);
-        return clazz;
+    public NamedSourceCode<Class<?>> getCode(String code) {
+        try {
+            return TypeSourceCode.get(classParser.execute(e, code));
+        } catch (ParsingException | ClassNotFoundException | ExecutionException e) {
+            throw new Error(e);
+        }
+    }
+    
+    public NamedSourceCode<Class<?>> getMock(String name, String code) {
+        NamedSourceCode<Class<?>> mock = mock(NamedSourceCode.class);
+        when(mock.getName()).thenReturn(name);
+        when(mock.toString()).thenReturn(code);
+        return mock;
     }
     
     @Test
@@ -50,7 +66,7 @@ public class CodeRepositoryTest {
         assertTrue(repo.add(foo1));
         assertFalse(repo.add(foo2));
         
-        assertSame(foo1, repo.getCode("Foo").get());
+        assertSame(foo1, repo.getCode("Foo").get().iterator().next());
     }
     
     @Test
@@ -82,9 +98,10 @@ public class CodeRepositoryTest {
     @Test
     public void CanCompileByName() throws ExecutionException {
         repo.add(foo1);
-        List<? extends Optional<? extends Class<?>>> compiled = repo.compile(e, "Foo", "Bar");
-        assertTrue(compiled.get(0).isPresent());
-        assertFalse(compiled.get(1).isPresent());
+        Multimap<String, ? extends Class<?>> compiled = repo.compile(e, "Foo", "Bar");
+        assertEquals(1, compiled.get("Foo").size());
+        assertEquals(0, compiled.get("Bar").size());
+        assertEquals(1, compiled.size());
         
         assertEquals(1, repo.getAllCompiled().size());
     }

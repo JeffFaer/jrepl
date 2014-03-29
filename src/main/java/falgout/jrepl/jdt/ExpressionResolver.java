@@ -1,5 +1,7 @@
 package falgout.jrepl.jdt;
 
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -44,7 +46,7 @@ import falgout.utils.reflection.MethodInvoker;
 import falgout.utils.reflection.MethodLocator;
 
 public class ExpressionResolver extends ValuedThrowingASTVisitor<TypeToken<?>, ReflectiveOperationException> {
-    private static final MethodLocator methodLocator = MethodInvoker.getDefault().getMethodLocator();
+    private static final MethodLocator METHOD_LOCATOR = MethodInvoker.getDefault().getMethodLocator();
     private final Environment env;
     
     public ExpressionResolver(Environment env) {
@@ -144,24 +146,26 @@ public class ExpressionResolver extends ValuedThrowingASTVisitor<TypeToken<?>, R
     @Override
     public TypeToken<?> visit(MethodInvocation node) throws ReflectiveOperationException {
         String name = node.getName().toString();
+        
+        List<Expression> arguments = node.arguments();
+        Class<?>[] args = new Class<?>[arguments.size()];
+        for (int i = 0; i < arguments.size(); i++) {
+            args[i] = visit(arguments.get(i)).getRawType();
+        }
+        
         Method method;
         if (node.getExpression() == null) {
-            Optional<? extends Method> opt = env.getMethodRepository().getCompiled(name);
-            if (opt.isPresent()) {
-                method = opt.get();
-            } else {
-                throw new NoSuchMethodException(name + " does not exist in the Environment.");
-            }
+            List<? extends Method> environmentMethods = env.getMethodRepository()
+                    .getCompiled(name)
+                    .stream()
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(toList());
+            
+            method = METHOD_LOCATOR.getMethod(environmentMethods, null, name, args);
         } else {
             TypeToken<?> type = visit(node.getExpression());
-            
-            List<Expression> arguments = node.arguments();
-            Class<?>[] args = new Class<?>[arguments.size()];
-            for (int i = 0; i < arguments.size(); i++) {
-                args[i] = visit(arguments.get(i)).getRawType();
-            }
-            
-            method = methodLocator.getMethod(type.getRawType(), name, args);
+            method = METHOD_LOCATOR.getMethod(type.getRawType(), name, args);
         }
         return TypeToken.of(method.getGenericReturnType());
     }

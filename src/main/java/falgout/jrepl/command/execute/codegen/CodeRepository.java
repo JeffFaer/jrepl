@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
+import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
 import java.util.AbstractSet;
@@ -9,16 +10,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 import falgout.jrepl.Environment;
 
@@ -48,8 +48,8 @@ public class CodeRepository<T> {
         }
     }
     
-    private final Map<String, NamedSourceCode<? extends T>> code = new LinkedHashMap<>();
-    private final Map<String, T> compiled = new LinkedHashMap<>();
+    private final Multimap<String, NamedSourceCode<? extends T>> code = LinkedHashMultimap.create();
+    private final Map<NamedSourceCode<? extends T>, T> compiled = new LinkedHashMap<>();
     private final CodeCompiler<T> compiler;
     
     private final Set<NamedSourceCode<? extends T>> allCode = Collections.unmodifiableSet(new SetView<>(code.values()));
@@ -80,7 +80,7 @@ public class CodeRepository<T> {
         int size = this.code.size();
         code.forEach(c -> {
             String name = c.getName();
-            if (!contains(name)) {
+            if (!this.code.get(name).contains(c)) {
                 this.code.put(name, c);
             }
         });
@@ -88,20 +88,20 @@ public class CodeRepository<T> {
         return size != this.code.size();
     }
     
-    public Optional<? extends NamedSourceCode<? extends T>> getCode(String name) {
-        return Optional.ofNullable(code.get(name));
-    }
-    
     public boolean contains(String name) {
         return code.containsKey(name);
+    }
+    
+    public Optional<? extends Collection<? extends NamedSourceCode<? extends T>>> getCode(String name) {
+        return Optional.ofNullable(code.get(name)).map(Collections::unmodifiableCollection);
     }
     
     public Set<? extends NamedSourceCode<? extends T>> getAllCode() {
         return allCode;
     }
     
-    public Optional<? extends T> compile(Environment env, String name) throws ExecutionException {
-        return compile(env, new String[] { name }).get(0);
+    public Collection<? extends T> compile(Environment env, String name) throws ExecutionException {
+        return compile(env, new String[] { name }).get(name);
     }
     
     /**
@@ -116,17 +116,20 @@ public class CodeRepository<T> {
      *         {@code Optional} containing the compiled version.
      * @throws ExecutionException If there is an exception during compilation.
      */
-    public List<Optional<? extends T>> compile(Environment env, String... names) throws ExecutionException {
+    public Multimap<String, ? extends T> compile(Environment env, String... names) throws ExecutionException {
+        Multimap<String, T> compiled = LinkedHashMultimap.create();
         Map<NamedSourceCode<? extends T>, Boolean> toCompile = new LinkedHashMap<>();
         for (String name : names) {
             if (contains(name)) {
-                toCompile.put(getCode(name).get(), false);
-            } else {
-                toCompile.put(null, null);
+                for (NamedSourceCode<? extends T> code : getCode(name).get()) {
+                    toCompile.put(code, false);
+                }
             }
         }
         
-        return doCompile(env, toCompile);
+        Iterator<NamedSourceCode<? extends T>> i = toCompile.keySet().iterator();
+        doCompile(env, toCompile).forEach(t -> compiled.put(i.next().getName(), t));
+        return compiled;
     }
     
     public Optional<? extends T> compile(Environment env, NamedSourceCode<? extends T> code) throws ExecutionException {
@@ -170,67 +173,69 @@ public class CodeRepository<T> {
     public Optional<? extends List<? extends T>> compile(Environment env,
             Iterable<? extends NamedSourceCode<? extends T>> code) throws ExecutionException {
         Map<NamedSourceCode<? extends T>, Boolean> add = new LinkedHashMap<>();
-        Set<String> names = new LinkedHashSet<>();
         for (NamedSourceCode<? extends T> c : code) {
             String name = c.getName();
             
-            if (names.contains(name)) {
+            if (add.containsKey(c)) {
                 return Optional.empty();
             } else if (contains(name)) {
-                if (getCode(name).get() == c) {
+                Collection<? extends NamedSourceCode<? extends T>> containedCode = getCode(name).get();
+                if (containedCode.stream().anyMatch(contained -> c == contained)) {
                     add.put(c, false);
-                } else {
+                } else if (containedCode.stream().anyMatch(c::equals)) {
                     return Optional.empty();
+                } else {
+                    add.put(c, true);
                 }
             } else {
-                names.add(name);
                 add.put(c, true);
             }
         }
         
-        return Optional.of(doCompile(env, add).stream().map(opt -> opt.get()).collect(toList()));
+        return Optional.of(doCompile(env, add));
     }
     
-    private List<Optional<? extends T>> doCompile(Environment env, Map<NamedSourceCode<? extends T>, Boolean> shouldAdd)
+    private List<? extends T> doCompile(Environment env, Map<NamedSourceCode<? extends T>, Boolean> shouldAdd)
         throws ExecutionException {
-        List<Optional<? extends T>> ret = new ArrayList<>(shouldAdd.size());
+        List<T> ret = new ArrayList<>(shouldAdd.size());
         Map<NamedSourceCode<? extends T>, Integer> toCompile = new LinkedHashMap<>();
         shouldAdd.forEach((code, add) -> {
-            if (add == null) {
-                ret.add(Optional.empty());
+            if (!add && compiled.containsKey(code)) {
+                ret.add(compiled.get(code)); // cached
             } else {
-                String name = code.getName();
-                if (!add && compiled.containsKey(name)) {
-                    ret.add(Optional.of(compiled.get(name))); // cached
-                } else {
-                    toCompile.put(code, ret.size());
-                    ret.add(null); // placeholder
-                }
+                toCompile.put(code, ret.size());
+                ret.add(null); // placeholder
             }
         });
         
-        Queue<? extends T> compiled = new LinkedList<>(compiler.execute(env, toCompile.keySet()));
+        Iterator<? extends T> compiled = compiler.execute(env, toCompile.keySet()).iterator();
         toCompile.forEach((code, index) -> {
-            T t = compiled.poll();
-            this.compiled.put(code.getName(), t);
-            ret.set(index, Optional.of(t)); // replace placeholder
+            T t = compiled.next();
+            this.compiled.put(code, t);
+            ret.set(index, t); // replace placeholder
         });
         
         shouldAdd.forEach((code, add) -> {
-            if (add != null && add) {
+            if (add) {
                 this.code.put(code.getName(), code);
             }
         });
-        return ret;
-        
+        return Collections.unmodifiableList(ret);
     }
     
     public boolean isCompiled(String name) {
-        return compiled.containsKey(name);
+        return code.get(name).stream().anyMatch(c -> compiled.containsKey(c));
     }
     
-    public Optional<? extends T> getCompiled(String name) {
-        return Optional.ofNullable(compiled.get(name));
+    public boolean isCompiled(NamedSourceCode<? extends T> code) {
+        return compiled.containsKey(code);
+    }
+    
+    public List<? extends Optional<? extends T>> getCompiled(String name) {
+        return code.get(name)
+                .stream()
+                .map(c -> Optional.ofNullable(compiled.get(c)))
+                .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
     
     public Set<? extends T> getAllCompiled() {
