@@ -65,8 +65,12 @@ public class MethodDefinerTest {
     
     @Test
     public void canDefineMethodWithParameters() throws ParsingException, ExecutionException {
-        Method m = parse("public void foo(int x, Object foo) {}", "foo").get(0);
+        Method m = parse("public void foo(int x, Object foo) {System.out.println(foo);}", "foo").get(0);
         assertEquals(2, m.getParameterCount());
+        if (m.getParameters()[0].isNamePresent()) {
+            assertEquals("x", m.getParameters()[0].getName());
+            assertEquals("foo", m.getParameters()[1].getName());
+        }
     }
     
     @Test

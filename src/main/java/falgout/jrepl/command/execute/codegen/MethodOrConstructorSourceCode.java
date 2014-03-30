@@ -74,6 +74,10 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         }
         
         public B addParameterNames(String... names) {
+            return addParameterNames(Arrays.asList(names));
+        }
+        
+        public B addParameterNames(List<? extends String> names) {
             this.names.addAll(requireNonNull(names));
             return getBuilder();
         }
@@ -188,8 +192,7 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         }
         b.append(getName()).append("(");
         b.append(IntStream.range(0, parameters.size())
-                .mapToObj(
-                        i -> Arrays.asList(GoogleTypes.toCanonicalString(parameters.get(i)), " ", parameterNames.get(i)))
+                .mapToObj(i -> Arrays.asList(GoogleTypes.toCanonicalString(parameters.get(i)), parameterNames.get(i)))
                 .map(l -> String.join(" ", l))
                 .collect(joining(", ")));
         b.append(") ");
@@ -219,6 +222,7 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         builder.setModifiers(decl.getModifiers());
         builder.setName(decl.getName().toString());
         builder.setParameters(getParameterTypes(decl.parameters()));
+        builder.addParameterNames(getParameterNames(decl.parameters()));
         builder.setThrows(getExceptionTypes(decl.thrownExceptions()));
         
         List<Statement> l = decl.getBody().statements();
@@ -226,6 +230,10 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         builder.addChildren(l.stream().map(st -> b.setDelegate(st).build()).collect(toList()));
         
         return builder.build();
+    }
+    
+    private static List<String> getParameterNames(List<SingleVariableDeclaration> parameters) {
+        return parameters.stream().map(param -> param.getName().toString()).collect(toList());
     }
     
     private static List<TypeToken<?>> getParameterTypes(List<SingleVariableDeclaration> parameters)
