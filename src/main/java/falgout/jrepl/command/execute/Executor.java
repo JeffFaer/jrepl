@@ -1,5 +1,9 @@
 package falgout.jrepl.command.execute;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
@@ -19,7 +23,17 @@ public interface Executor<I, R> {
      */
     public R execute(Environment env, I input) throws ExecutionException;
     
-    default public <RR> Executor<I, RR> andThen(Function<? super R, ? extends RR> convert) {
-        return (env, input) -> convert.apply(execute(env, input));
+    default public List<? extends R> execute(Environment env, Collection<? extends I> input) throws ExecutionException {
+        List<R> ret = new ArrayList<>(input.size());
+        for (I i : input) {
+            ret.add(execute(env, i));
+        }
+        
+        return ret;
+    }
+    
+    default public <RR> Executor<I, RR> andThen(Function<? super R, ? extends RR> after) {
+        Objects.requireNonNull(after);
+        return (env, input) -> after.apply(execute(env, input));
     }
 }

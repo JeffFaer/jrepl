@@ -15,7 +15,6 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
 import com.google.inject.util.Providers;
 
 import falgout.jrepl.Import;
@@ -25,7 +24,6 @@ import falgout.jrepl.reflection.NestedClass;
 
 public class ExecutorModule extends AbstractModule {
     @SuppressWarnings("rawtypes") private static final TypeToken<Executor> EXECUTOR = TypeToken.of(Executor.class);
-    @SuppressWarnings("rawtypes") private static final TypeToken<Iterable> ITERABLE = TypeToken.of(Iterable.class);
     @SuppressWarnings("rawtypes") private static final TypeToken<List> LIST = TypeToken.of(List.class);
     
     @SuppressWarnings("unchecked")
@@ -76,38 +74,9 @@ public class ExecutorModule extends AbstractModule {
         TypeToken<Executor<I, R>> simple = (TypeToken<Executor<I, R>>) GoogleTypes.newParameterizedType(null, EXECUTOR,
                 in, out);
         
-        TypeToken<Iterable<? extends I>> batchInput = (TypeToken<Iterable<? extends I>>) GoogleTypes.newParameterizedType(
-                null, ITERABLE, GoogleTypes.subtypeOf(in));
-        TypeToken<List<? extends R>> batchOutput = (TypeToken<List<? extends R>>) GoogleTypes.newParameterizedType(
-                null, LIST, GoogleTypes.subtypeOf(out));
-        TypeToken<Executor<Iterable<? extends I>, List<? extends R>>> batch = (TypeToken<Executor<Iterable<? extends I>, List<? extends R>>>) GoogleTypes.newParameterizedType(
-                null, EXECUTOR, batchInput, batchOutput);
-        
-        bind(GoogleTypes.get(simple)).toProvider(getSimple(exec)).in(Singleton.class);
-        bind(GoogleTypes.get(batch)).toProvider(getBatch(exec)).in(Singleton.class);
+        bind(GoogleTypes.get(simple)).toProvider(exec);
     }
     
     // XXX https://code.google.com/p/google-guice/issues/detail?id=757
     // XXX https://bugs.eclipse.org/bugs/show_bug.cgi?id=431190
-    
-    private <I, R> Provider<Executor<I, R>> getSimple(Provider<? extends AbstractExecutor<I, R>> p) {
-        return new Provider<Executor<I, R>>() {
-            @Override
-            public Executor<I, R> get() {
-                AbstractExecutor<I, R> exec = p.get();
-                return exec::execute;
-            }
-        };
-    }
-    
-    private <I, R> Provider<Executor<Iterable<? extends I>, List<? extends R>>> getBatch(
-            Provider<? extends AbstractExecutor<I, R>> p) {
-        return new Provider<Executor<Iterable<? extends I>, List<? extends R>>>() {
-            @Override
-            public Executor<Iterable<? extends I>, List<? extends R>> get() {
-                AbstractExecutor<I, R> exec = p.get();
-                return exec::execute;
-            }
-        };
-    }
 }

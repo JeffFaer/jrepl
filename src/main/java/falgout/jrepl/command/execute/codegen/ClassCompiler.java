@@ -3,6 +3,7 @@ package falgout.jrepl.command.execute.codegen;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +29,7 @@ public class ClassCompiler extends CodeCompiler<Class<?>> {
     
     @Override
     public List<? extends Class<?>> execute(Environment env,
-            Iterable<? extends NamedSourceCode<? extends Class<?>>> input) throws ExecutionException {
+            Collection<? extends NamedSourceCode<? extends Class<?>>> input) throws ExecutionException {
         List<JavaFileObject> sources = new ArrayList<>();
         Set<String> names = new LinkedHashSet<>();
         for (NamedSourceCode<? extends Class<?>> code : input) {

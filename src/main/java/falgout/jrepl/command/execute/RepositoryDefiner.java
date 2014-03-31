@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute;
 
 import java.lang.reflect.Member;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -16,7 +17,7 @@ public abstract class RepositoryDefiner<D extends ASTNode, M extends Member> ext
     protected RepositoryDefiner() {}
     
     @Override
-    public List<? extends M> execute(Environment env, Iterable<? extends D> input) throws ExecutionException {
+    public List<? extends M> execute(Environment env, Collection<? extends D> input) throws ExecutionException {
         List<NamedSourceCode<? extends M>> code = new ArrayList<>();
         for (D d : input) {
             try {

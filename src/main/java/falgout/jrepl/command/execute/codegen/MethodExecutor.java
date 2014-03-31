@@ -3,6 +3,7 @@ package falgout.jrepl.command.execute.codegen;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -28,7 +29,7 @@ public class MethodExecutor extends CodeExecutor<Method, Object> {
     }
     
     @Override
-    public List<? extends Object> execute(Environment env, Iterable<? extends NamedSourceCode<? extends Method>> input)
+    public List<? extends Object> execute(Environment env, Collection<? extends NamedSourceCode<? extends Method>> input)
         throws ExecutionException {
         List<? extends Method> methods = compiler.execute(env, input);
         List<Object> ret = new ArrayList<>(methods.size());

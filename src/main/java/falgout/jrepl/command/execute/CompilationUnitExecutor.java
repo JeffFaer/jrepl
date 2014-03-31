@@ -19,12 +19,12 @@ import falgout.jrepl.util.Optionals;
 
 @Singleton
 public class CompilationUnitExecutor extends AbstractExecutor<CompilationUnit, List<? extends Optional<?>>> {
-    private final Executor<Iterable<? extends ImportDeclaration>, List<? extends Import>> importer;
-    private final Executor<Iterable<? extends AbstractTypeDeclaration>, List<? extends NestedClass<?>>> classDefiner;
+    private final Executor<ImportDeclaration, Import> importer;
+    private final Executor<AbstractTypeDeclaration, NestedClass<?>> classDefiner;
     
     @Inject
-    public CompilationUnitExecutor(Executor<Iterable<? extends ImportDeclaration>, List<? extends Import>> importer,
-            Executor<Iterable<? extends AbstractTypeDeclaration>, List<? extends NestedClass<?>>> classDefiner) {
+    public CompilationUnitExecutor(Executor<ImportDeclaration, Import> importer,
+            Executor<AbstractTypeDeclaration, NestedClass<?>> classDefiner) {
         this.importer = importer;
         this.classDefiner = classDefiner;
     }

@@ -3,6 +3,7 @@ package falgout.jrepl.command.execute;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -32,7 +33,7 @@ public class ExpressionExecutor extends BatchExecutor<Expression, Object> {
     }
     
     @Override
-    public List<? extends Object> execute(Environment env, Iterable<? extends Expression> input)
+    public List<? extends Object> execute(Environment env, Collection<? extends Expression> input)
         throws ExecutionException {
         List<MethodSourceCode> methods = new ArrayList<>();
         

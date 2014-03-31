@@ -27,15 +27,13 @@ import falgout.jrepl.guice.MethodExecutorFactory;
 import falgout.jrepl.util.Optionals;
 
 public class StatementExecutor extends AbstractExecutor<Block, List<? extends Optional<?>>> {
-    private final Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer;
-    private final Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor;
+    private final Executor<VariableDeclarationStatement, List<LocalVariable<?>>> variableDeclarer;
+    private final Executor<Expression, Object> expressionExecutor;
     private final CodeExecutor<Method, Object> methodExecutor;
     
     @Inject
-    public StatementExecutor(
-            Executor<Iterable<? extends VariableDeclarationStatement>, List<? extends List<LocalVariable<?>>>> variableDeclarer,
-            Executor<Iterable<? extends Expression>, List<? extends Object>> expressionExecutor,
-            MethodExecutorFactory factory) {
+    public StatementExecutor(Executor<VariableDeclarationStatement, List<LocalVariable<?>>> variableDeclarer,
+            Executor<Expression, Object> expressionExecutor, MethodExecutorFactory factory) {
         this.variableDeclarer = variableDeclarer;
         this.expressionExecutor = expressionExecutor;
         methodExecutor = factory.create();

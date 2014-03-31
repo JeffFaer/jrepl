@@ -1,6 +1,7 @@
 package falgout.jrepl.command.execute;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -15,5 +16,5 @@ public abstract class BatchExecutor<I, R> extends AbstractExecutor<I, R> {
     }
     
     @Override
-    public abstract List<? extends R> execute(Environment env, Iterable<? extends I> input) throws ExecutionException;
+    public abstract List<? extends R> execute(Environment env, Collection<? extends I> input) throws ExecutionException;
 }

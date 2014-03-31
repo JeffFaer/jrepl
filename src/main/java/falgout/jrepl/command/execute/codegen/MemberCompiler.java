@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute.codegen;
 
 import java.lang.reflect.Member;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +30,7 @@ public class MemberCompiler<M extends Member> extends CodeCompiler<M> {
     }
     
     @Override
-    public List<? extends M> execute(Environment env, Iterable<? extends NamedSourceCode<? extends M>> input)
+    public List<? extends M> execute(Environment env, Collection<? extends NamedSourceCode<? extends M>> input)
         throws ExecutionException {
         ClassSourceCode.Builder b = ClassSourceCode.builder(env);
         b.addChildren(input);

@@ -42,7 +42,7 @@ public class CommandModule extends AbstractModule {
             Executor<Expression, Object> expressionExec,
             Executor<CompilationUnit, List<? extends Optional<?>>> compilationExec,
             Executor<Block, List<? extends Optional<?>>> statementExec,
-            Executor<Iterable<? extends MethodDeclaration>, List<? extends Method>> methodDefiner) {
+            Executor<MethodDeclaration, Method> methodDefiner) {
         Executor<Expression, Collection<? extends Optional<?>>> exp = expressionExec.andThen(Optional::ofNullable)
                 .andThen(Collections::singleton);
         Executor<TypeDeclaration, List<? extends Optional<?>>> methods = (env, input) -> {
@@ -50,7 +50,7 @@ public class CommandModule extends AbstractModule {
                     .filter(d -> d instanceof MethodDeclaration)
                     .collect(toList());
             List<Optional<?>> opt = new ArrayList<>();
-            for (Method m : methodDefiner.execute(env, (Iterable<? extends MethodDeclaration>) decl)) {
+            for (Method m : methodDefiner.execute(env, (Collection<? extends MethodDeclaration>) decl)) {
                 opt.add(Optional.of(m));
             }
             return opt;
