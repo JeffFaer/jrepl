@@ -13,7 +13,7 @@ import falgout.jrepl.Environment;
 import falgout.jrepl.command.execute.codegen.CodeRepository;
 import falgout.jrepl.command.execute.codegen.NamedSourceCode;
 
-public abstract class RepositoryDefiner<D extends ASTNode, M extends Member> extends BatchExecutor<D, M> {
+public abstract class RepositoryDefiner<D extends ASTNode, M extends Member> extends AbstractBatchExecutor<D, M> {
     protected RepositoryDefiner() {}
     
     @Override

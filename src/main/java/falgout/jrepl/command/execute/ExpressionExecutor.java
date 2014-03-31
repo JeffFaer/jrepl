@@ -24,7 +24,7 @@ import falgout.jrepl.reflection.GoogleTypes;
 import falgout.jrepl.reflection.JDTTypes;
 
 @Singleton
-public class ExpressionExecutor extends BatchExecutor<Expression, Object> {
+public class ExpressionExecutor extends AbstractBatchExecutor<Expression, Object> {
     private final CodeExecutor<Method, Object> executor;
     
     @Inject

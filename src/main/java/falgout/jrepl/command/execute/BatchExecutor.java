@@ -7,11 +7,9 @@ import java.util.concurrent.ExecutionException;
 
 import falgout.jrepl.Environment;
 
-public abstract class BatchExecutor<I, R> extends AbstractExecutor<I, R> {
-    protected BatchExecutor() {}
-    
+public interface BatchExecutor<I, R> extends Executor<I, R> {
     @Override
-    public R execute(Environment env, I input) throws ExecutionException {
+    default public R execute(Environment env, I input) throws ExecutionException {
         return execute(env, Arrays.asList(input)).get(0);
     }
     
