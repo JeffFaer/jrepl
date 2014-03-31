@@ -70,6 +70,14 @@ public class ClassDefinerTest {
     }
     
     @Test
+    public void canAccessOverloadedEnvironmentMethods() throws ParsingException, ExecutionException {
+        env.execute("public void foo() {}");
+        env.execute("public void foo(String s) {}");
+        
+        parse("public class Foo { { foo(); foo(null); } }", "Foo");
+    }
+    
+    @Test
     public void canAccessEnvironmentImports() throws ExecutionException {
         env.execute("import java.util.*;");
         parse("public class Foo { List<String> bar; }", "Foo");

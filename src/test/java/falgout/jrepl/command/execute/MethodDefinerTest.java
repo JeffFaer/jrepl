@@ -1,6 +1,7 @@
 package falgout.jrepl.command.execute;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.InvocationTargetException;
@@ -112,5 +113,46 @@ public class MethodDefinerTest {
     public void cannotRedefineMethods() throws ParsingException, ExecutionException {
         parse("public void foo() {}", "foo");
         parse("public int foo() { return 1; }", "foo");
+    }
+    
+    @Test
+    public void canAccessEnvironmentVariables() throws ExecutionException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException {
+        env.execute("int x = 5;");
+        Method m = parse("public int getX() { return x; }", "getX").get(0);
+        assertEquals(5, m.invoke(null));
+    }
+    
+    @Test
+    public void canAccessEnvironmentClasses() throws ExecutionException, IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException {
+        env.execute("public class Foo {}");
+        Method m = parse("public Foo create() { return new Foo(); }", "create").get(0);
+        assertNotNull(m.invoke(null));
+    }
+    
+    @Test
+    public void canAccessEnvironmentMethods() throws ParsingException, ExecutionException {
+        env.execute("public void bar() {}");
+        parse("public void foo() { bar(); }", "foo");
+    }
+    
+    @Test
+    public void canAccessOverloadedMethods() throws ParsingException, ExecutionException {
+        env.execute("public void bar() {}");
+        env.execute("public void bar(String s) {}");
+        parse("public void foo() { bar(); bar(null); }", "foo");
+    }
+    
+    @Test
+    public void canChainOverloadedMethods() throws ParsingException, ExecutionException {
+        env.execute("public void foo(String s) { }");
+        parse("public void foo() { foo(null); }", "foo");
+    }
+    
+    @Test
+    public void canAccessEnvironmentImports() throws ParsingException, ExecutionException {
+        env.execute("import java.util.*;");
+        parse("public List<String> foo() { return new ArrayList<>(); }", "foo");
     }
 }

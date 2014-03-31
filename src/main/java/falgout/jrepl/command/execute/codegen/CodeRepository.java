@@ -92,6 +92,10 @@ public class CodeRepository<T> {
         return code.containsKey(name);
     }
     
+    public boolean contains(NamedSourceCode<? extends T> code) {
+        return this.code.get(code.getName()).stream().anyMatch(c -> code == c);
+    }
+    
     public Optional<? extends Collection<? extends NamedSourceCode<? extends T>>> getCode(String name) {
         return Optional.ofNullable(code.get(name)).map(Collections::unmodifiableCollection);
     }
@@ -224,7 +228,7 @@ public class CodeRepository<T> {
     }
     
     public boolean isCompiled(String name) {
-        return code.get(name).stream().anyMatch(c -> compiled.containsKey(c));
+        return code.get(name).stream().anyMatch(this::isCompiled);
     }
     
     public boolean isCompiled(NamedSourceCode<? extends T> code) {
