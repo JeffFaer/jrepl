@@ -104,6 +104,7 @@ public class ClassDefinerTest {
     @Test
     public void canDefineEnums() throws ParsingException, ExecutionException {
         Class<?> clazz = parse("public enum Foo { INSTANCE; }", "Foo").get(0);
+        assertTrue(clazz.isEnum());
         assertEquals(1, clazz.getEnumConstants().length);
         assertEquals("INSTANCE", clazz.getEnumConstants()[0].toString());
     }
