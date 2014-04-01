@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 
 import falgout.jrepl.Environment;
 
+@FunctionalInterface
 public interface BatchExecutor<I, R> extends Executor<I, R> {
     @Override
     default public R execute(Environment env, I input) throws ExecutionException {

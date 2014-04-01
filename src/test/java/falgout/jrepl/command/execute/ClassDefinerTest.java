@@ -64,7 +64,7 @@ public class ClassDefinerTest {
     }
     
     @Test
-    public void canAccessEnvironmentMethods() throws ParsingException, ExecutionException {
+    public void canAccessEnvironmentMetmodifierhods() throws ParsingException, ExecutionException {
         env.execute("public void foo() {}");
         parse("public class Foo { { foo(); } }", "Foo");
     }

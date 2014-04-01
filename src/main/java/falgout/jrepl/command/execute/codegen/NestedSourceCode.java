@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -33,8 +34,8 @@ public abstract class NestedSourceCode<T, C> extends NamedSourceCode<T> {
             return addChildren(Arrays.asList(children));
         }
         
-        public B addChildren(Iterable<? extends SourceCode<? extends C>> children) {
-            requireNonNull(children).forEach(this.children::add);
+        public B addChildren(Collection<? extends SourceCode<? extends C>> children) {
+            this.children.addAll(requireNonNull(children));
             return getBuilder();
         }
         

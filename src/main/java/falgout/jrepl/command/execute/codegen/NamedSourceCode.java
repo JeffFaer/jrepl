@@ -117,4 +117,7 @@ public abstract class NamedSourceCode<T> implements SourceCode<T> {
         }
         return true;
     }
+    
+    @Override
+    public abstract String toString();
 }
