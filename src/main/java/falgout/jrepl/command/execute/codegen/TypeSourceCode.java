@@ -12,6 +12,8 @@ import java.util.Optional;
 
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
@@ -212,6 +214,7 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
     
     public static TypeSourceCode get(AbstractTypeDeclaration node) throws ClassNotFoundException {
         return new ValuedThrowingASTVisitor<TypeSourceCode, ClassNotFoundException>(ClassNotFoundException.class) {
+            @SuppressWarnings("unchecked")
             @Override
             public TypeSourceCode visit(TypeDeclaration node) throws ClassNotFoundException {
                 Builder<?, ?> b;
@@ -225,21 +228,59 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
                     }
                 }
                 
-                b.setModifiers(node.getModifiers());
-                b.setName(node.getName().toString());
-                for (Type t : (List<Type>) node.superInterfaceTypes()) {
-                    b.addSuperinterfaces(JDTTypes.getType(t));
-                }
-                
-                List<SourceCode<? extends Member>> body = new ArrayList<>();
-                DelegateSourceCode.Builder<Member> delegate = DelegateSourceCode.builder();
-                for (BodyDeclaration decl : (List<BodyDeclaration>) node.bodyDeclarations()) {
-                    body.add(delegate.setDelegate(decl).build());
-                }
-                b.setChildren(body);
+                initialize(node, b);
+                addSuperinterfaces(node.superInterfaceTypes(), b);
                 
                 return b.build();
             }
+            
+            private <B extends Builder<? extends TypeSourceCode, ?>> B initialize(AbstractTypeDeclaration node,
+                    B builder) {
+                builder.setModifiers(node.getModifiers());
+                builder.setName(node.getName().toString());
+                builder.addChildren(getBody(node.bodyDeclarations()));
+                return builder;
+            }
+            
+            private List<SourceCode<? extends Member>> getBody(List<BodyDeclaration> body) {
+                List<SourceCode<? extends Member>> ret = new ArrayList<>();
+                DelegateSourceCode.Builder<Member> delegate = DelegateSourceCode.builder();
+                for (BodyDeclaration decl : (List<BodyDeclaration>) node.bodyDeclarations()) {
+                    ret.add(delegate.setDelegate(decl).build());
+                }
+                
+                return ret;
+            }
+            
+            private <B extends Builder<?, ?>> B addSuperinterfaces(List<Type> superinterfaces, B builder)
+                throws ClassNotFoundException {
+                for (Type t : superinterfaces) {
+                    builder.addSuperinterfaces(JDTTypes.getType(t));
+                }
+                
+                return builder;
+            }
+            
+            @SuppressWarnings("unchecked")
+            @Override
+            public TypeSourceCode visit(EnumDeclaration node) throws ClassNotFoundException {
+                EnumSourceCode.Builder b = EnumSourceCode.builder();
+                
+                List<EnumConstantDeclaration> constants = node.enumConstants();
+                SourceCode<? extends Member> constantDeclaration = new DelegateSourceCode<Member>(constants) {
+                    @Override
+                    public String toString() {
+                        return constants.stream().map(decl -> decl.toString()).collect(joining(", ", "", ";"));
+                    }
+                };
+                b.addChildren(constantDeclaration);
+                
+                initialize(node, b);
+                addSuperinterfaces(node.superInterfaceTypes(), b);
+                
+                return b.build();
+            }
+            
         }.visit(node);
     }
 }

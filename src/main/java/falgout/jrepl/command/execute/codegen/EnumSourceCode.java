@@ -37,4 +37,8 @@ public class EnumSourceCode extends TypeSourceCode {
     protected TypeIdentifier getTypeIdentifier() {
         return TypeIdentifier.ENUM;
     }
+    
+    public static EnumSourceCode.Builder builder() {
+        return new Builder();
+    }
 }

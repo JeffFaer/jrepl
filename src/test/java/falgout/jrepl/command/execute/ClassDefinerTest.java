@@ -94,4 +94,22 @@ public class ClassDefinerTest {
         Class<?> clazz = parse("public class Foo {}", "Foo").get(0);
         assertTrue(Modifier.isStatic(clazz.getModifiers()));
     }
+    
+    @Test
+    public void canDefineInterfaces() throws ParsingException, ExecutionException {
+        Class<?> clazz = parse("public interface Foo {}", "Foo").get(0);
+        assertTrue(clazz.isInterface());
+    }
+    
+    @Test
+    public void canDefineEnums() throws ParsingException, ExecutionException {
+        Class<?> clazz = parse("public enum Foo { INSTANCE; }", "Foo").get(0);
+        assertEquals(1, clazz.getEnumConstants().length);
+        assertEquals("INSTANCE", clazz.getEnumConstants()[0].toString());
+    }
+    
+    @Test
+    public void canDefineAnnotations() throws ParsingException, ExecutionException {
+        parse("public @interface Foo {}", "Foo");
+    }
 }
