@@ -79,7 +79,8 @@ public class MethodDefiner extends RepositoryDefiner<MethodDeclaration, Method> 
                                                     .build();
                                         })
                                         .collect(toList());
-                                OverloadedMethodSourceCode delegate = OverloadedMethodSourceCode.builder(target, others)
+                                OverloadedMethodSourceCode delegate = OverloadedMethodSourceCode.builder(target)
+                                        .addChildren(others)
                                         .build();
                                 
                                 code.set(i, delegate);

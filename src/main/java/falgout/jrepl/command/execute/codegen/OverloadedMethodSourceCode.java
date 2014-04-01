@@ -4,7 +4,6 @@ import static java.util.stream.Collectors.joining;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,10 +11,8 @@ public class OverloadedMethodSourceCode extends NestedSourceCode<Method, Method>
     public static class Builder extends NestedSourceCode.Builder<Method, Method, OverloadedMethodSourceCode, Builder> {
         private NamedSourceCode<? extends Method> primary;
         
-        public Builder(NamedSourceCode<? extends Method> primary,
-                Collection<? extends SourceCode<? extends Method>> overloads) {
+        public Builder(NamedSourceCode<? extends Method> primary) {
             setPrimary(primary);
-            addChildren(overloads);
         }
         
         @Override
@@ -103,11 +100,10 @@ public class OverloadedMethodSourceCode extends NestedSourceCode<Method, Method>
     
     @SafeVarargs
     public static Builder builder(NamedSourceCode<? extends Method> primary, SourceCode<? extends Method>... overloads) {
-        return builder(primary, Arrays.asList(overloads));
+        return builder(primary).addChildren(Arrays.asList(overloads));
     }
     
-    public static Builder builder(NamedSourceCode<? extends Method> primary,
-            Collection<? extends SourceCode<? extends Method>> overloads) {
-        return new Builder(primary, overloads);
+    public static Builder builder(NamedSourceCode<? extends Method> primary) {
+        return new Builder(primary);
     }
 }
