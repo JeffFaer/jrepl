@@ -28,6 +28,21 @@ public class ClassSourceCode extends TypeSourceCode {
         }
         
         @Override
+        public List<TypeToken<?>> getSuperinterfaces() {
+            return super.getSuperinterfaces();
+        }
+        
+        @Override
+        public Builder addSuperinterfaces(TypeToken<?>... superinterfaces) {
+            return super.addSuperinterfaces(superinterfaces);
+        }
+        
+        @Override
+        public Builder setSuperinterfaces(List<TypeToken<?>> superinterfaces) {
+            return super.setSuperinterfaces(superinterfaces);
+        }
+        
+        @Override
         protected ClassSourceCode build(int modifiers, String name, List<SourceCode<? extends Member>> children,
                 String _package, List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
             return new ClassSourceCode(modifiers, name, children, _package, imports, superclass, superinterfaces);
@@ -47,6 +62,11 @@ public class ClassSourceCode extends TypeSourceCode {
     @Override
     public TypeToken<?> getSuperclass() {
         return super.getSuperclass();
+    }
+    
+    @Override
+    public List<? extends TypeToken<?>> getSuperinterfaces() {
+        return super.getSuperinterfaces();
     }
     
     @Override

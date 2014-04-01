@@ -110,6 +110,7 @@ public class ClassDefinerTest {
     
     @Test
     public void canDefineAnnotations() throws ParsingException, ExecutionException {
-        parse("public @interface Foo {}", "Foo");
+        Class<?> clazz = parse("public @interface Foo {}", "Foo").get(0);
+        assertTrue(clazz.isAnnotation());
     }
 }

@@ -23,6 +23,21 @@ public class EnumSourceCode extends TypeSourceCode {
         }
         
         @Override
+        public List<TypeToken<?>> getSuperinterfaces() {
+            return super.getSuperinterfaces();
+        }
+        
+        @Override
+        public Builder addSuperinterfaces(TypeToken<?>... superinterfaces) {
+            return super.addSuperinterfaces(superinterfaces);
+        }
+        
+        @Override
+        public Builder setSuperinterfaces(List<TypeToken<?>> superinterfaces) {
+            return super.setSuperinterfaces(superinterfaces);
+        }
+        
+        @Override
         protected Builder getBuilder() {
             return this;
         }
@@ -31,6 +46,16 @@ public class EnumSourceCode extends TypeSourceCode {
     protected EnumSourceCode(int modifiers, String name, List<SourceCode<? extends Member>> children, String _package,
             List<Import> imports, List<TypeToken<?>> superinterfaces) {
         super(modifiers, name, children, _package, imports, TypeToken.of(Enum.class), superinterfaces);
+    }
+    
+    @Override
+    public TypeToken<?> getSuperclass() {
+        return super.getSuperclass();
+    }
+    
+    @Override
+    public List<? extends TypeToken<?>> getSuperinterfaces() {
+        return super.getSuperinterfaces();
     }
     
     @Override

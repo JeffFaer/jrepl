@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
@@ -88,16 +89,16 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
             return getBuilder();
         }
         
-        public List<TypeToken<?>> getSuperinterfaces() {
+        protected List<TypeToken<?>> getSuperinterfaces() {
             return superinterfaces;
         }
         
-        public B addSuperinterfaces(TypeToken<?>... superinterfaces) {
+        protected B addSuperinterfaces(TypeToken<?>... superinterfaces) {
             this.superinterfaces.addAll(requireNonNull(superinterfaces));
             return getBuilder();
         }
         
-        public B setSuperinterfaces(List<TypeToken<?>> superinterfaces) {
+        protected B setSuperinterfaces(List<TypeToken<?>> superinterfaces) {
             this.superinterfaces = requireNonNull(superinterfaces);
             return getBuilder();
         }
@@ -204,7 +205,10 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
         if (!getSuperclass().equals(GoogleTypes.OBJECT) && id.getClassExtender().isPresent()) {
             b.append(id.getClassExtender().get()).append(" ").append(getSuperclass()).append(" ");
         }
-        getSuperinterfaceList().ifPresent(l -> b.append(id.getInterfaceExtender()).append(" ").append(l).append(" "));
+        if (id.getInterfaceExtender().isPresent()) {
+            getSuperinterfaceList().ifPresent(
+                    l -> b.append(id.getInterfaceExtender().get()).append(" ").append(l).append(" "));
+        }
         b.append("{\n");
         b.append(createChildrenString("\n"));
         b.append("}");
@@ -217,21 +221,21 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
             @SuppressWarnings("unchecked")
             @Override
             public TypeSourceCode visit(TypeDeclaration node) throws ClassNotFoundException {
-                Builder<?, ?> b;
+                Builder<?, ?> builder;
                 if (node.isInterface()) {
-                    b = InterfaceSourceCode.builder();
+                    builder = InterfaceSourceCode.builder();
                 } else {
-                    b = ClassSourceCode.builder();
+                    builder = ClassSourceCode.builder();
                     Type t = node.getSuperclassType();
                     if (t != null) {
-                        b.setSuperclass(JDTTypes.getType(t));
+                        builder.setSuperclass(JDTTypes.getType(t));
                     }
                 }
                 
-                initialize(node, b);
-                addSuperinterfaces(node.superInterfaceTypes(), b);
+                initialize(node, builder);
+                addSuperinterfaces(node.superInterfaceTypes(), builder);
                 
-                return b.build();
+                return builder.build();
             }
             
             private <B extends Builder<? extends TypeSourceCode, ?>> B initialize(AbstractTypeDeclaration node,
@@ -264,7 +268,7 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
             @SuppressWarnings("unchecked")
             @Override
             public TypeSourceCode visit(EnumDeclaration node) throws ClassNotFoundException {
-                EnumSourceCode.Builder b = EnumSourceCode.builder();
+                EnumSourceCode.Builder builder = EnumSourceCode.builder();
                 
                 List<EnumConstantDeclaration> constants = node.enumConstants();
                 SourceCode<? extends Member> constantDeclaration = new DelegateSourceCode<Member>(constants) {
@@ -273,14 +277,21 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
                         return constants.stream().map(decl -> decl.toString()).collect(joining(", ", "", ";"));
                     }
                 };
-                b.addChildren(constantDeclaration);
+                builder.addChildren(constantDeclaration);
                 
-                initialize(node, b);
-                addSuperinterfaces(node.superInterfaceTypes(), b);
+                initialize(node, builder);
+                addSuperinterfaces(node.superInterfaceTypes(), builder);
                 
-                return b.build();
+                return builder.build();
             }
             
+            @Override
+            public TypeSourceCode visit(AnnotationTypeDeclaration node) throws ClassNotFoundException {
+                AnnotationSourceCode.Builder builder = AnnotationSourceCode.builder();
+                initialize(node, builder);
+                
+                return builder.build();
+            }
         }.visit(node);
     }
 }
