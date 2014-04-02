@@ -78,8 +78,9 @@ public abstract class NamedSourceCode<T> implements SourceCode<T> {
         
         @Override
         public S build() {
-            return build(annotations, modifiers,
-                    name == null ? String.format(GENERATED_NAME_TEMPLATE, preferredName, ID.incrementAndGet()) : name);
+            String actualName = name != null ? name : String.format(GENERATED_NAME_TEMPLATE, preferredName,
+                    ID.incrementAndGet());
+            return build(annotations, modifiers, actualName);
         }
         
         protected abstract S build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name);

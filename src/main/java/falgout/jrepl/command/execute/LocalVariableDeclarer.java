@@ -1,5 +1,7 @@
 package falgout.jrepl.command.execute;
 
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
@@ -54,9 +56,10 @@ public class LocalVariableDeclarer extends AbstractExecutor<VariableDeclarationS
         
         boolean _final = JDTTypes.isFinal(input.modifiers());
         
-        List<LocalVariable<?>> variables = new ArrayList<>();
-        Set<String> names = new LinkedHashSet<>();
-        Map<LocalVariable<?>, Expression> initialize = new LinkedHashMap<>();
+        int numVariables = input.fragments().size();
+        List<LocalVariable<?>> variables = new ArrayList<>(numVariables);
+        Set<String> names = new LinkedHashSet<>(numVariables);
+        Map<LocalVariable<?>, Expression> initialize = new LinkedHashMap<>(numVariables);
         
         for (VariableDeclarationFragment frag : (List<VariableDeclarationFragment>) input.fragments()) {
             String name = frag.getName().getIdentifier();
@@ -89,8 +92,7 @@ public class LocalVariableDeclarer extends AbstractExecutor<VariableDeclarationS
     
     private void createFieldVariables(Environment env, List<LocalVariable<?>> variables,
             Map<LocalVariable<?>, Expression> initialize) throws ExecutionException {
-        List<NamedSourceCode<Field>> source = new ArrayList<>();
-        variables.forEach(var -> source.add(var.asField()));
+        List<NamedSourceCode<Field>> source = variables.stream().map(LocalVariable::asField).collect(toList());
         
         ClassSourceCode.Builder b = ClassSourceCode.builder(env);
         b.addChildren(source);

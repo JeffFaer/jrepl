@@ -35,7 +35,11 @@ public class ExpressionExecutor extends AbstractBatchExecutor<Expression, Object
     @Override
     public List<? extends Object> execute(Environment env, Collection<? extends Expression> input)
         throws ExecutionException {
-        List<MethodSourceCode> methods = new ArrayList<>();
+        List<MethodSourceCode> methods = new ArrayList<>(input.size());
+        
+        MethodSourceCode.Builder builder = MethodSourceCode.builder();
+        builder.addModifier(Modifier.STATIC);
+        builder.addThrows(GoogleTypes.THROWABLE);
         
         input.forEach(e -> {
             SourceCode<Statement> st;
@@ -63,12 +67,10 @@ public class ExpressionExecutor extends AbstractBatchExecutor<Expression, Object
                 };
             }
             
-            MethodSourceCode.Builder b = MethodSourceCode.builder();
-            b.addModifier(Modifier.STATIC);
-            b.setReturnType(returnType);
-            b.addThrows(GoogleTypes.THROWABLE);
-            b.addChildren(st);
-            methods.add(b.build());
+            builder.setReturnType(returnType);
+            builder.addChildren(st);
+            methods.add(builder.build());
+            builder.getChildren().clear();
         });
         
         return executor.execute(env, methods);
