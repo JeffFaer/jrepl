@@ -1,6 +1,12 @@
 package falgout.jrepl.command.execute.codegen;
 
+import static java.util.stream.Collectors.joining;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class NamedSourceCode<T> implements SourceCode<T> {
@@ -12,6 +18,7 @@ public abstract class NamedSourceCode<T> implements SourceCode<T> {
         protected static final String DEFAULT_NAME = "Generated";
         
         private final String preferredName;
+        private List<SourceCode<? extends Annotation>> annotations = new ArrayList<>();
         private int modifiers = DEFAULT_MODIFIERS;
         private String name;
         
@@ -25,7 +32,24 @@ public abstract class NamedSourceCode<T> implements SourceCode<T> {
         
         @Override
         public B initialize(S source) {
-            this.setModifiers(source.getModifiers()).setName(source.getName());
+            this.setModifiers(source.getModifiers())
+                    .setName(source.getName())
+                    .setAnnotations(new ArrayList<>(source.getAnnotations()));
+            return getBuilder();
+        }
+        
+        public List<SourceCode<? extends Annotation>> getAnnotations() {
+            return annotations;
+        }
+        
+        @SafeVarargs
+        public final B addAnnotation(SourceCode<? extends Annotation>... annotations) {
+            this.annotations.addAll(requireNonNull(annotations));
+            return getBuilder();
+        }
+        
+        public B setAnnotations(List<SourceCode<? extends Annotation>> annotations) {
+            this.annotations = requireNonNull(annotations);
             return getBuilder();
         }
         
@@ -54,19 +78,25 @@ public abstract class NamedSourceCode<T> implements SourceCode<T> {
         
         @Override
         public S build() {
-            return build(modifiers,
+            return build(annotations, modifiers,
                     name == null ? String.format(GENERATED_NAME_TEMPLATE, preferredName, ID.incrementAndGet()) : name);
         }
         
-        protected abstract S build(int modifiers, String name);
+        protected abstract S build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name);
     }
     
+    private final List<? extends SourceCode<? extends Annotation>> annotations;
     private final int modifiers;
     private final String name;
     
-    protected NamedSourceCode(int modifiers, String name) {
+    protected NamedSourceCode(List<? extends SourceCode<? extends Annotation>> annotations, int modifiers, String name) {
+        this.annotations = annotations;
         this.modifiers = modifiers;
         this.name = name;
+    }
+    
+    public List<? extends SourceCode<? extends Annotation>> getAnnotations() {
+        return Collections.unmodifiableList(annotations);
     }
     
     public int getModifiers() {
@@ -78,8 +108,19 @@ public abstract class NamedSourceCode<T> implements SourceCode<T> {
     }
     
     protected String getModifierString(int modifiers) {
-        String mods = Modifier.toString(modifiers);
-        return mods.isEmpty() ? mods : mods + " ";
+        StringBuilder b = new StringBuilder();
+        
+        b.append(annotations.stream().map(SourceCode::toString).collect(joining(" ")));
+        if (b.length() != 0) {
+            b.append(" ");
+        }
+        b.append(Modifier.toString(modifiers));
+        
+        if (b.length() == 0) {
+            return "";
+        } else {
+            return b.append(" ").toString();
+        }
     }
     
     public String getName() {

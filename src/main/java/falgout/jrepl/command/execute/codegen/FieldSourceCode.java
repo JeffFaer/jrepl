@@ -1,6 +1,8 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Objects;
 
 import com.google.common.reflect.TypeToken;
@@ -26,8 +28,8 @@ public class FieldSourceCode extends NamedSourceCode<Field> {
         }
         
         @Override
-        protected FieldSourceCode build(int modifiers, String name) {
-            return new FieldSourceCode(modifiers, name, type);
+        protected FieldSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name) {
+            return new FieldSourceCode(annotations, modifiers, name, type);
         }
         
         @Override
@@ -38,8 +40,9 @@ public class FieldSourceCode extends NamedSourceCode<Field> {
     
     private final TypeToken<?> type;
     
-    protected FieldSourceCode(int modifiers, String name, TypeToken<?> type) {
-        super(modifiers, name);
+    protected FieldSourceCode(List<? extends SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+            TypeToken<?> type) {
+        super(annotations, modifiers, name);
         this.type = type;
     }
     

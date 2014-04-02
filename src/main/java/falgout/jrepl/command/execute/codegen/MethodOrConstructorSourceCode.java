@@ -3,6 +3,7 @@ package falgout.jrepl.command.execute.codegen;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,18 +108,19 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
         }
         
         @Override
-        protected S build(int modifiers, String name, List<SourceCode<? extends Statement>> children) {
+        protected S build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+                List<SourceCode<? extends Statement>> children) {
             List<String> actualNames = IntStream.range(0, parameters.size())
                     .mapToObj(i -> parameterNamer.apply(parameters.get(i), i))
                     .collect(Collectors.toList());
             
-            return build(modifiers, name, children, returnType, new ArrayList<>(parameters), actualNames,
+            return build(annotations, modifiers, name, children, returnType, new ArrayList<>(parameters), actualNames,
                     new ArrayList<>(thro));
         }
         
-        protected abstract S build(int modifiers, String name, List<SourceCode<? extends Statement>> children,
-                TypeToken<?> returnType, List<TypeToken<?>> parameters, List<String> parameterNames,
-                List<TypeToken<? extends Throwable>> thro);
+        protected abstract S build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+                List<SourceCode<? extends Statement>> children, TypeToken<?> returnType, List<TypeToken<?>> parameters,
+                List<String> parameterNames, List<TypeToken<? extends Throwable>> thro);
     }
     
     private final TypeToken<?> returnType;
@@ -126,10 +128,10 @@ public abstract class MethodOrConstructorSourceCode<T> extends NestedSourceCode<
     private final List<String> parameterNames;
     private final List<TypeToken<? extends Throwable>> thro;
     
-    protected MethodOrConstructorSourceCode(int modifiers, String name, List<SourceCode<? extends Statement>> children,
-            TypeToken<?> returnType, List<TypeToken<?>> parameters, List<String> parameterNames,
-            List<TypeToken<? extends Throwable>> thro) {
-        super(modifiers, name, children);
+    protected MethodOrConstructorSourceCode(List<? extends SourceCode<? extends Annotation>> annotations,
+            int modifiers, String name, List<SourceCode<? extends Statement>> children, TypeToken<?> returnType,
+            List<TypeToken<?>> parameters, List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
+        super(annotations, modifiers, name, children);
         this.returnType = returnType;
         this.parameters = parameters;
         this.parameterNames = parameterNames;

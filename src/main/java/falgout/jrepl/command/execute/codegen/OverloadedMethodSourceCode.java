@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute.codegen;
 
 import static java.util.stream.Collectors.joining;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +33,9 @@ public class OverloadedMethodSourceCode extends NestedSourceCode<Method, Method>
         }
         
         @Override
-        protected OverloadedMethodSourceCode build(int modifiers, String name,
-                List<SourceCode<? extends Method>> children) {
-            return new OverloadedMethodSourceCode(modifiers, name, children, primary);
+        protected OverloadedMethodSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers,
+                String name, List<SourceCode<? extends Method>> children) {
+            return new OverloadedMethodSourceCode(annotations, modifiers, name, children, primary);
         }
         
         @Override
@@ -45,9 +46,9 @@ public class OverloadedMethodSourceCode extends NestedSourceCode<Method, Method>
     
     private final NamedSourceCode<? extends Method> primary;
     
-    protected OverloadedMethodSourceCode(int modifiers, String name, List<SourceCode<? extends Method>> children,
-            NamedSourceCode<? extends Method> primary) {
-        super(modifiers, name, children);
+    protected OverloadedMethodSourceCode(List<? extends SourceCode<? extends Annotation>> annotations, int modifiers,
+            String name, List<SourceCode<? extends Method>> children, NamedSourceCode<? extends Method> primary) {
+        super(annotations, modifiers, name, children);
         this.primary = primary;
     }
     

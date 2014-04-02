@@ -44,6 +44,7 @@ public class ClassCompiler extends CodeCompiler<Class<?>> {
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         JavaFileManager manager = JAVAC.getStandardFileManager(diagnostics, null, null);
         
+        System.out.println(input);
         CompilationTask task = JAVAC.getTask(env.getError(), manager, diagnostics, options, null, sources);
         
         if (task.call()) {

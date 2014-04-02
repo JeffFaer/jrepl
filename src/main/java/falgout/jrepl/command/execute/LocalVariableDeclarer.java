@@ -96,8 +96,8 @@ public class LocalVariableDeclarer extends AbstractExecutor<VariableDeclarationS
         b.addChildren(source);
         
         if (initialize.size() > 0) {
-            NestedSourceCode<Member, Member> block = new NestedSourceCode<Member, Member>(Modifier.STATIC, null,
-                    Collections.singletonList(createInitializer(initialize))) {
+            NestedSourceCode<Member, Member> block = new NestedSourceCode<Member, Member>(Collections.EMPTY_LIST,
+                    Modifier.STATIC, null, Collections.singletonList(createInitializer(initialize))) {
                 @Override
                 public Member getTarget(Class<?> clazz) throws ReflectiveOperationException {
                     return null;

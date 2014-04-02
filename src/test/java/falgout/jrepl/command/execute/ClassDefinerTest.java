@@ -114,4 +114,13 @@ public class ClassDefinerTest {
         Class<?> clazz = parse("public @interface Foo {}", "Foo").get(0);
         assertTrue(clazz.isAnnotation());
     }
+    
+    @Test
+    public void canUseDefinedAnnotations() throws ParsingException, ExecutionException {
+        env.execute("import java.lang.annotation.*;");
+        env.execute("@Retention(RetentionPolicy.RUNTIME) public @interface Foo{}");
+        Class<?> clazz = parse("@Foo public class Bar {}", "Bar").get(0);
+        assertEquals(1, clazz.getAnnotations().length);
+        assertEquals("Foo", clazz.getAnnotations()[0].annotationType().getSimpleName());
+    }
 }

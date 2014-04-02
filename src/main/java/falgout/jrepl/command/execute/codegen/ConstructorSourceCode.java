@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.List;
 
@@ -14,10 +15,10 @@ public class ConstructorSourceCode extends MethodOrConstructorSourceCode<Constru
         public Builder() {}
         
         @Override
-        protected ConstructorSourceCode build(int modifiers, String name,
-                List<SourceCode<? extends Statement>> children, TypeToken<?> returnType, List<TypeToken<?>> parameters,
-                List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
-            return new ConstructorSourceCode(modifiers, name, children, parameters, parameterNames, thro);
+        protected ConstructorSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers,
+                String name, List<SourceCode<? extends Statement>> children, TypeToken<?> returnType,
+                List<TypeToken<?>> parameters, List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
+            return new ConstructorSourceCode(annotations, modifiers, name, children, parameters, parameterNames, thro);
         }
         
         @Override
@@ -26,9 +27,10 @@ public class ConstructorSourceCode extends MethodOrConstructorSourceCode<Constru
         }
     }
     
-    protected ConstructorSourceCode(int modifiers, String name, List<SourceCode<? extends Statement>> children,
-            List<TypeToken<?>> parameters, List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
-        super(modifiers, name, children, null, parameters, parameterNames, thro);
+    protected ConstructorSourceCode(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+            List<SourceCode<? extends Statement>> children, List<TypeToken<?>> parameters, List<String> parameterNames,
+            List<TypeToken<? extends Throwable>> thro) {
+        super(annotations, modifiers, name, children, null, parameters, parameterNames, thro);
     }
     
     @Override

@@ -2,6 +2,7 @@ package falgout.jrepl.command.execute.codegen;
 
 import static java.util.stream.Collectors.joining;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,18 +46,20 @@ public abstract class NestedSourceCode<T, C> extends NamedSourceCode<T> {
         }
         
         @Override
-        protected S build(int modifiers, String name) {
-            return build(modifiers, name, new ArrayList<>(children));
+        protected S build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name) {
+            return build(annotations, modifiers, name, new ArrayList<>(children));
         }
         
-        protected abstract S build(int modifiers, String name, List<SourceCode<? extends C>> children);
+        protected abstract S build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+                List<SourceCode<? extends C>> children);
     }
     
     protected static final String TAB = "    ";
     private final List<SourceCode<? extends C>> children;
     
-    protected NestedSourceCode(int modifiers, String name, List<SourceCode<? extends C>> children) {
-        super(modifiers, name);
+    protected NestedSourceCode(List<? extends SourceCode<? extends Annotation>> annotations, int modifiers,
+            String name, List<SourceCode<? extends C>> children) {
+        super(annotations, modifiers, name);
         this.children = children;
     }
     

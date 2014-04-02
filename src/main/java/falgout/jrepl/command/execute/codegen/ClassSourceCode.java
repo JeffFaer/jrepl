@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
 import java.util.List;
 
@@ -43,9 +44,11 @@ public class ClassSourceCode extends TypeSourceCode {
         }
         
         @Override
-        protected ClassSourceCode build(int modifiers, String name, List<SourceCode<? extends Member>> children,
-                String _package, List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
-            return new ClassSourceCode(modifiers, name, children, _package, imports, superclass, superinterfaces);
+        protected ClassSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+                List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+                TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
+            return new ClassSourceCode(annotations, modifiers, name, children, _package, imports, superclass,
+                    superinterfaces);
         }
         
         @Override
@@ -54,9 +57,10 @@ public class ClassSourceCode extends TypeSourceCode {
         }
     }
     
-    protected ClassSourceCode(int modifiers, String name, List<SourceCode<? extends Member>> children, String _package,
-            List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
-        super(modifiers, name, children, _package, imports, superclass, superinterfaces);
+    protected ClassSourceCode(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+            List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+            TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
+        super(annotations, modifiers, name, children, _package, imports, superclass, superinterfaces);
     }
     
     @Override

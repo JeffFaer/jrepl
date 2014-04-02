@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -41,17 +42,18 @@ public class MethodSourceCode extends MethodOrConstructorSourceCode<Method> {
         }
         
         @Override
-        protected MethodSourceCode build(int modifiers, String name, List<SourceCode<? extends Statement>> children,
-                TypeToken<?> returnType, List<TypeToken<?>> parameters, List<String> parameterNames,
-                List<TypeToken<? extends Throwable>> thro) {
-            return new MethodSourceCode(modifiers, name, children, returnType, parameters, parameterNames, thro);
+        protected MethodSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers,
+                String name, List<SourceCode<? extends Statement>> children, TypeToken<?> returnType,
+                List<TypeToken<?>> parameters, List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
+            return new MethodSourceCode(annotations, modifiers, name, children, returnType, parameters, parameterNames,
+                    thro);
         }
     }
     
-    protected MethodSourceCode(int modifiers, String name, List<SourceCode<? extends Statement>> children,
-            TypeToken<?> returnType, List<TypeToken<?>> parameters, List<String> parameterNames,
-            List<TypeToken<? extends Throwable>> thro) {
-        super(modifiers, name, children, returnType, parameters, parameterNames, thro);
+    protected MethodSourceCode(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+            List<SourceCode<? extends Statement>> children, TypeToken<?> returnType, List<TypeToken<?>> parameters,
+            List<String> parameterNames, List<TypeToken<? extends Throwable>> thro) {
+        super(annotations, modifiers, name, children, returnType, parameters, parameterNames, thro);
     }
     
     @Override

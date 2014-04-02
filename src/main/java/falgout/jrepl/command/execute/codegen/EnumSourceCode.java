@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
 import java.util.List;
 
@@ -14,12 +15,6 @@ public class EnumSourceCode extends TypeSourceCode {
         
         protected Builder() {
             super(ENUM_PREFFERED_NAME);
-        }
-        
-        @Override
-        protected EnumSourceCode build(int modifiers, String name, List<SourceCode<? extends Member>> children,
-                String _package, List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
-            return new EnumSourceCode(modifiers, name, children, _package, imports, superinterfaces);
         }
         
         @Override
@@ -38,14 +33,22 @@ public class EnumSourceCode extends TypeSourceCode {
         }
         
         @Override
+        protected EnumSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+                List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+                TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
+            return new EnumSourceCode(annotations, modifiers, name, children, _package, imports, superinterfaces);
+        }
+        
+        @Override
         protected Builder getBuilder() {
             return this;
         }
     }
     
-    protected EnumSourceCode(int modifiers, String name, List<SourceCode<? extends Member>> children, String _package,
-            List<Import> imports, List<TypeToken<?>> superinterfaces) {
-        super(modifiers, name, children, _package, imports, TypeToken.of(Enum.class), superinterfaces);
+    protected EnumSourceCode(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+            List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+            List<TypeToken<?>> superinterfaces) {
+        super(annotations, modifiers, name, children, _package, imports, TypeToken.of(Enum.class), superinterfaces);
     }
     
     @Override

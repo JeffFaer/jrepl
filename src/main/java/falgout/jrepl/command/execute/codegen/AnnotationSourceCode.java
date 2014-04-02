@@ -20,9 +20,10 @@ public class AnnotationSourceCode extends TypeSourceCode {
         }
         
         @Override
-        protected AnnotationSourceCode build(int modifiers, String name, List<SourceCode<? extends Member>> children,
-                String _package, List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
-            return new AnnotationSourceCode(modifiers, name, children, _package, imports, superinterfaces);
+        protected AnnotationSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers,
+                String name, List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+                TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
+            return new AnnotationSourceCode(annotations, modifiers, name, children, _package, imports, superinterfaces);
         }
         
         @Override
@@ -31,9 +32,10 @@ public class AnnotationSourceCode extends TypeSourceCode {
         }
     }
     
-    protected AnnotationSourceCode(int modifiers, String name, List<SourceCode<? extends Member>> children,
-            String _package, List<Import> imports, List<TypeToken<?>> superinterfaces) {
-        super(modifiers, name, children, _package, imports, GoogleTypes.OBJECT,
+    protected AnnotationSourceCode(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+            List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+            List<TypeToken<?>> superinterfaces) {
+        super(annotations, modifiers, name, children, _package, imports, GoogleTypes.OBJECT,
                 Collections.singletonList(TypeToken.of(Annotation.class)));
     }
     

@@ -1,5 +1,6 @@
 package falgout.jrepl.command.execute.codegen;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
 import java.util.List;
 
@@ -18,12 +19,6 @@ public class InterfaceSourceCode extends TypeSourceCode {
         }
         
         @Override
-        protected InterfaceSourceCode build(int modifiers, String name, List<SourceCode<? extends Member>> children,
-                String _package, List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
-            return new InterfaceSourceCode(modifiers, name, children, _package, imports, superinterfaces);
-        }
-        
-        @Override
         public List<TypeToken<?>> getSuperinterfaces() {
             return super.getSuperinterfaces();
         }
@@ -39,14 +34,22 @@ public class InterfaceSourceCode extends TypeSourceCode {
         }
         
         @Override
+        protected InterfaceSourceCode build(List<SourceCode<? extends Annotation>> annotations, int modifiers,
+                String name, List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+                TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
+            return new InterfaceSourceCode(annotations, modifiers, name, children, _package, imports, superinterfaces);
+        }
+        
+        @Override
         protected Builder getBuilder() {
             return this;
         }
     }
     
-    protected InterfaceSourceCode(int modifiers, String name, List<SourceCode<? extends Member>> children,
-            String _package, List<Import> imports, List<TypeToken<?>> superinterfaces) {
-        super(modifiers, name, children, _package, imports, GoogleTypes.OBJECT, superinterfaces);
+    protected InterfaceSourceCode(List<SourceCode<? extends Annotation>> annotations, int modifiers, String name,
+            List<SourceCode<? extends Member>> children, String _package, List<Import> imports,
+            List<TypeToken<?>> superinterfaces) {
+        super(annotations, modifiers, name, children, _package, imports, GoogleTypes.OBJECT, superinterfaces);
     }
     
     @Override

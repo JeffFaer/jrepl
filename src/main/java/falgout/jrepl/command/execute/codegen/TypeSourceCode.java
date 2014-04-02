@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
@@ -104,13 +105,15 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
         }
         
         @Override
-        protected S build(int modifiers, String name, List<SourceCode<? extends Member>> children) {
-            return build(modifiers, name, children, _package, new ArrayList<>(imports), superclass, new ArrayList<>(
-                    superinterfaces));
+        protected S build(List<SourceCode<? extends java.lang.annotation.Annotation>> annotations, int modifiers,
+                String name, List<SourceCode<? extends Member>> children) {
+            return build(annotations, modifiers, name, children, _package, new ArrayList<>(imports), superclass,
+                    new ArrayList<>(superinterfaces));
         }
         
-        protected abstract S build(int modifiers, String name, List<SourceCode<? extends Member>> children,
-                String _package, List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces);
+        protected abstract S build(List<SourceCode<? extends java.lang.annotation.Annotation>> annotations,
+                int modifiers, String name, List<SourceCode<? extends Member>> children, String _package,
+                List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces);
     }
     
     private final String _package;
@@ -118,9 +121,10 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
     private final TypeToken<?> superclass;
     private final List<TypeToken<?>> superinterfaces;
     
-    protected TypeSourceCode(int modifiers, String name, List<SourceCode<? extends Member>> children, String _package,
+    protected TypeSourceCode(List<? extends SourceCode<? extends java.lang.annotation.Annotation>> annotations,
+            int modifiers, String name, List<SourceCode<? extends Member>> children, String _package,
             List<Import> imports, TypeToken<?> superclass, List<TypeToken<?>> superinterfaces) {
-        super(modifiers, name, children);
+        super(annotations, modifiers, name, children);
         this._package = _package;
         this.imports = imports;
         this.superclass = superclass;
@@ -153,7 +157,7 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
         if (_static) {
             mods |= Modifier.STATIC;
         }
-        return new NamedSourceCode<NestedClass<?>>(mods, getName()) {
+        return new NamedSourceCode<NestedClass<?>>(getAnnotations(), mods, getName()) {
             @Override
             public NestedClass<?> getTarget(Class<?> clazz) throws ReflectiveOperationException {
                 for (Class<?> c : clazz.getClasses()) {
@@ -240,6 +244,11 @@ public abstract class TypeSourceCode extends NestedSourceCode<Class<?>, Member> 
             
             private <B extends Builder<? extends TypeSourceCode, ?>> B initialize(AbstractTypeDeclaration node,
                     B builder) {
+                node.modifiers().forEach(m -> {
+                    if (m instanceof Annotation) {
+                        builder.addAnnotation(new DelegateSourceCode<>(m));
+                    }
+                });
                 builder.setModifiers(node.getModifiers());
                 builder.setName(node.getName().toString());
                 builder.addChildren(getBody(node.bodyDeclarations()));
